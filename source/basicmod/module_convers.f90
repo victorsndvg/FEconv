@@ -24,7 +24,7 @@ module module_convers
 !   replace: subroutine to replace in a string a substring by another one
 !   freplace: function that returns a string replacing a substring by another one
 !   word: gets the first word of a string
-!   truncate_string: returns the begining of the string before the separator
+!   trim: returns the begining of a string before the first/last appearance of separator
 !-----------------------------------------------------------------------
 use module_compiler_dependant, only: real64
 use module_os_dependant, only: maxpath
@@ -38,7 +38,8 @@ character(*), parameter :: default_format_real64  = 'E25.16' ! default real64 fo
 
 !Private procedures
 private :: string_int, string_real, string_dbl, string_log, string_char, int_char, &
-           int_char_alloc, real_char, dble_char, string_int_array, string_dble_array
+           int_char_alloc, real_char, dble_char, string_int_array, string_dble_array, &
+           trim_prv
 
 !Interfaces
 interface string;  module procedure string_int;        end interface
@@ -52,6 +53,7 @@ interface int;     module procedure int_char;          end interface
 interface int;     module procedure int_char_alloc;    end interface
 interface real;    module procedure real_char;         end interface
 interface dble;    module procedure dble_char;         end interface
+interface trim;    module procedure trim_prv;          end interface
 
 contains
 
@@ -410,21 +412,21 @@ end function
 
 
 !-----------------------------------------------------------------------
-! truncate_string: returns the begining of the string before the separator
+! trim: returns the beginning of a string before the first/last appearance of a separator
 !-----------------------------------------------------------------------
-function truncate_string(line,sep) result(res)
-  character(len=*), intent(in)  :: line
-  character(len=*), intent(in)  :: sep
-  character(len=maxpath)        :: res
-  integer                       :: pos
+function trim_prv(str, sep, back) result(res)
+character(*),      intent(in) :: str
+character(*),      intent(in) :: sep
+logical, optional, intent(in) :: back
+character(len(str)) :: res
+integer :: pos
 
-    pos = INDEX(line(1:), sep)
-    if (pos == 0) then
-      res = line
-    else
-      res = line(1:pos-1)
-    endif
-
+pos = index(str, sep, back = back)
+if (pos == 0) then
+  res = str
+else
+  res = str(1:pos-1)
+endif
 end function
 
 end module
