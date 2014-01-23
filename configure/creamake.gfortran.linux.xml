@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Configuration data file for creamake with gfortran in Linux-->
+<!-- suggested fflags: -std=f2003 -Wall -g -fcheck=all -fbacktrace -fall-intrinsics -->
+<content>
+
+<sources>
+source
+source/basicmod
+source/basicmod/gfortran
+source/basicmod/alloc
+source/basicmod/vtk
+source/basicmod/fe
+source/cuthill_mckee
+source/ansys
+source/patran
+source/unv
+source/mfm
+source/mum
+source/vtu
+source/mphtxt
+</sources>
+ 
+<compiler>
+gfortran
+</compiler>
+
+<fflags>
+-ffree-line-length-0 -ffixed-line-length-0
+</fflags>
+
+</content>

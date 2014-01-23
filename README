@@ -1,0 +1,21 @@
+===========================================
+Installation
+===========================================
+
+A) INSTALLATION FROM BINARIES
+
+Just download the file with binaries for one of the available operating systems. No installation is needed.
+
+B) INSTALLATION FROM SOURCE 
+
+You must have installed 'make' in your system and either the GNU Fortran compiler, gfortran, or the Intel Fortran compiler, ifort.
+
+1. Decompress feconv_src_<date>.tar.gz, where <date> is the date of the release.
+
+2. Open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the installation folder and type:
+
+     make -f Makefile.<compiler>.<os>
+
+   where <compiler> can be "gfortran" or "ifort" and <os> can be "linux" or "windows" (for Mac OS X, "linux" is the valid option).
+
+You can get additional information about this program in the file doc/index.xhtml

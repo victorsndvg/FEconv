@@ -1,0 +1,193 @@
+module module_feconv
+!-----------------------------------------------------------------------
+! Module to convert between several mesh and FE field formats
+!
+! Licensing: This code is distributed under the GNU GPL license.
+! Author: Francisco Pena, fran(dot)pena(at)usc(dot)es
+! Last update: 10/05/2013
+!
+! PUBLIC PROCEDURES:
+!   convert: converts between several mesh and FE field formats
+!   is_arg: returns true when the argument is present
+!-----------------------------------------------------------------------
+use module_compiler_dependant, only: real64
+use module_os_dependant, only: maxpath
+use module_report, only: error
+use module_convers, only: adjustlt
+use module_files, only: get_unit
+use module_transform, only: lagr2l2, lagr2rt, lagr2nd
+use module_cuthill_mckee, only: cuthill_mckee
+use module_ansys, only: load_ansys
+use module_unv, only: load_unv
+use module_patran, only: load_patran
+use module_mfm, only: load_mfm, save_mfm
+use module_mum, only: load_mum, save_mum
+use module_vtu, only: save_vtu, type_cell
+use module_mphtxt, only: load_mphtxt
+implicit none
+
+!Variables for MFM format
+integer                                   :: nel  = 0 !global number of elements
+integer                                   :: nnod = 0 !global number of nodes
+integer                                   :: nver = 0 !global number of vertices
+integer                                   :: dim  = 0 !space dimension
+integer                                   :: lnn  = 0 !local number of nodes
+integer                                   :: lnv  = 0 !local number of vertices
+integer                                   :: lne  = 0 !local number of edges
+integer                                   :: lnf  = 0 !local number of faces
+integer,      allocatable, dimension(:,:) :: nn       !nodes index array
+integer,      allocatable, dimension(:,:) :: mm       !vertices index array
+integer,      allocatable, dimension(:,:) :: nrv      !vertices reference array
+integer,      allocatable, dimension(:,:) :: nra      !edge reference array
+integer,      allocatable, dimension(:,:) :: nrc      !face reference array
+real(real64), allocatable, dimension(:,:) :: z        !vertices coordinates array
+integer,      allocatable, dimension(:)   :: nsd      !subdomain index array
+
+contains
+!-----------------------------------------------------------------------
+! convert: converts between several mesh and FE field formats
+!-----------------------------------------------------------------------
+subroutine convert(args)
+character(*), intent(in) :: args(:)
+character(maxpath) :: infile = ' ', inext = ' ', outfile = ' ', outext = ' '
+integer :: i, p
+
+!find infile and out file among arguments
+do i = 1, size(args,1)
+  if (args(i)(1:1) /= '-') then
+    infile = args(i)
+    p = index(infile, '.', back = .true.)
+    inext = infile(p+1:len_trim(infile))
+    exit
+  end if
+end do
+do i = size(args,1), 1, -1
+  if (args(i)(1:1) /= '-') then
+    outfile = args(i)
+    p = index(outfile, '.', back = .true.)
+    outext = outfile(p+1:len_trim(outfile))
+    exit
+  end if
+end do
+
+!checks
+if (len_trim(infile)  == 0) call  error('(module_feconv/fe_conv) unable to find input file.')
+if (len_trim(outfile) == 0) call  error('(module_feconv/fe_conv) unable to find output file.')
+if (len_trim(inext)   == 0) call  error('(module_feconv/fe_conv) unable to find input file extension.')
+if (len_trim(outext)  == 0) call  error('(module_feconv/fe_conv) unable to find output file extension.')
+select case (trim(adjustlt(outext))) !check outfile extension now, avoid reading infile
+case('mfm', 'mum', 'vtu')
+  continue
+case default
+  call  error('(module_feconv/fe_conv) output file extension not implemented: '//trim(adjustlt(outext)))
+end select
+
+!read mesh
+if (trim(adjustlt(inext)) /= 'unv' .and. is_arg(args, '-is')) call  error('(module_feconv/fe_conv) only UNV input files can manage -is option.')
+select case (trim(adjustlt(inext)))
+case('mfm')
+  print '(a)', 'Loading MFM mesh file...'
+  call load_mfm(  infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+case('mum')
+  print '(a)', 'Loading MUM mesh file...'
+  call load_mum(  infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+case('msh')
+  print '(a)', 'Loading ANSYS mesh file...'
+  call load_ansys(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+case('unv')
+  print '(a)', 'Loading UNV mesh file...'
+  call load_unv(infile,               nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, is_arg(args, '-is'))
+case('bdf')
+  print '(a)', 'Loading MD Nastran input file...'
+  call load_patran(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+case('mphtxt')
+  print '(a)', 'Loading COMSOL mesh file...'
+  call load_mphtxt(infile,            nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+case default
+  call  error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
+end select
+print '(a)', 'FE type of the input mesh: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf))
+
+!transform
+if (is_arg(args, '-l2')) then
+  print '(/a)', 'Converting Lagrange P1 mesh into Lagrange P2 mesh...'
+  call lagr2l2(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
+elseif (is_arg(args, '-rt')) then
+  print '(/a)', 'Converting Lagrange P1 mesh into Raviart-Thomas (face) mesh...'
+  call lagr2rt(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
+elseif (is_arg(args, '-nd')) then
+  print '(/a)', 'Converting Lagrange P1 mesh into Whitney (edge) mesh...'
+  call lagr2nd(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
+end if
+
+!bandwidth optimization
+if (is_arg(args, '-cm')) then
+  call cuthill_mckee(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, z)
+end if
+
+!save mesh
+select case (trim(adjustlt(outext)))
+case('mfm')
+  print '(/a)', 'Saving MFM mesh file...'
+  call save_mfm(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  print '(a)', 'Done!'
+case('mum')
+  print '(/a)', 'Saving MUM mesh file...'
+  call save_mum(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  print '(a)', 'Done!'
+case('vtu')
+  print '(a)',' '
+  print*, 'OUTFILE'
+  print*, outfile
+  print*, 'NEL'
+  print*, nel
+  print*, 'NNOD'
+  print*, nnod
+  print*, 'NVER'
+  print*, nver
+  print*, 'DIM'
+  print*, dim
+  print*, 'LNN'
+  print*, lnn
+  print*, 'LNV'
+  print*, lnv
+  print*, 'LNE'
+  print*, lne
+  print*, 'LNF'
+  print*, lnf
+  print*, 'NN'
+  print*, nn
+  print*, 'MM'
+  print*, mm
+  print*, 'NRC'
+  print*, nrc
+  print*, 'NRA'
+  print*, nra
+  print*, 'NRV'
+  print*, nrv
+  print*, 'Z'
+  print*, z
+  print*, 'NSD'
+  print*, nsd
+  call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+end select !case default, already checked before reading infile
+
+end subroutine
+
+!-----------------------------------------------------------------------
+! is_arg: returns true when the argument is present
+!-----------------------------------------------------------------------
+logical function is_arg(args, argument)
+character(*), intent(in) :: args(:), argument
+integer :: i
+
+is_arg = .false.
+do i = 1, size(args, 1)
+  if (args(i) == argument) then
+    is_arg = .true.
+    return
+  end if
+end do
+end function
+
+end module
