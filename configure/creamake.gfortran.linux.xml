@@ -9,7 +9,6 @@ source/basicmod
 source/basicmod/gfortran
 source/basicmod/alloc
 source/basicmod/vtk
-source/basicmod/fe
 source/cuthill_mckee
 source/ansys
 source/patran
@@ -18,6 +17,7 @@ source/mfm
 source/mum
 source/vtu
 source/mphtxt
+source/pmh
 </sources>
  
 <compiler>
