@@ -410,9 +410,8 @@ if (ios /= 0) call error('(module_convers/word) unable to read from string, #'//
 res = adjustlt(res)
 end function
 
-
 !-----------------------------------------------------------------------
-! trim: returns the beginning of a string before the first/last appearance of a separator
+! trim: returns the beginning of a string before the first/last appearance of separator
 !-----------------------------------------------------------------------
 function trim_prv(str, sep, back) result(res)
 character(*),      intent(in) :: str
