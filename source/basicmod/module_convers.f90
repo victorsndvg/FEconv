@@ -24,6 +24,7 @@ module module_convers
 !   replace: subroutine to replace in a string a substring by another one
 !   freplace: function that returns a string replacing a substring by another one
 !   word: gets the first word of a string
+!   truncate_string: returns the begining of the string before the separator
 !-----------------------------------------------------------------------
 use module_compiler_dependant, only: real64
 use module_os_dependant, only: maxpath
@@ -40,7 +41,7 @@ private :: string_int, string_real, string_dbl, string_log, string_char, int_cha
            int_char_alloc, real_char, dble_char, string_int_array, string_dble_array
 
 !Interfaces
-interface string;  module procedure string_int;       end interface
+interface string;  module procedure string_int;        end interface
 interface string;  module procedure string_real;       end interface
 interface string;  module procedure string_dbl;        end interface
 interface string;  module procedure string_log;        end interface
@@ -260,17 +261,23 @@ end do
 end function
 
 !-----------------------------------------------------------------------
-! word_count: counts the number of words in a string
+! word_count: counts the number of words in a string separated by sep
 !-----------------------------------------------------------------------
-function word_count(str) result(res)
-character(*), intent(in) :: str
-character(len(str)) :: tmp
+function word_count(str, sep) result(res)
+character(*),           intent(in) :: str
+character(*), optional, intent(in) :: sep
+character(len(str))                :: tmp
 integer :: res, p
 
 res = 0
 tmp = adjustlt(str)
 do 
-  p = index(tmp, ' ')
+  if(present(sep)) then
+    p = index(tmp, sep)  
+  else
+    p = index(tmp, ' ')  
+  endif
+
   if (len_trim(tmp(1:p-1)) == 0) return
   res = res + 1 
   tmp = adjustlt(tmp(p+1:len_trim(tmp)))
@@ -399,6 +406,25 @@ end do
 read(tmp, *, iostat=ios) res
 if (ios /= 0) call error('(module_convers/word) unable to read from string, #'//trim(string(ios)))
 res = adjustlt(res)
+end function
+
+
+!-----------------------------------------------------------------------
+! truncate_string: returns the begining of the string before the separator
+!-----------------------------------------------------------------------
+function truncate_string(line,sep) result(res)
+  character(len=*), intent(in)  :: line
+  character(len=*), intent(in)  :: sep
+  character(len=maxpath)        :: res
+  integer                       :: pos
+
+    pos = INDEX(line(1:), sep)
+    if (pos == 0) then
+      res = line
+    else
+      res = line(1:pos-1)
+    endif
+
 end function
 
 end module

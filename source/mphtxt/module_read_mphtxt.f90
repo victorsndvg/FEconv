@@ -5,10 +5,10 @@ module module_read_mphtxt
 !-----------------------------------------------------------------------
 use module_COMPILER_DEPENDANT, only: real64
 use module_os_dependant, only: maxpath
+use module_convers
 use module_ALLOC
 use module_mesh
 use module_pmh
-
 contains
 
 !***********************************************************************
@@ -42,9 +42,9 @@ subroutine read_mphtxt_header(iu, mphtxt_m)
       read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/header, #'//trim(string(ios)))
 
-      line = erase_comments(line,'#')
+      line = truncate_string(line,'#')
 
-      if (is_not_empty(line)) then ! Discards empty lines
+      if (len_trim(line) /= 0) then ! Discards empty lines
         ! File version
         if (version(1) == -1 .and. version(2) == -1 .and. word_count(line,' ') == 2) then
           read(line,*) version(1),version(2)
@@ -77,25 +77,6 @@ subroutine read_mphtxt_header(iu, mphtxt_m)
 
 end subroutine
 
-
-!type mphtxt_object
-!! Objects filled by the MPHTXT mesh file
-!  integer                                      :: sdim     ! Space dimension
-!  integer                                      :: npoints  ! Number of points
-!  integer                                      :: lowindex ! Lowest mesh point index
-!  integer                                      :: netypes     ! Number of element types
-!  type(mphtxt_type), dimension(:), allocatable :: etypes    ! Element types array
-!  real(real64), dimension(:, :), allocatable   :: coords   ! Coords array
-!end type
-
-!type piece
-!  integer                    :: dim  = 0  ! space dimension of the node/vertex coordinates
-!  integer                    :: nnod = 0  ! total number of nodes
-!  integer                    :: nver = 0  ! total number of vertices
-!  real(real64),  allocatable :: znod(:,:) ! node coordinates
-!  real(real64),  allocatable :: z(:,:)    ! vertex coordinates
-!  type(elgroup), allocatable :: el(:)     ! element groups  
-!end type
 
 !-----------------------------------------------------------------------
 ! read: read a object from mphtxt file
@@ -130,9 +111,9 @@ subroutine read_mphtxt_object(iu, mphtxt_o)
       read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/object, #'//trim(string(ios)))
 
-      line = erase_comments(line,'#')
+      line = truncate_string(line,'#')
 
-      if (is_not_empty(line)) then  ! Discards empty lines
+      if (len_trim(line) /= 0) then  ! Discards empty lines
         ! Serializable object
         if (serializable(1) == -1 .and. serializable(2) == -1 .and. serializable(3) == -1 .and. word_count(line,' ') == 3) then
           read(line,*) serializable(1), serializable(2), serializable(3)
@@ -228,9 +209,9 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
       read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/object/etype, #'//trim(string(ios)))
 
-      line = erase_comments(line,'#')
+      line = truncate_string(line,'#')
 
-      if (is_not_empty(line)) then  ! Discards empty lines
+      if (len_trim(line) /= 0) then  ! Discards empty lines
         ! FE type
         if (len_trim(fetype_name) == 0 .and. word_count(line,' ') == 2) then
           read(line,*) aux, fetype_name
@@ -300,60 +281,5 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
 
 end subroutine
 
-
-!-----------------------------------------------------------------------
-! erase_comments: discard a part of the line from a specified character
-!-----------------------------------------------------------------------
-
-character(len=MAXPATH) function erase_comments(line,ch) result(res)
-  character(len=MAXPATH), intent(in)  :: line
-  character,              intent(in)  :: ch
-  integer                             :: pos2
-
-    pos2 = INDEX(line(1:), ch)
-    if (pos2 == 0) then
-      res = line
-    else
-      res = line(1:pos2-1)
-    endif
-
-end function
-
-!-----------------------------------------------------------------------
-! word_count: counts the words between separators of a giving text
-!-----------------------------------------------------------------------
-
-integer function word_count(text,separator) result(res)
-
-  character(len=*), intent(in)        :: text
-  character,              intent(in)  :: separator
-  integer                             :: pos, i
-
-  pos = 1
-  res = 0
-
-  do
-    i = verify(text(pos:), separator)
-    if (i == 0) exit
-    res = res + 1
-    pos = pos + i - 1
-    i = scan(text(pos:), separator)
-    if (i == 0) exit
-    pos = pos + i - 1
-  enddo
-
-end function
-
-!-----------------------------------------------------------------------
-! in_not_empty: check if the text is empty
-!-----------------------------------------------------------------------
-
-logical function is_not_empty(text) result(res)
-  character(len=*), intent(in)  :: text
-
-    res = .True.
-    if (len_trim(text) == 0) res = .False.
-
-end function
 
 end module
