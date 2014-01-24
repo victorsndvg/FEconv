@@ -20,17 +20,16 @@ contains
 
 subroutine read_mphtxt_header(iu, mphtxt_m)
 
-  integer,                          intent(in)    :: iu        ! Unit number for mphtxtfile
+  integer,                          intent(in)    :: iu             ! Unit number for mphtxtfile
   type(pmh_mesh),                   intent(inout) :: mphtxt_m
-  integer,dimension(2)                            :: version   ! Version of mphtxtfile
+  integer,dimension(2)                            :: version        ! Version of mphtxtfile
   character(len=MAXPATH)                          :: line
   integer                                         :: aux, i, j
   integer                                         :: ntags, ntypes
-  character(len=MAXPATH),dimension(:),allocatable :: tags, types      ! Tags and typess
+  character(len=MAXPATH),dimension(:),allocatable :: tags, types    ! Tags and typess
 
     ! Variables initialization
     if (allocated(tags)) deallocate(tags)
-!    if (allocated(mphtxt_m%types)) deallocate(mphtxt_m%types)
     if (allocated(mphtxt_m%pc)) deallocate(mphtxt_m%pc)
     version = (/-1,-1/)
     ntags = -1
@@ -42,7 +41,7 @@ subroutine read_mphtxt_header(iu, mphtxt_m)
       read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/header, #'//trim(string(ios)))
 
-      line = truncate_string(line,'#')
+      line = trim(line,'#')
 
       if (len_trim(line) /= 0) then ! Discards empty lines
         ! File version
@@ -111,7 +110,7 @@ subroutine read_mphtxt_object(iu, mphtxt_o)
       read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/object, #'//trim(string(ios)))
 
-      line = truncate_string(line,'#')
+      line = trim(line,'#')
 
       if (len_trim(line) /= 0) then  ! Discards empty lines
         ! Serializable object
@@ -209,7 +208,7 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
       read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/object/etype, #'//trim(string(ios)))
 
-      line = truncate_string(line,'#')
+      line = trim(line,'#')
 
       if (len_trim(line) /= 0) then  ! Discards empty lines
         ! FE type

@@ -100,7 +100,7 @@ subroutine mphtxt2mfm(mphtxt_m, m)
   integer                                                :: maxfetype  ! Higher order FE type
   integer                                                :: maxfelnv    ! Max NN FE 
   integer                                                :: sdim, numpoints, numvertex, numedges, numtriangs, numtetras, numel
-  integer                                                :: i, j, aux, iniobj, endobj, inietype, endetype
+  integer                                                :: i, j, aux, iniobj, endobj, inietype, endetype, etype
 
   if (allocated(m)) deallocate(m)
   sdim = 0
@@ -129,14 +129,17 @@ subroutine mphtxt2mfm(mphtxt_m, m)
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Only tetra, triangle, edge and vertex (P1 and P2)
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      if (mphtxt_m%pc(i)%el(j)%type == NODE2 .or. mphtxt_m%pc(i)%el(j)%type == NODE2) then       ! Vertex
+      etype = mphtxt_m%pc(i)%el(j)%type
+      if (etype == NODE2 .or. etype == NODE3) then       ! Vertex
         numvertex = numvertex + mphtxt_m%pc(i)%el(j)%nel
-      elseif (mphtxt_m%pc(i)%el(j)%type == ED2_P1 .or. mphtxt_m%pc(i)%el(j)%type == ED3_P1) then ! Edge P1
+      elseif (etype == ED2_P1 .or. etype == ED3_P1) then ! Edge P1
         numedges = numedges + mphtxt_m%pc(i)%el(j)%nel
-      elseif (mphtxt_m%pc(i)%el(j)%type == TR2_P1 .or. mphtxt_m%pc(i)%el(j)%type == TR3_P1) then ! Triangle P1
+      elseif (etype == TR2_P1 .or. etype == TR3_P1) then ! Triangle P1
         numtriangs = numtriangs + mphtxt_m%pc(i)%el(j)%nel;
-      elseif (mphtxt_m%pc(i)%el(j)%type == TET_P1) then                                          ! Tetrahedra P1
+      elseif (etype == TET_P1) then                      ! Tetrahedra P1
         numtetras = numtetras + mphtxt_m%pc(i)%el(j)%nel
+      else
+        call error("Finite element type not allowed in Modulef")
       endif
     enddo
   enddo
