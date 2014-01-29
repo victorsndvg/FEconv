@@ -231,6 +231,15 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
         elseif (allocated(mphtxt_t%nn) .and. (i <= mphtxt_t%nel).and. word_count(line,' ') == local_nnodes) then
           read(line,*) (mphtxt_t%nn(m,i), m=1,local_nnodes)
           mphtxt_t%nn(:,i) = mphtxt_t%nn(:,i) - offset + 1
+	  if (mphtxt_t%type == QU2_P1 .or. mphtxt_t%type == QU3_P1) then
+              aux = mphtxt_t%nn(4,i)
+              mphtxt_t%nn(4,i) = mphtxt_t%nn(3,i)
+              mphtxt_t%nn(3,i) = aux
+          endif
+
+	  if (mphtxt_t%type == ED2_P1 .or. mphtxt_t%type == ED3_P1) then
+		print*, '********', mphtxt_t%nn(:,i)
+          endif
 	  print*, 'mphtxt_t%nn: ', mphtxt_t%nn(:,i)
           i = i+1
           if (i > mphtxt_t%nel) cycle ! Number of parameters already readed. 
@@ -256,7 +265,7 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
         ! Number of parameters
         elseif (allocated(mphtxt_t%ref) .and. (k <= nindices) .and. word_count(line,' ') == 1) then
           read(line,*) mphtxt_t%ref(k)
-          mphtxt_t%ref(k) = mphtxt_t%ref(k) + 1
+          mphtxt_t%ref(k) = mphtxt_t%ref(k) + 1 !PMH indices starts in 1
           print*, 'mphtxt_t%ref:', mphtxt_t%ref(k)
           k = k+1
           if (k > nindices) cycle ! Number of geometric indices already readed.
