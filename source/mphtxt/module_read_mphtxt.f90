@@ -20,17 +20,16 @@ contains
 
 subroutine read_mphtxt_header(iu, mphtxt_m)
 
-  integer,                          intent(in)    :: iu        ! Unit number for mphtxtfile
+  integer,                          intent(in)    :: iu             ! Unit number for mphtxtfile
   type(pmh_mesh),                   intent(inout) :: mphtxt_m
-  integer,dimension(2)                            :: version   ! Version of mphtxtfile
+  integer,dimension(2)                            :: version        ! Version of mphtxtfile
   character(len=MAXPATH)                          :: line
   integer                                         :: aux, i, j
   integer                                         :: ntags, ntypes
-  character(len=MAXPATH),dimension(:),allocatable :: tags, types      ! Tags and typess
+  character(len=MAXPATH),dimension(:),allocatable :: tags, types    ! Tags and typess
 
     ! Variables initialization
     if (allocated(tags)) deallocate(tags)
-!    if (allocated(mphtxt_m%types)) deallocate(mphtxt_m%types)
     if (allocated(mphtxt_m%pc)) deallocate(mphtxt_m%pc)
     version = (/-1,-1/)
     ntags = -1
@@ -42,7 +41,7 @@ subroutine read_mphtxt_header(iu, mphtxt_m)
       read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/header, #'//trim(string(ios)))
 
-      line = truncate_string(line,'#')
+      line = trim(line,'#')
 
       if (len_trim(line) /= 0) then ! Discards empty lines
         ! File version
@@ -111,7 +110,7 @@ subroutine read_mphtxt_object(iu, mphtxt_o)
       read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/object, #'//trim(string(ios)))
 
-      line = truncate_string(line,'#')
+      line = trim(line,'#')
 
       if (len_trim(line) /= 0) then  ! Discards empty lines
         ! Serializable object
@@ -209,7 +208,7 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
       read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/object/etype, #'//trim(string(ios)))
 
-      line = truncate_string(line,'#')
+      line = trim(line,'#')
 
       if (len_trim(line) /= 0) then  ! Discards empty lines
         ! FE type
@@ -232,6 +231,15 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
         elseif (allocated(mphtxt_t%nn) .and. (i <= mphtxt_t%nel).and. word_count(line,' ') == local_nnodes) then
           read(line,*) (mphtxt_t%nn(m,i), m=1,local_nnodes)
           mphtxt_t%nn(:,i) = mphtxt_t%nn(:,i) - offset + 1
+	  if (mphtxt_t%type == QU2_P1 .or. mphtxt_t%type == QU3_P1) then
+              aux = mphtxt_t%nn(4,i)
+              mphtxt_t%nn(4,i) = mphtxt_t%nn(3,i)
+              mphtxt_t%nn(3,i) = aux
+          endif
+
+	  if (mphtxt_t%type == ED2_P1 .or. mphtxt_t%type == ED3_P1) then
+		print*, '********', mphtxt_t%nn(:,i)
+          endif
 	  print*, 'mphtxt_t%nn: ', mphtxt_t%nn(:,i)
           i = i+1
           if (i > mphtxt_t%nel) cycle ! Number of parameters already readed. 
@@ -257,7 +265,7 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
         ! Number of parameters
         elseif (allocated(mphtxt_t%ref) .and. (k <= nindices) .and. word_count(line,' ') == 1) then
           read(line,*) mphtxt_t%ref(k)
-          mphtxt_t%ref(k) = mphtxt_t%ref(k) + 1
+          mphtxt_t%ref(k) = mphtxt_t%ref(k) + 1 !PMH indices starts in 1
           print*, 'mphtxt_t%ref:', mphtxt_t%ref(k)
           k = k+1
           if (k > nindices) cycle ! Number of geometric indices already readed.

@@ -46,6 +46,7 @@ integer                               :: d, DIM
   print*, 'READING MPHTXT FILE:'
   print*, '-------------------------'
   call read_mphtxt(u, m, mphtxt_m, DIM)
+!  call counter_clockwise_orientation(mphtxt_m)
   call mphtxt2mfm(mphtxt_m, m)
 
 
@@ -99,8 +100,8 @@ subroutine mphtxt2mfm(mphtxt_m, m)
   type(mfm_mesh), dimension(:),allocatable,intent(inout) :: m          ! MFM mesh
   integer                                                :: maxfetype  ! Higher order FE type
   integer                                                :: maxfelnv    ! Max NN FE 
-  integer                                                :: sdim, numpoints, numvertex, numedges, numtriangs, numtetras, numel
-  integer                                                :: i, j, aux, iniobj, endobj, inietype, endetype
+  integer                                                :: sdim, numpoints, numvertex, numedges, numsurfels, numvolels, numel
+  integer                                                :: i, j, aux, iniobj, endobj, inietype, endetype, etype
 
   if (allocated(m)) deallocate(m)
   sdim = 0
@@ -109,8 +110,8 @@ subroutine mphtxt2mfm(mphtxt_m, m)
   numpoints  = 0
   numvertex  = 0
   numedges   = 0
-  numtriangs = 0
-  numtetras  = 0
+  numsurfels = 0
+  numvolels  = 0
   numel      = 0
 
   ! loop in objects
@@ -129,22 +130,25 @@ subroutine mphtxt2mfm(mphtxt_m, m)
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! Only tetra, triangle, edge and vertex (P1 and P2)
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      if (mphtxt_m%pc(i)%el(j)%type == NODE2 .or. mphtxt_m%pc(i)%el(j)%type == NODE2) then       ! Vertex
+      etype = mphtxt_m%pc(i)%el(j)%type
+      if (etype == NODE2 .or. etype == NODE3) then       ! Vertex
         numvertex = numvertex + mphtxt_m%pc(i)%el(j)%nel
-      elseif (mphtxt_m%pc(i)%el(j)%type == ED2_P1 .or. mphtxt_m%pc(i)%el(j)%type == ED3_P1) then ! Edge P1
+      elseif (etype == ED2_P1 .or. etype == ED3_P1) then ! Edge P1
         numedges = numedges + mphtxt_m%pc(i)%el(j)%nel
-      elseif (mphtxt_m%pc(i)%el(j)%type == TR2_P1 .or. mphtxt_m%pc(i)%el(j)%type == TR3_P1) then ! Triangle P1
-        numtriangs = numtriangs + mphtxt_m%pc(i)%el(j)%nel;
-      elseif (mphtxt_m%pc(i)%el(j)%type == TET_P1) then                                          ! Tetrahedra P1
-        numtetras = numtetras + mphtxt_m%pc(i)%el(j)%nel
+      elseif (etype == TR2_P1 .or. etype == TR3_P1 .or. etype == QU2_P1 .or. etype == QU3_P1) then ! Triangle P1
+        numsurfels = numsurfels + mphtxt_m%pc(i)%el(j)%nel;
+      elseif (etype == TET_P1 .or. etype == HEX_P1) then                      ! Tetrahedra P1
+        numvolels = numvolels + mphtxt_m%pc(i)%el(j)%nel
+      else
+        call error("Finite element type not allowed in Modulef")
       endif
     enddo
   enddo
 
-  if (numtetras /= 0) then
-    numel = numtetras
-  elseif (numtriangs/= 0) then
-    numel = numtriangs
+  if (numvolels /= 0) then
+    numel = numvolels
+  elseif (numsurfels/= 0) then
+    numel = numsurfels
   elseif (numedges/= 0) then
     numel = numedges
   elseif (numpoints/= 0) then
@@ -169,8 +173,8 @@ subroutine mphtxt2mfm(mphtxt_m, m)
   allocate(m(sdim)%rf(m(sdim)%LNF, numel)) ! nrc
   allocate(m(sdim)%rl(numel))              ! nsd
 
-  print*, 'numtetras:', numtetras
-  print*, 'numtriangs:',numtriangs
+  print*, 'numvolels:', numvolels
+  print*, 'numsurfels:',numsurfels
   print*, 'numedges:', numedges
   print*, 'numpoints:', numpoints
 
@@ -195,9 +199,9 @@ subroutine mphtxt2mfm(mphtxt_m, m)
   print*, 1
   call mphtxt_build_nn_nsd(mphtxt_m, maxfetype, sdim, m)
   print*, 2
-  if (numtetras /= 0) call mphtxt_build_nrc(mphtxt_m, maxfetype, sdim, m)
+  if (numvolels /= 0) call mphtxt_build_nrc(mphtxt_m, maxfetype, sdim, m)
   print*, 3
-  if (numtriangs /= 0) call mphtxt_build_nra(mphtxt_m, maxfetype, sdim, m)
+  if (numsurfels /= 0) call mphtxt_build_nra(mphtxt_m, maxfetype, sdim, m)
   print*, 4
   call mphtxt_build_nrv(mphtxt_m, maxfetype, sdim, m)
   print*, 5
@@ -260,7 +264,7 @@ subroutine mphtxt_build_nrc(mphtxt_m, maxfetype, sdim, m)
 
   do i = 1, size(mphtxt_m%pc,1)                              ! loop over all mphtxt objects
     do j = 1, size(mphtxt_m%pc(i)%el,1)                      ! loop over all element types
-      if (FEDB(mphtxt_m%pc(i)%el(j)%type)%lnv == 3) then   ! Check element vertices (3 = triangles)
+      if (mphtxt_m%pc(i)%el(j)%type == TR2_P1 .or. mphtxt_m%pc(i)%el(j)%type == TR3_P1) then   ! Check element vertices (3 = triangles)
 	print*, sdim, size(m(sdim)%iv,1), size(m(sdim)%iv,2), size(mphtxt_m%pc(i)%el(j)%nn,1),size(mphtxt_m%pc(i)%el(j)%nn,2)
         do ii = 1, size(m(sdim)%iv,2)                        ! loop over mesh connectivity array (mm)
           do jj = 1, mphtxt_m%pc(i)%el(j)%nel                ! loop over all elements in a type
@@ -293,17 +297,17 @@ end subroutine
 !! mphtxt_build_nra: build nra. Must be called after build mm
 !!-----------------------------------------------------------------------
 subroutine mphtxt_build_nra(mphtxt_m, maxfetype, sdim, m)
-  type(pmh_mesh),                             intent(in)    :: mphtxt_m   ! MPHTXT mesh
+  type(pmh_mesh),                            intent(in)    :: mphtxt_m   ! MPHTXT mesh
   type(mfm_mesh), dimension(:), allocatable, intent(inout) :: m          ! MFM mesh
-  integer,                                intent(in)    :: maxfetype  ! Higher order FE type 
-  integer,                                intent(in)    :: sdim       ! Space dimension
-  integer                                               :: i, j, ii, jj, kk, indx
-  integer, dimension(2)                                 :: pos
-  logical                                               :: founded
+  integer,                                   intent(in)    :: maxfetype  ! Higher order FE type 
+  integer,                                   intent(in)    :: sdim       ! Space dimension
+  integer                                                  :: i, j, ii, jj, kk, indx
+  integer, dimension(2)                                    :: pos
+  logical                                                  :: founded
 
-  do i = 1, size(mphtxt_m%pc,1)                                            ! loop over all mphtxt objects
+  do i = 1, size(mphtxt_m%pc,1)                               ! loop over all mphtxt objects
     do j = 1, size(mphtxt_m%pc(i)%el,1)                       ! loop over all element types
-      if (FEDB(mphtxt_m%pc(i)%el(j)%type)%lnv == 2) then    ! Check element dimension (triangles)
+      if (mphtxt_m%pc(i)%el(j)%type == ED2_P1 .or. mphtxt_m%pc(i)%el(j)%type == ED3_P1 ) then      ! Check element dimension (triangles)
         do ii = 1, size(m(sdim)%iv,2)                         ! loop over mesh connectivity array (mm)
           do jj = 1, mphtxt_m%pc(i)%el(j)%nel                 ! loop over all elements in a type
             founded = .true.
@@ -317,12 +321,22 @@ subroutine mphtxt_build_nra(mphtxt_m, maxfetype, sdim, m)
               call search_pos(m(sdim)%iv(:,ii), mphtxt_m%pc(i)%el(j)%nn(:, jj), pos, size(m(sdim)%iv,1), size(mphtxt_m%pc(i)%el(j)%nn,1))
               call sort_bubble(pos, size(mphtxt_m%pc(i)%el(j)%nn,1))
               indx = mphtxt_m%pc(i)%el(j)%ref(jj)
-              if (pos(1) == 1 .and. pos(2) == 2) then; m(sdim)%re(1, ii) = indx;
-              elseif (pos(1) == 2 .and. pos(2) == 3) then; m(sdim)%re(2, ii) = indx;
-              elseif (pos(1) == 1 .and. pos(2) == 3) then; m(sdim)%re(3, ii) = indx;
-              elseif (pos(1) == 1 .and. pos(2) == 4) then; m(sdim)%re(4, ii) = indx;
-              elseif (pos(1) == 2 .and. pos(2) == 4) then; m(sdim)%re(5, ii) = indx;
-              elseif (pos(1) == 3 .and. pos(2) == 4) then; m(sdim)%re(6, ii) = indx;
+              if (maxfetype == TR2_P1 .or. maxfetype == TR3_P1 .or. maxfetype == TET_P1) then
+                if (pos(1) == 1 .and. pos(2) == 2) then; m(sdim)%re(1, ii) = indx;
+                elseif (pos(1) == 2 .and. pos(2) == 3) then; m(sdim)%re(2, ii) = indx;
+                elseif (pos(1) == 1 .and. pos(2) == 3) then; m(sdim)%re(3, ii) = indx;
+                elseif (pos(1) == 1 .and. pos(2) == 4) then; m(sdim)%re(4, ii) = indx;
+                elseif (pos(1) == 2 .and. pos(2) == 4) then; m(sdim)%re(5, ii) = indx;
+                elseif (pos(1) == 3 .and. pos(2) == 4) then; m(sdim)%re(6, ii) = indx;
+                endif
+              elseif (maxfetype == QU2_P1 .or. maxfetype == QU3_P1) then
+                if (pos(1) == 1 .and. pos(2) == 2) then; m(sdim)%re(1, ii) = indx;
+                elseif (pos(1) == 2 .and. pos(2) == 3) then; m(sdim)%re(2, ii) = indx;
+                elseif (pos(1) == 3 .and. pos(2) == 4) then; m(sdim)%re(3, ii) = indx;
+                elseif (pos(1) == 1 .and. pos(2) == 4) then; m(sdim)%re(4, ii) = indx;
+                endif
+              else 
+                call error('module_mphtxt/mphtxt_build_nra# Element type not supported yet')	
               endif
             endif
           enddo
@@ -347,7 +361,7 @@ subroutine mphtxt_build_nrv(mphtxt_m, maxfetype, sdim, m)
 
   do i = 1, size(mphtxt_m%pc,1)                                            ! loop over all mphtxt objects
     do j = 1, size(mphtxt_m%pc(i)%el,1)                              ! loop over all element types
-      if (FEDB(mphtxt_m%pc(i)%el(j)%type)%lnv == 1) then ! Check element dimension (triangles)
+      if (mphtxt_m%pc(i)%el(j)%type == NODE2 .or. mphtxt_m%pc(i)%el(j)%type == NODE3) then ! Check element dimension (triangles)
         do ii = 1, size(m(sdim)%iv,2)                                  ! loop over mesh connectivity array (mm)
           do jj = 1, mphtxt_m%pc(i)%el(j)%nel           ! loop over all elements in a type
             founded = .true.
