@@ -10,7 +10,6 @@ module module_files
 !   get_unit: seeks a non connected unit number
 !   file_exists: checks the existence of a file
 !   get_name: removes the path from a filename
-!   remove_ext: removes the extension from a filename
 !-----------------------------------------------------------------------
 use module_os_dependant, only: slash
 use module_report, only: error, info
@@ -70,19 +69,6 @@ integer :: p
 
 p = index(str, slash(), back = .true.)
 res = str(p+1:len_trim(str))
-end function
-
-!-----------------------------------------------------------------------
-! remove_ext: removes the extension from a filename
-!-----------------------------------------------------------------------
-function remove_ext(str) result(res)
-character(*), intent(in) :: str
-character(len(str)) :: res
-integer :: p
-
-res = str
-p = index(str, '.')
-if  (p > 0) res = str(:p-1)
 end function
 
 end module

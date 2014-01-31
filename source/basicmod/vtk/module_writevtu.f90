@@ -66,7 +66,7 @@ integer :: i
 integer(I4P), dimension(:), allocatable  :: nn_aux ! fix ifort
 
 nl = nel; nd = nnod
-print*, '----------', 1
+!print*, '----------', 1
 if (cell_type(celldesc, DIM, LNV, LNN, LNE, LNF, CTYPE) /= 0) stop 'writeVTU: cell_type error'
 DIM = size(z,1) !change DIM for triangles in 3D
 print'(a)', 'Saving mesh data...'
@@ -273,7 +273,7 @@ integer(I1P) :: CTYPE !cell linear type (according to VTK format)
 integer :: i
 
 integer(I4P), dimension(:), allocatable  :: nn_aux ! fix ifort
-print*, '----------', 2
+!print*, '----------', 2
 if (cell_type(celldesc, DIM, LNV, LNN, LNE, LNF, CTYPE) /= 0) stop 'writeVTU: cell_type error'
 print'(a)', 'Writing a VTU binary file...'
 print'(a)', 'Saving mesh data...'
@@ -374,7 +374,7 @@ integer(I1P) :: CTYPE !cell linear type (according to VTK format)
 integer :: i
 
 integer(I4P), dimension(:), allocatable  :: nn_aux ! fix ifort
-print*, '----------', 3
+!print*, '----------', 3
 if (cell_type(celldesc, DIM, LNV, LNN, LNE, LNF, CTYPE) /= 0) stop 'writeVTU: cell_type error'
 print'(a)', 'Writing a VTU binary file...'
 print'(a)', 'Saving mesh data...'
@@ -496,9 +496,9 @@ case default
   res = -1
 end select
 
-print*, '-------------------------------------------------'
-print*, name, DIM, LNV, LNN, LNE, LNF, CTYPE
-print*, '-------------------------------------------------'
+!print*, '-------------------------------------------------'
+!print*, name, DIM, LNV, LNN, LNE, LNF, CTYPE
+!print*, '-------------------------------------------------'
 
 end function
 

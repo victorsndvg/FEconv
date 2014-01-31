@@ -15,6 +15,7 @@ use module_os_dependant, only: maxpath
 use module_report, only: error
 use module_convers, only: adjustlt
 use module_files, only: get_unit
+use module_args, only: get_arg, is_arg, get_post_arg
 use module_transform, only: lagr2l2, lagr2rt, lagr2nd
 use module_cuthill_mckee, only: cuthill_mckee
 use module_ansys, only: load_ansys
@@ -44,38 +45,25 @@ real(real64), allocatable, dimension(:,:) :: z        !vertices coordinates arra
 integer,      allocatable, dimension(:)   :: nsd      !subdomain index array
 
 contains
+
 !-----------------------------------------------------------------------
 ! convert: converts between several mesh and FE field formats
 !-----------------------------------------------------------------------
-subroutine convert(args)
-character(*), intent(in) :: args(:)
+subroutine convert()
 character(maxpath) :: infile = ' ', inext = ' ', outfile = ' ', outext = ' '
 integer :: i, p
 
 !find infile and out file among arguments
-do i = 1, size(args,1)
-  if (args(i)(1:1) /= '-') then
-    infile = args(i)
-    p = index(infile, '.', back = .true.)
-    inext = infile(p+1:len_trim(infile))
-    exit
-  end if
-end do
-do i = size(args,1), 1, -1
-  if (args(i)(1:1) /= '-') then
-    outfile = args(i)
-    p = index(outfile, '.', back = .true.)
-    outext = outfile(p+1:len_trim(outfile))
-    exit
-  end if
-end do
+nargs   = command_argument_count()
+infile  = get_arg(nargs-1); p = index( infile, '.', back = .true.); inext  =  infile(p+1:len_trim( infile))
+outfile = get_arg(nargs);   p = index(outfile, '.', back = .true.); outext = outfile(p+1:len_trim(outfile))
 
 !checks
 if (len_trim(infile)  == 0) call  error('(module_feconv/fe_conv) unable to find input file.')
 if (len_trim(outfile) == 0) call  error('(module_feconv/fe_conv) unable to find output file.')
 if (len_trim(inext)   == 0) call  error('(module_feconv/fe_conv) unable to find input file extension.')
 if (len_trim(outext)  == 0) call  error('(module_feconv/fe_conv) unable to find output file extension.')
-select case (trim(adjustlt(outext))) !check outfile extension now, avoid reading infile
+select case (trim(adjustlt(outext))) !check outfile extension now (avoid reading infile when outfile is invalid)
 case('mfm', 'mum', 'vtu')
   continue
 case default
@@ -136,58 +124,8 @@ case('mum')
   call save_mum(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   print '(a)', 'Done!'
 case('vtu')
-  print '(a)',' '
-  print*, 'OUTFILE'
-  print*, outfile
-  print*, 'NEL'
-  print*, nel
-  print*, 'NNOD'
-  print*, nnod
-  print*, 'NVER'
-  print*, nver
-  print*, 'DIM'
-  print*, dim
-  print*, 'LNN'
-  print*, lnn
-  print*, 'LNV'
-  print*, lnv
-  print*, 'LNE'
-  print*, lne
-  print*, 'LNF'
-  print*, lnf
-  print*, 'NN'
-  print*, nn
-  print*, 'MM'
-  print*, mm
-  print*, 'NRC'
-  print*, nrc
-  print*, 'NRA'
-  print*, nra
-  print*, 'NRV'
-  print*, nrv
-  print*, 'Z'
-  print*, z
-  print*, 'NSD'
-  print*, nsd
   call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
 end select !case default, already checked before reading infile
-
 end subroutine
-
-!-----------------------------------------------------------------------
-! is_arg: returns true when the argument is present
-!-----------------------------------------------------------------------
-logical function is_arg(args, argument)
-character(*), intent(in) :: args(:), argument
-integer :: i
-
-is_arg = .false.
-do i = 1, size(args, 1)
-  if (args(i) == argument) then
-    is_arg = .true.
-    return
-  end if
-end do
-end function
 
 end module

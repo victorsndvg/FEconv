@@ -4,21 +4,15 @@
 <content>
 
 <sources>
-source
-source/basicmod
-source/basicmod/gfortran
-source/basicmod/args
-source/basicmod/alloc
-source/basicmod/vtk
-source/cuthill_mckee
-source/ansys
-source/patran
-source/unv
-source/mfm
-source/mum
-source/vtu
-source/mphtxt
-source/pmh
+.
+..
+../../basicmod
+../../basicmod/gfortran
+../../basicmod/args
+../../basicmod/alloc
+../../basicmod/vtk
+../../mfm
+../../vtu
 </sources>
  
 <compiler>

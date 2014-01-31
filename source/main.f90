@@ -7,31 +7,27 @@ program feconv
 ! Last update: see variable 'last_update'
 !-----------------------------------------------------------------------
 use module_convers, only: string
-use module_feconv
+use module_args, only: get_args, is_arg
+use module_feconv, only: convert
 implicit none
 
-character(maxpath), allocatable :: args(:)
 character(maxpath) :: cad
-character(10)   :: last_update = '01/06/2013'
-integer :: length, stat, nargs, res, i
+character(10) :: last_update = '23/01/2014'
+integer :: nargs, res, i
 
 !read and store arguments
 nargs = command_argument_count()
 if (nargs == 0) call error('(feconv) command line arguments not found; to show help information: feconv -h')
-allocate(args(nargs), stat = res, errmsg = cad)
-if (res /= 0) call error('(feconv) unable to allocate variable args: '//trim(cad))
-do i = 1, nargs
-  call get_command_argument(i, args(i), length, stat)
-  if (stat /= 0) call error('(feconv) command line argument '//trim(string(i))//' not readable.')
-end do
-if (is_arg(args, '-v')) then
+call get_args()
+
+if (is_arg('-v')) then
   !show version
   print '(a)', 'Utility to convert between several mesh and FE field formats'
   print '(a)', 'Licensing: This code is distributed under the GNU GPL license'
   print '(a)', 'Author: Ingenieria Matematica, http://www.usc.es/ingmat/?lang=en'
   print '(a/)', 'Last update: '//last_update
   stop
-elseif (is_arg(args, '-h')) then
+elseif (is_arg('-h')) then
   !show help
   print '(a)', 'NAME'
   print '(a)', '    feconv - utility to convert between several mesh and FE field formats'
@@ -53,7 +49,8 @@ elseif (is_arg(args, '-h')) then
   print '(a)', '        Show version information and exit'
   print '(a)', ' '
   print '(a)', '    -is'
-  print '(a)', '        Input file contains P2 isoparametrical elements that must be read using Salome ordering (vertices and midpoints sandwiched)'
+  print '(a)', '        Input file contains P2 isoparametrical elements that must be read using Salome ordering (vertices'
+  print '(a)', '        and midpoints sandwiched)'
   print '(a)', ' '
   print '(a)', '    -l1'
   print '(a)', '        Output file will contain Lagrange P1 finite elements'
@@ -70,7 +67,16 @@ elseif (is_arg(args, '-h')) then
   print '(a)', '    -cm'
   print '(a)', '        Performs a bandwidth optimization using the CutHill-McKee algorithm'
   print '(a)', ' '
-  print '(a)', '    -s=<file> (not implemented)'
+  print '(a)', '    -p <n>'
+  print '(a)', '        When the input the input mesh is divided in several pieces (like in VTU or MPHTXT formats), <n> is '
+  print '(a)', '        the number of the piece to be saved. If not present, the first piece is saved. When <n> is 0, all '
+  print '(a)', '        pieces are merged (not implemented); coincident nodes from different pieces are not indentified; '
+  print '(a)', '        use option -glue identify coincident nodes from different pieces (not implemented)'
+  print '(a)', ' '
+  print '(a)', '    -glue'
+  print '(a)', '        Used with option -p 0, identify coincident nodes from different pieces (not implemented)'
+  print '(a)', ' '
+  print '(a)', '    -s <file> (not implemented)'
   print '(a)', '        A series of fields must be processed; <file> is the name of an ASCII file containing '
   print '(a)', '        two columns separated by blank spaces: for each line, the first column is a real number'
   print '(a)', '        representing a parameter value (time, frequancy, etc.); the second column is the name'
@@ -118,6 +124,6 @@ elseif (is_arg(args, '-h')) then
 end if
 
 !choose converter according to arguments
-call convert(args)
+call convert()
 
 end program

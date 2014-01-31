@@ -131,10 +131,10 @@ case('triangle2') !triangles P2
       eln = 0._real64
       do k = 1, nel
         do l = 1, lnv; do m = 1, 2
-          eln(nn(edge_tria(m,l),k)) = max(eln(mm(edge_tria(m,l),k)), true64(nra(l,k)==ref(j)))
+          eln(nn(edge_tria(m,l),k)) = max(eln(nn(edge_tria(m,l),k)), true64(nra(l,k)==ref(j)))
         end do; end do
         do l = 1, lnn-lnv
-          eln(nn(l+lnv,k)) = max(eln(nn(l+lnv,k)), (eln(nn(edge_tria(1,l),k))+eln(nn(edge_tria(2,l),k)))/2)
+          eln(nn(l+lnv,k)) = max(eln(nn(l+lnv,k)), min(eln(nn(edge_tria(1,l),k)),eln(nn(edge_tria(2,l),k))))
         end do
       end do
       call VTU_write_pointdata(eln, 'nra_'//trim(string(ref(j))), 'scalar')
@@ -203,10 +203,10 @@ case('tetra2') !tetrahedra P2
       elv = 0._real64
       do k = 1, nel
         do l = 1, lne; do m = 1, 2
-          elv(mm(edge_tetra(m,l),k)) = max(elv(mm(edge_tetra(m,l),k)), true64(nra(l,k)==ref(j)))
+          elv(nn(edge_tetra(m,l),k)) = max(elv(nn(edge_tetra(m,l),k)), true64(nra(l,k)==ref(j)))
         end do; end do
         do l = 1, lnn-lnv
-          eln(nn(l+lnv,k)) = max(eln(nn(l+lnv,k)), (eln(nn(edge_tetra(1,l),k))+eln(nn(edge_tetra(2,l),k)))/2)
+          eln(nn(l+lnv,k)) = max(eln(nn(l+lnv,k)), min(eln(nn(edge_tetra(1,l),k)),eln(nn(edge_tetra(2,l),k))))
         end do
       end do
       call VTU_write_pointdata(elv, 'nra_'//trim(string(ref(j))), 'scalar')
@@ -220,10 +220,11 @@ case('tetra2') !tetrahedra P2
       elv = 0._real64
       do k = 1,nel
         do l = 1, lnf; do m = 1,3
-          elv(mm(face_tetra(m,l),k)) = max(elv(mm(face_tetra(m,l),k)), true64(nrc(l,k)==ref(j)))
+          elv(nn(face_tetra(m,l),k)) = max(elv(nn(face_tetra(m,l),k)), true64(nrc(l,k)==ref(j)))
         enddo; enddo
         do l = 1, lnn-lnv
-          eln(nn(l+lnv,k)) = max(eln(nn(l+lnv,k)), (eln(nn(edge_tetra(1,l),k))+eln(nn(edge_tetra(2,l),k)))/2)
+          eln(nn(l+lnv,k)) = max(eln(nn(l+lnv,k)), min(eln(nn(face_tetra(1,l),k)),eln(nn(face_tetra(2,l),k)),&
+          eln(nn(face_tetra(3,l),k))))
         end do
       enddo
       call VTU_write_pointdata(eln, 'nrc_'//trim(string(ref(j))), 'scalar')
@@ -419,11 +420,9 @@ elseif (DIM==3 .and. LNV==6 .and. LNN== 6 .and. LNE== 9 .and. LNF==5) then
 elseif (DIM==3 .and. LNV==5 .and. LNN== 5 .and. LNE== 8 .and. LNF==5) then
   res = 'pyramid'
 else
- print*, 'DIM= ', DIM, 'LNV= ', LNV, 'LNN= ', LNN, 'LNE= ', LNE, 'LNF= ', LNF, 'nver==nnod: ', nver == nnod
- call error('type_cell, cell not recognized.')
+  call error('(module_vtu/type_cell), cell not recognized: DIM = '//trim(string(DIM))//', LNV = '//trim(string(LNV))//', LNN = '//&
+  &trim(string(LNN))//', LNE = '//trim(string(LNE))//', LNF = '//trim(string(LNF))//', nver==nnod: '//trim(string(nver == nnod)))
 end if
-
- print*, 'DIM= ', DIM, 'LNV= ', LNV, 'LNN= ', LNN, 'LNE= ', LNE, 'LNF= ', LNF, 'nver==nnod: ', nver, nnod, 'celltype',res
 end function
 
 !-----------------------------------------------------------------------
