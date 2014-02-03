@@ -94,7 +94,7 @@ subroutine read_mphtxt_object(iu, mphtxt_o)
 
     ! Variables initialization
 !    if (allocated(mphtxt_o%etypes)) deallocate(mphtxt_o%etypes)
-    if (allocated(mphtxt_o%z)) deallocate(mphtxt_o%znod)
+    if (allocated(mphtxt_o%z)) deallocate(mphtxt_o%z)
 !    if (allocated(mphtxt_o%etypes)) deallocate(mphtxt_o%etypes)
     mphtxt_o%dim      = -1
     mphtxt_o%nnod     = -1
@@ -118,38 +118,38 @@ subroutine read_mphtxt_object(iu, mphtxt_o)
           read(line,*) serializable(1), serializable(2), serializable(3)
           if (.not. (serializable(1) == 0 .or. serializable(1) == 1)) call error('mphtxt_file/object, Only versions 0 or 1 supported #'//string(serializable))
           if (serializable(3) /= 1) call error('mphtxt_file/object, Not serializable object #'//string(serializable))
-	  print*, 'serializable:', serializable
+          print*, 'serializable:', serializable
         ! Object class
         elseif (obj_class == '' .and. word_count(line,' ') == 2) then
           read(line,*) aux, obj_class
-	  print*, 'obj_class:', trim(obj_class)
+          print*, 'obj_class:', trim(obj_class)
           if (obj_class /= 'Mesh') call error('mphtxt_file/object, Only mesh object allowed #'//trim(obj_class))
         ! Object version
         elseif (version == -1 .and. (word_count(line,' ') == 1)) then
           read(line,*) version
-	  print*, 'version:', version
+          print*, 'version:', version
         ! Space dimension
         elseif ((mphtxt_o%dim == -1) .and. (word_count(line,' ') == 1)) then
           read(line,*) mphtxt_o%dim
-	  print*, 'dimension:', mphtxt_o%dim
+          print*, 'dimension:', mphtxt_o%dim
         ! Number of points
         elseif ((mphtxt_o%nnod == -1) .and. (word_count(line,' ') == 1)) then
           read(line,*) mphtxt_o%nnod
-	  print*, 'nnod:', mphtxt_o%nnod
+          print*, 'nnod:', mphtxt_o%nnod
         ! Lowest mesh point index
         elseif ((offset == -1) .and. (word_count(line,' ') == 1)) then
           read(line,*) offset
-	  print*, 'nnod0:', offset
-          allocate(mphtxt_o%znod(mphtxt_o%dim,mphtxt_o%nnod))
+          print*, 'nnod0:', offset
+          allocate(mphtxt_o%z(mphtxt_o%dim,mphtxt_o%nnod))
         ! Point coordinates
-        elseif (allocated(mphtxt_o%znod) .and. (i <= mphtxt_o%nnod) .and. (word_count(line,' ') == mphtxt_o%dim)) then
-             read(line,*) (mphtxt_o%znod(k,i), k=1,mphtxt_o%dim)
-	     print*, 'znod:', mphtxt_o%znod(:,i)
+        elseif (allocated(mphtxt_o%z) .and. (i <= mphtxt_o%nnod) .and. (word_count(line,' ') == mphtxt_o%dim)) then
+             read(line,*) (mphtxt_o%z(:,i), k=1,mphtxt_o%dim)
+             print*, 'znod:', mphtxt_o%z(:,i)
              i = i+1
           if (i > mphtxt_o%nnod) cycle ! All coords already readed
         elseif ((netypes == -1) .and. (word_count(line,' ') == 1)) then
           read(line,*) netypes
-	  print*, 'elements:', netypes
+          print*, 'elements:', netypes
           allocate(mphtxt_o%el(netypes))
           exit ! Number of elements already readed. Object header readed.
         else
@@ -216,31 +216,57 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
           read(line,*) aux, fetype_name
           print*, 'fe type:', trim(fetype_name)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-          mphtxt_t%type = get_mphtxt_eltype(fetype_name)
+          mphtxt_t%type = mphtxt_get_type(fetype_name)
 !          call assign_FE_type(mphtxt_t%fetype, fetype_name)
         ! Local number of nodes per element
         elseif (local_nnodes == -1 .and. word_count(line,' ') == 1) then
           read(line,*) local_nnodes
-	  print*, 'local_nnodes: ', local_nnodes
+          print*, 'local_nnodes: ', local_nnodes
         ! Number of elements
         elseif (mphtxt_t%nel == -1 .and. word_count(line,' ') == 1) then
           read(line,*) mphtxt_t%nel
-	  print*, 'mphtxt_t%nel: ', mphtxt_t%nel
+          print*, 'mphtxt_t%nel: ', mphtxt_t%nel
           allocate(mphtxt_t%nn(local_nnodes, mphtxt_t%nel))
         ! Elements
         elseif (allocated(mphtxt_t%nn) .and. (i <= mphtxt_t%nel).and. word_count(line,' ') == local_nnodes) then
           read(line,*) (mphtxt_t%nn(m,i), m=1,local_nnodes)
           mphtxt_t%nn(:,i) = mphtxt_t%nn(:,i) - offset + 1
-	  if (mphtxt_t%type == QU2_P1 .or. mphtxt_t%type == QU3_P1) then
+      if (mphtxt_t%type == QU2_P1 .or. mphtxt_t%type == QU3_P1) then
               aux = mphtxt_t%nn(4,i)
               mphtxt_t%nn(4,i) = mphtxt_t%nn(3,i)
               mphtxt_t%nn(3,i) = aux
           endif
 
-	  if (mphtxt_t%type == ED2_P1 .or. mphtxt_t%type == ED3_P1) then
-		print*, '********', mphtxt_t%nn(:,i)
+!    def to_mfm_element_ordering(self, el, info):
+!    if info == 1:    #VTK_VERTEX
+!        order = [0]
+!    elif info == 3:  #VTK_LINE
+!        order = [0,1]
+!    elif info == 5:  #VTK_TRIANGLE
+!        order = [0,1,2]
+!    elif info == 9:  #VTK_QUAD
+!        order = [0,1,3,2]
+!    elif info == 10: #VTK_TETRA
+!        order = [0,1,2,3]
+!    elif info == 12: #VTK_HEXAHEDRON
+!        order = [0,1,3,2,4,5,7,6]
+!    elif info == 13: #VTK_WEDGE
+!        order = [0,1,2,3,4,5]
+!    elif info == 21: #VTK_QUADRATIC_EDGE
+!        order = [0,1,2]
+!    elif info == 22: #VTK_QUADRATIC_TRIANGLE
+!        order = [0,1,2,3,5,4]
+!    elif info == 23: #VTK_QUADRATIC_QUAD
+!        order = [0,1,3,2,4,7,8,5]
+!    elif info == 24: #VTK_QUADRATIC_TETRA
+!        order = [0,1,2,3,4,6,5,7,8,9]
+!    elif info == 25: #VTK_QUADRATIC_HEXAHEDRON
+!        order = [0,1,3,2, 4,5,7,6, 8,11,12,9, 13,15,21,19, 22,25,26,23]
+
+      if (mphtxt_t%type == ED2_P1 .or. mphtxt_t%type == ED3_P1) then
+               print*, '********', mphtxt_t%nn(:,i)
           endif
-	  print*, 'mphtxt_t%nn: ', mphtxt_t%nn(:,i)
+          print*, 'mphtxt_t%nn: ', mphtxt_t%nn(:,i)
           i = i+1
           if (i > mphtxt_t%nel) cycle ! Number of parameters already readed. 
 

@@ -74,9 +74,9 @@ subroutine read_mphtxt(this, m, mphtxt_m, maxdim)
   do i = 1, size(mphtxt_m%pc,1)
       print*, 'OBJECT:', i
       call read_mphtxt_object(this%unit, mphtxt_m%pc(i))
-      print*, mphtxt_m%pc(i)%znod
+      print*, mphtxt_m%pc(i)%z
       do j = 1, size(mphtxt_m%pc(i)%el,1)
-	print*, 'Element ', j
+    print*, 'Element ', j
         print*, mphtxt_m%pc(i)%el(j)%nn
       enddo
       if (maxdim < mphtxt_m%pc(i)%dim) maxdim = mphtxt_m%pc(i)%dim
