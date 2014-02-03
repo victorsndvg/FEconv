@@ -62,7 +62,13 @@ subroutine read_unv(this, m, maxdim, is_opt)
 ! dataset 2411, node coordinates
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
-  if (search_dataset_type(this,2411) /= 0) call error('unv/read, dataset 2411 not found')
+  if (search_dataset_type(this,2411) /= 0) then
+    if (search_dataset_type(this,781) /= 0) then  
+      call error('unv/read, dataset 2411 or 781 not found')
+    else
+      continue
+    end if
+  end if          
   call read_2411(this%unit, m(n))
 
 ! dataset 2412, elements
@@ -88,11 +94,15 @@ subroutine read_unv(this, m, maxdim, is_opt)
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
   if (search_dataset_type(this,2467) /= 0) then
-    call info('unv/read, dataset 2467 (groups) not found')
-    call alloc(m(n)%rv, m(n)%LNV, m(n)%nl)
-    call alloc(m(n)%re, m(n)%LNE, m(n)%nl)
-    call alloc(m(n)%rf, m(n)%LNF, m(n)%nl)
-    call alloc(m(n)%rl, m(n)%nl)
+    if (search_dataset_type(this,2435) /= 0) then
+      call info('unv/read, dataset 2467 or 2435 (groups) not found')
+      call alloc(m(n)%rv, m(n)%LNV, m(n)%nl)
+      call alloc(m(n)%re, m(n)%LNE, m(n)%nl)
+      call alloc(m(n)%rf, m(n)%LNF, m(n)%nl)
+      call alloc(m(n)%rl, m(n)%nl)
+    else
+      call read_2467(this%unit, m, n)
+    end if    
   else
     call read_2467(this%unit, m, n)
   end if

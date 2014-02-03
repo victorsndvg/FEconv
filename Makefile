@@ -134,7 +134,7 @@ includes =
 FC = gfortran
  
 # COMPILER OPTIONS
-FFLAGS = -J$(dir_objetos) -Wall -g -fcheck=all -fbacktrace -fall-intrinsics -ffree-line-length-0 -ffixed-line-length-0
+FFLAGS = -J$(dir_objetos) -Wall -g -fcheck=all -fbacktrace -fall-intrinsics
  
 # LINKER OPTIONS
 LDFLAGS = 

@@ -51,7 +51,7 @@ contains
 !-----------------------------------------------------------------------
 subroutine convert()
 character(maxpath) :: infile = ' ', inext = ' ', outfile = ' ', outext = ' '
-integer :: i, p
+integer :: i, p, nargs
 
 !find infile and out file among arguments
 nargs   = command_argument_count()
@@ -71,7 +71,8 @@ case default
 end select
 
 !read mesh
-if (trim(adjustlt(inext)) /= 'unv' .and. is_arg(args, '-is')) call  error('(module_feconv/fe_conv) only UNV input files can manage -is option.')
+if (trim(adjustlt(inext)) /= 'unv' .and. is_arg('-is')) call  error('(module_feconv/fe_conv) only UNV input files can '//&
+&'manage -is option.')
 select case (trim(adjustlt(inext)))
 case('mfm')
   print '(a)', 'Loading MFM mesh file...'
@@ -84,7 +85,7 @@ case('msh')
   call load_ansys(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
 case('unv')
   print '(a)', 'Loading UNV mesh file...'
-  call load_unv(infile,               nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, is_arg(args, '-is'))
+  call load_unv(infile,               nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, is_arg('-is'))
 case('bdf')
   print '(a)', 'Loading MD Nastran input file...'
   call load_patran(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
@@ -97,19 +98,19 @@ end select
 print '(a)', 'FE type of the input mesh: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf))
 
 !transform
-if (is_arg(args, '-l2')) then
+if (is_arg('-l2')) then
   print '(/a)', 'Converting Lagrange P1 mesh into Lagrange P2 mesh...'
   call lagr2l2(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
-elseif (is_arg(args, '-rt')) then
+elseif (is_arg('-rt')) then
   print '(/a)', 'Converting Lagrange P1 mesh into Raviart-Thomas (face) mesh...'
   call lagr2rt(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
-elseif (is_arg(args, '-nd')) then
+elseif (is_arg('-nd')) then
   print '(/a)', 'Converting Lagrange P1 mesh into Whitney (edge) mesh...'
   call lagr2nd(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
 end if
 
 !bandwidth optimization
-if (is_arg(args, '-cm')) then
+if (is_arg('-cm')) then
   call cuthill_mckee(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, z)
 end if
 

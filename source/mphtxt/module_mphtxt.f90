@@ -48,45 +48,4 @@ integer                               :: d, DIM
   call read_mphtxt(u, m, mphtxt_m, DIM)
 
 end subroutine
-
-
-function mphtxt_get_type(desc) result(res)
-
-  character(len=*), intent(in)  :: desc
-  integer                       :: res
-  integer                       :: nnod, nver, lnn, lnv, lne, lnf
-
-  nnod=0; nver=0; lnn=0; lnv=0; lne=0; lnf=0
-
-  if(trim(desc) == 'vtx') then
-    nnod=1; nver=1; lnn=1; lnv=1; lne=0; lnf=0
-  elseif(trim(desc) == 'edg') then
-    nnod=2; nver=2; lnn=2; lnv=2; lne=1; lnf=0
-  elseif(trim(desc) == 'tri') then
-    nnod=3; nver=3; lnn=3; lnv=3; lne=3; lnf=0
-  elseif(trim(desc) == 'quad') then
-    nnod=4; nver=4; lnn=4; lnv=4; lne=4; lnf=0
-  elseif(trim(desc) == 'tet') then
-    nnod=4; nver=4; lnn=4; lnv=4; lne=6; lnf=4
-  elseif(trim(desc) == 'prism') then
-    ! Prism FE not supported
-  elseif(trim(desc) == 'hex') then
-    nnod=8; nver=8; lnn=8; lnv=8; lne=12; lnf=6
-  elseif(trim(desc) == 'edg2') then
-    nnod=3; nver=2; lnn=3; lnv=2; lne=1; lnf=0
-  elseif(trim(desc) == 'quad2') then
-    nnod=8; nver=4; lnn=8; lnv=4; lne=4; lnf=0
-  elseif(trim(desc) == 'tet2') then
-    nnod=10; nver=4; lnn=10; lnv=4; lne=6; lnf=4
-  elseif(trim(desc) == 'prism2') then
-    ! Quadratic prism FE not supported
-  elseif(trim(desc) == 'hex2') then
-    nnod=16; nver=8; lnn=16; lnv=8; lne=12; lnf=6
-  endif
-
-  res = check_fe(nnod, nver, lnn, lnv, lne, lnf) 
-
-
-end function
-
 end module

@@ -21,7 +21,7 @@ dir_objetos = object
 condir_principal = ./test_pmh.f90
  
 # EXECUTABLE NAME 
-ejecutable = test_pmh
+ejecutable = test_pmh.exe
  
 # NEEDED TO convert ejecutable THE DEFAULT RULE: 
 $(ejecutable): $(condir_principal) 
@@ -63,7 +63,6 @@ module_pmh.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
 module_convers.o module_alloc.o module_args.o module_fe_database_pmh.o
 module_system.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_convers.o module_alloc_char_r1.o module_files.o
-IR_Precision.o: module_files.o
 Lib_VTK_IO.o: IR_Precision.o
 LIB_VTK_IO_READ.o: Lib_VTK_IO.o
 module_writevtu.o: Lib_VTK_IO.o
@@ -79,7 +78,7 @@ includes =
 FC = gfortran
  
 # COMPILER OPTIONS
-FFLAGS = -J$(dir_objetos) -Wall -g -fcheck=all -fbacktrace -fall-intrinsics
+FFLAGS = -J$(dir_objetos) -Wall -g -fcheck=all -fbacktrace -fall-intrinsics -L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib
  
 # LINKER OPTIONS
 LDFLAGS = 

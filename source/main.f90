@@ -7,19 +7,14 @@ program feconv
 ! Last update: see variable 'last_update'
 !-----------------------------------------------------------------------
 use module_convers, only: string
-use module_args, only: get_args, is_arg
+use module_report, only: error
+use module_args, only: is_arg
 use module_feconv, only: convert
 implicit none
-
-character(maxpath) :: cad
 character(10) :: last_update = '23/01/2014'
-integer :: nargs, res, i
 
 !read and store arguments
-nargs = command_argument_count()
-if (nargs == 0) call error('(feconv) command line arguments not found; to show help information: feconv -h')
-call get_args()
-
+if (command_argument_count() == 0) call error('(feconv) command line arguments not found; to show help information: feconv -h')
 if (is_arg('-v')) then
   !show version
   print '(a)', 'Utility to convert between several mesh and FE field formats'

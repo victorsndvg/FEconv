@@ -191,8 +191,9 @@ elseif (m%LNN /= m%LNV) then
         do l = j+1, m%LNN !second possible vertex
           if (l /= i) then
             if ( maxval(abs((mx%xd(:,nn(j))+mx%xd(:,nn(l)))/2-mx%xd(:,nn(i)))) < 1e3*epsilon(mx%xd) ) cycle NODES
-            !the check: maxval(abs(mx%xd(:,nn(j))-mx%xd(:,nn(l)))) > 1e3*epsilon(mx%xd), to see whether (j,l) is a singular egde is not made anymore;
-            !instead of that, when the number of non mid-points is greater then LNV, an error arises to warn that P2 elements are isoparametrical
+            !the check: maxval(abs(mx%xd(:,nn(j))-mx%xd(:,nn(l)))) > 1e3*epsilon(mx%xd), to see whether (j,l) is a singular egde
+            ! is not made anymore; instead of that, when the number of non mid-points is greater then LNV, an error arises to warn
+            ! that P2 elements are isoparametrical
           end if
         end do
       end if
@@ -201,7 +202,8 @@ elseif (m%LNN /= m%LNV) then
     vf = vf + 1    
     newnn(vf) = nn(i)
     !if (vf >= m%LNV) exit NODES !found enough vertices (this is useful to deal with singular edges)
-    if (vf > m%LNV)  call error('dataset_2412/reorder_nodes, too many non midpoints in an element (isoparametric P2 elements are not supported)')
+    if (vf > m%LNV)  call error('dataset_2412/reorder_nodes, too many non midpoints in an element (isoparametric P2 elements &
+    &are not supported)')
   end do NODES
   !identify midpoints
   do i = 1, m%LNN !nodes
