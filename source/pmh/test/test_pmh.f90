@@ -12,7 +12,7 @@ use module_mfm
 use module_vtu
 implicit none
 
-type(pmh_mesh) :: pmh
+type(pmh_mesh) :: pmh, pmh2
 
 !Variables for MFM format
 integer                                   :: nel  = 0 !global number of elements
@@ -114,6 +114,13 @@ call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nr
 !print*, 'nsd', nsd
 
 !print*,'a'
+!volver a pasarlo a PMH: pmh2
+call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh2)
+
+!volver a pasarlo a MFM
+nel = 0; nnod = 0; nver = 0; dim = 0; lnn = 0; lnv = 0; lne = 0; lnf = 0
+call pmh2mfm(pmh2, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+
 call save_mfm('prueba.mfm', 10, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
 !print*,'b'
 call save_vtu('prueba.vtu', nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)

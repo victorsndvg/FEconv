@@ -68,7 +68,6 @@ real(real64), allocatable :: z(:,:)
 integer :: i, ipp, ip, ig, pos, k, prev_nel, n, j, type_by_tdim(0:3), tmp_2d(2), tmp_3d(3), &
 prev_max_tdim, res, max_tdim, valid_fe(12)
 integer, allocatable :: piece2save(:), ref(:,:), tmp_vf(:), nel_piece(:), nnod_piece(:), nver_piece(:)
-logical :: there_are_P1, there_are_other
 character(maxpath) :: str, cad
 
 !valid elements types to save a MFM mesh (all but wedges)
@@ -108,9 +107,6 @@ type_by_tdim  = 0 !store the type of element for each topological dimension
 prev_max_tdim = 0 !store the maximal topological dimension
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
-  !check whether all elements are Lagrange P1 or not in the piece
-  there_are_P1    = .false. !are there elements of type Lagrange P1?
-  there_are_other = .false. !are there elements of type different from Lagrange P1?
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(tp => pmh%pc(ip)%el(ig)%type)
       if (find_first(valid_fe, tp) == 0) then
@@ -118,10 +114,6 @@ do ipp = 1, size(piece2save,1)
         &' in MFM format and they will be discarded')
         cycle
       end if  
-      if (FEDB(tp)%tdim > 0) then 
-        there_are_P1    = there_are_P1    .or.      FEDB(tp)%nver_eq_nnod
-        there_are_other = there_are_other .or. .not.FEDB(tp)%nver_eq_nnod
-      end if
       !check whether there is only one type of element for each topological dimension
       if (type_by_tdim( FEDB(tp)%tdim ) == 0) then  
         type_by_tdim( FEDB(tp)%tdim ) = tp
@@ -131,8 +123,6 @@ do ipp = 1, size(piece2save,1)
       end if
     end associate
   end do
-  if (there_are_P1 .and. there_are_other) call error('(module_pmh/pmh2mfm) unable to convert P1 and non-P1 elements to MFM')
-  !maximal topological dimension
   max_tdim = 0 
   do i = 1, 3
     if (type_by_tdim(i) > 0) max_tdim  = i
@@ -228,7 +218,7 @@ do ipp = 1, size(piece2save,1)
 end do
 
 !nn: concatenate node numbering of maximal topological dimension
-if (there_are_other) then
+if (.not. FEDB(type_by_tdim(max_tdim))%nver_eq_nnod) then
   call alloc(nn, lnn, nel)
   do ipp = 1, size(piece2save,1)
     ip = piece2save(ipp)

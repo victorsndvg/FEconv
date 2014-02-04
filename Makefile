@@ -116,7 +116,7 @@ module_cuthill_mckee.o
 module_pmh.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
 module_convers.o module_alloc.o module_args.o module_fe_database_pmh.o
 module_read_mphtxt.o: module_compiler_gfortran.o module_os_dependant.o \
-module_convers.o module_alloc.o module_mesh.o module_pmh.o
+module_report.o module_convers.o module_alloc.o module_mesh.o module_pmh.o
 module_manage_mphtxt.o: module_alloc.o module_files.o module_mesh.o \
 module_read_mphtxt.o
 module_mphtxt.o: module_compiler_gfortran.o module_os_dependant.o \
