@@ -341,6 +341,7 @@ if (max_tdim > 2) then
   end do
 end if
 
+
 !z: save vertex coordinates
 call alloc(z, dim, nver)
 do ipp = 1, size(piece2save,1)
@@ -502,7 +503,7 @@ end subroutine
 subroutine build_vertices(pmh)
 type(pmh_mesh), intent(inout) :: pmh
 integer, allocatable :: vert2node(:), node2vert(:)
-integer :: nv2d, pos, maxv, i, j, k, ig, ip, valid_fe(9)
+integer :: nv2d, pos, maxv, i, j, k, ig, ip, valid_fe(10)
 logical nver_eq_nnod
 
 !valid elements types to save a MFM mesh 
@@ -510,6 +511,7 @@ valid_fe = [check_fe(.true.,   1, 1,  0, 0), & !Node
             check_fe(.true.,   2, 2,  1, 0), & !Edge, Lagrange P1 
             check_fe(.false.,  3, 2,  1, 0), & !Edge, Lagrange P2
             check_fe(.true.,   3, 3,  3, 0), & !Triangle, Lagrange P1
+            check_fe(.true.,   4, 4,  4, 0), & !Quadrangle, Lagrange P1
             check_fe(.false.,  6, 3,  3, 0), & !Triangle, Lagrange P2
             check_fe(.true.,   4, 4,  6, 4), & !Tetrahedron, Lagrange P1
             check_fe(.false., 10, 4,  6, 4), & !Tetrahedron, Lagrange P2
@@ -534,6 +536,7 @@ if (nver_eq_nnod) then
     if (.not.allocated(pmh%pc(ip)%z)) call error('(module_pmh/build_vertices) z is not allocated: piece '//trim(string(ip))//&
     &'; unable to build vertices')
     do ig = 1, size(pmh%pc(ip)%el,1)
+      if (pmh%pc(ip)%nver == 0) pmh%pc(ip)%nver = pmh%pc(ip)%nnod
       associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type) !elg: current group, tp: element type
         if (find_first(valid_fe, tp) == 0) cycle
         if (allocated(elg%nn) .and. .not.allocated(elg%mm)) then

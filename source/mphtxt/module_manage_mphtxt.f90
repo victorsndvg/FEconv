@@ -22,7 +22,7 @@ contains
 ! INPUT PROCEDURES
 !***********************************************************************
 !-----------------------------------------------------------------------
-! open: open universal file
+! open: open mphtxt file
 !-----------------------------------------------------------------------
 subroutine open_mphtxt(this, filename)
 
@@ -39,63 +39,48 @@ if (ios /= 0) call error('mphtxt/open, #'//trim(string(ios)))
 
 end subroutine
 
+
+!-----------------------------------------------------------------------
+! close: close mphtxt file
+!-----------------------------------------------------------------------
+subroutine close_mphtxt(this)
+
+type(mphtxt),     intent(inout) :: this     !mphtxt object
+integer                         :: ios
+
+  ! closes mphtxt file
+  close(unit=this%unit, iostat=ios)
+  if (ios /= 0) call error('mphtxt_file/close, #'//trim(string(ios)))
+
+end subroutine
+
 !-----------------------------------------------------------------------
 ! read: read MPHTXT file
 !-----------------------------------------------------------------------
 subroutine read_mphtxt(this, m, mphtxt_m, maxdim)
 
-  type(mphtxt),                             intent(inout) :: this     !universal object
-  type(mfm_mesh), dimension(:), allocatable,intent(inout) :: m        !mfm mesh
-  type(pmh_mesh),                           intent(inout) :: mphtxt_m !mphtxt_mesh
-  integer,                                  intent(inout) :: maxdim   !dimension detected
+  type(mphtxt),                             intent(inout) :: this     ! mphtxt object
+  type(mfm_mesh), dimension(:), allocatable,intent(inout) :: m        ! mfm mesh
+  type(pmh_mesh),                           intent(inout) :: mphtxt_m ! pmh_mesh
+  integer,                                  intent(inout) :: maxdim   ! dimension detected
   integer :: ios, n, j, i
   logical :: fit(2)
 
   maxdim = 0
 
-!  if(.not. allocated(m)) call error('mphtxt/read, mesh(es) not allocated')
-!  n = size(m,1) !last mesh
-
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('mphtxt/read/rewind, #'//trim(string(ios)))
-!  call FE_type_init()
 
+  ! Reads the mphtxt file header and allocates the number of pieces
   call read_mphtxt_header(this%unit, mphtxt_m)
 
-  print*, 'File info:'
-  print*, '.............'
-  print*, 'number of tags: ', size(mphtxt_m%pc,1)
-  do i = 1, size(mphtxt_m%pc,1)
-    print*, 'piece ', i
-  enddo
-  print*, '.............'
-
+  ! Reads every piece of the mesh and calculate the max of its space dimension
   if (.not. allocated(mphtxt_m%pc)) call error('mphtxt/read/object, objects not allocated')
   do i = 1, size(mphtxt_m%pc,1)
-      print*, 'OBJECT:', i
+      call info('Reading piece '//trim(string(i))//' ...')
       call read_mphtxt_object(this%unit, mphtxt_m%pc(i))
-      print*, mphtxt_m%pc(i)%z
-      do j = 1, size(mphtxt_m%pc(i)%el,1)
-    print*, 'Element ', j
-        print*, mphtxt_m%pc(i)%el(j)%nn
-      enddo
       if (maxdim < mphtxt_m%pc(i)%dim) maxdim = mphtxt_m%pc(i)%dim
   enddo
-
-  
-
-  print*, 'END FILE'
-
-
-!!!!!!!
-!!!!!!!
-!!!!!!!
-!!!!!!!
-!!!!!!!
-
-! close file
-  close(unit=this%unit, iostat=ios)
-  if (ios /= 0) call error('mphtxt_file/close, #'//trim(string(ios)))
 
 end subroutine
 
