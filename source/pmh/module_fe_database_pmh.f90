@@ -80,7 +80,7 @@ contains
 ! check_fe: given the finite element parameters, return the index of its position in the database
 !-----------------------------------------------------------------------
 function check_fe(nver_eq_nnod, lnn, lnv, lne, lnf) result(res)
-logical :: nver_eq_nnod
+logical, intent(in) :: nver_eq_nnod
 integer, intent(in) :: lnn, lnv, lne, lnf
 integer :: res, i
 
