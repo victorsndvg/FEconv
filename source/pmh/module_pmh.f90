@@ -348,6 +348,7 @@ if (max_tdim > 2) then
   end do
 end if
 
+
 !z: save vertex coordinates
 call alloc(z, dim, nver)
 do ipp = 1, size(piece2save,1)
@@ -508,11 +509,28 @@ end subroutine
 subroutine build_vertices(pmh)
 type(pmh_mesh), intent(inout) :: pmh
 integer, allocatable :: vert2node(:), node2vert(:)
+<<<<<<< HEAD
 integer :: nv2d, pos, maxv, i, j, k, ig, ip
 logical :: all_are_p1, all_are_p1_or_p2, some_mm_unallocated
 
 !reorder_nodes: reorder nodes and/or vertices to have positive jacobian
 call reorder_nodes_P2(pmh)
+=======
+integer :: nv2d, pos, maxv, i, j, k, ig, ip, valid_fe(10)
+logical nver_eq_nnod
+
+!valid elements types to save a MFM mesh 
+valid_fe = [check_fe(.true.,   1, 1,  0, 0), & !Node
+            check_fe(.true.,   2, 2,  1, 0), & !Edge, Lagrange P1 
+            check_fe(.false.,  3, 2,  1, 0), & !Edge, Lagrange P2
+            check_fe(.true.,   3, 3,  3, 0), & !Triangle, Lagrange P1
+            check_fe(.true.,   4, 4,  4, 0), & !Quadrangle, Lagrange P1
+            check_fe(.false.,  6, 3,  3, 0), & !Triangle, Lagrange P2
+            check_fe(.true.,   4, 4,  6, 4), & !Tetrahedron, Lagrange P1
+            check_fe(.false., 10, 4,  6, 4), & !Tetrahedron, Lagrange P2
+            check_fe(.true.,   8, 8, 12, 6), & !Hexahedron, Lagrange P1
+            check_fe(.true.,   6, 6,  9, 5)]   !Wedge, Lagrange P1
+>>>>>>> 1fba8c7026132e59954900293dc7a5da5e1db5ac
 
 do ip = 1, size(pmh%pc,1)
   !check whether all elements are Lagrange P1 and/or Lagrange P2; also check whether z is allocated 
@@ -529,10 +547,17 @@ do ip = 1, size(pmh%pc,1)
   !all elements are Lagrange P1: vertex information is the same than node information
   if (all_are_p1) then
     do ig = 1, size(pmh%pc(ip)%el,1)
+<<<<<<< HEAD
       associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
         if (.not. allocated(elg%mm)) then
           if (.not.allocated(elg%nn)) call error('(module_pmh/build_vertices) neither mm nor nn are not allocated: piece '//&
           &trim(string(ip))//', group '//trim(string(ig))//'; unable to build vertices')
+=======
+      if (pmh%pc(ip)%nver == 0) pmh%pc(ip)%nver = pmh%pc(ip)%nnod
+      associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type) !elg: current group, tp: element type
+        if (find_first(valid_fe, tp) == 0) cycle
+        if (allocated(elg%nn) .and. .not.allocated(elg%mm)) then
+>>>>>>> 1fba8c7026132e59954900293dc7a5da5e1db5ac
           call move_alloc(from=elg%nn, to=elg%mm)
         end if
         call dealloc(elg%nn)

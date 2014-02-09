@@ -26,26 +26,32 @@ contains
 !-----------------------------------------------------------------------
 ! load_mphtxt: read a MPHTXT file
 !-----------------------------------------------------------------------
-subroutine load_mphtxt(mphtxtfile, nel, nnod, nver, DI_, LNN, LNV, LNE, LNF, nn, mm, nrc, nra, nrv, z, nsd)
-character(len=*),         intent(in)  :: mphtxtfile
-integer,                  intent(out) :: nel, nnod, nver, DI_, LNN, LNV, LNE, LNF
-integer, allocatable,     intent(out) :: nn(:,:), mm(:,:), nrc(:,:), nra(:,:), nrv(:,:), nsd(:)
-real(real64),allocatable, intent(out) :: z(:,:)
-type(mphtxt)                          :: u
-type(pmh_mesh)                        :: mphtxt_m
-type(mfm_mesh), allocatable           :: m(:)
-integer                               :: d, DIM
+subroutine load_mphtxt(mphtxtfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  character(len=*),         intent(in)  :: mphtxtfile
+  integer,                  intent(out) :: nel, nnod, nver, dim, lnn, lnv, lne, lnf
+  integer, allocatable,     intent(out) :: nn(:,:), mm(:,:), nrc(:,:), nra(:,:), nrv(:,:), nsd(:)
+  real(real64),allocatable, intent(out) :: z(:,:)
+  type(mphtxt)                          :: u
+  type(pmh_mesh)                        :: pmh
+  type(mfm_mesh), allocatable           :: m(:)
 
 
-
-  !inital settings
+  ! Inital settings
   call report_option('level', 'stdout')
-  !process MPHTXT file
-  print*, 'OPEN MPHTXT FILE:',trim(mphtxtfile)
+ 
+  ! Open mphtxt file and reads the mesh
+  call info('Reading mphtxt file ...')
   call open_mphtxt(u, mphtxtfile)
-  print*, 'READING MPHTXT FILE:'
-  print*, '-------------------------'
-  call read_mphtxt(u, m, mphtxt_m, DIM)
+  call read_mphtxt(u, m, pmh, dim)
+  call close_mphtxt(u)
+
+  ! Build vertex connectivities and coordinates from node information
+  call build_vertices(pmh)
+
+  ! Translates pmh structure to mfm
+  call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+
 
 end subroutine
+
 end module
