@@ -26,7 +26,7 @@ use module_compiler_dependant, only: real64
 use module_os_dependant, only: maxpath
 use module_report, only: error, info
 use module_convers, only: string, int
-use module_alloc, only: alloc, dealloc, reduce, find_first, find_row_sorted, sort, insert, insert_row_sorted, bsearch
+use module_alloc, only: alloc, dealloc, reduce, sfind, find_first, find_row_sorted, sort, insert, insert_row_sorted, bsearch
 use module_args, only: is_arg, get_post_arg
 use module_fe_database_pmh, only : FEDB, check_fe
 implicit none
@@ -51,6 +51,18 @@ end type
 type pmh_mesh
   type(piece), allocatable :: pc(:) !pieces that compose the mesh
 end type  
+
+!Constants
+!Tetrahedra used to calculate a sufficient condition to ensure positive Jacobian for an hexahedron
+!(see http://www.math.udel.edu/~szhang/research/p/subtettest.pdf)
+integer, parameter, private :: Pc(32,4) = reshape([ &  
+1, 2, 3, 7,  2, 3, 4, 8,  3, 4, 1, 5,  4, 1, 2, 6,  5, 8, 7, 3,  8, 7, 6, 2,  7, 6, 5, 1,  6, 5, 8, 4,  &
+2, 1, 5, 8,  4, 3, 7, 6,  1, 4, 8, 7,  3, 2, 6, 5,  1, 2, 3, 5,  2, 3, 4, 6,  3, 4, 1, 7,  4, 1, 2, 8,  &
+5, 8, 7, 1,  8, 7, 6, 4,  7, 6, 5, 3,  6, 5, 8, 2,  5, 1, 4, 6,  3, 7, 8, 2,  4, 8, 5, 3,  2, 6, 7, 1,  &
+1, 2, 4, 5,  2, 3, 1, 6,  3, 4, 2, 7,  4, 1, 3, 8,  5, 8, 6, 1,  6, 5, 7, 2,  7, 6, 8, 3,  8, 7, 5, 4], [32, 4], order=[2,1])
+
+!Private procedures
+private :: swap, reorder_nodes_simplex_P2, QJ_pos, detDFT_pos, reorder_nodes_P2, positive_jacobian
 
 contains
 
@@ -85,21 +97,16 @@ valid_fe = [check_fe(.true.,   1, 1,  0, 0), & !Node
             check_fe(.true.,   8, 8, 12, 6)]   !Hexahedron, Lagrange P1
 
 !check piece(s) to be saved
-if (is_arg('-p')) then 
+if (is_arg('-p')) then !save a single piece, indicated after -p
   str = get_post_arg('-p')
-  if (str == '0') then !save all pieces
-    call alloc(piece2save, size(pmh%pc,1))
-    piece2save = [(i, i=1, size(pmh%pc,1))]
-  else !save a single piece, indicated in -p
-    call alloc(piece2save, 1)
-    piece2save(1) = int(str)
-  end if
-else !save only the first piece
   call alloc(piece2save, 1)
-  piece2save(1) = 1
+  piece2save(1) = int(str)
+else !save all pieces
+  call alloc(piece2save, size(pmh%pc,1))
+  piece2save = [(i, i=1, size(pmh%pc,1))]
 end if
 if (is_arg('-glue')) then 
-  call error('(module_pmh/pmh2mfm) option -glue not implemented yet')
+  call info('(module_pmh/pmh2mfm) option -glue not implemented yet')
 end if
 
 !testing and calculation of max_tdim
@@ -429,7 +436,7 @@ if (FEDB(tp)%tdim > 2) then
       do k = 1, melg%nel
         do j = 1, FEDB(melg%type)%lnf
           if (nrc(j,k) /= 0) then
-            elg%mm(:, ic) = pmh%pc(1)%el(nelg)%mm(FEDB(melg%type)%face(1:FEDB(elg%type)%lnv, j), k)
+            elg%mm(:, ic) = melg%mm(FEDB(melg%type)%face(1:FEDB(elg%type)%lnv, j), k)
             elg%ref(ic)   = nrc(j,k)
             ic = ic + 1
           end if  
@@ -454,7 +461,7 @@ if (FEDB(tp)%tdim > 1) then
       do k = 1, melg%nel
         do j = 1, FEDB(melg%type)%lne
           if (nra(j,k) /= 0) then
-            elg%mm(:, ic) = pmh%pc(1)%el(nelg)%mm(FEDB(melg%type)%edge(1:FEDB(elg%type)%lnv, j), k)
+            elg%mm(:, ic) = melg%mm(FEDB(melg%type)%edge(1:FEDB(elg%type)%lnv, j), k)
             elg%ref(ic)   = nra(j,k)
             ic = ic + 1
           end if  
@@ -479,14 +486,13 @@ if (FEDB(tp)%tdim > 0) then
       do k = 1, melg%nel
         do j = 1, FEDB(melg%type)%lnv
           if (nrv(j,k) /= 0) then
-            elg%mm(:, ic) = pmh%pc(1)%el(nelg)%mm(FEDB(melg%type)%edge(1:FEDB(elg%type)%lnv, j), k)
+            elg%mm(1, ic) = melg%mm(j,k)
             elg%ref(ic)   = nrv(j,k)
             ic = ic + 1
           end if  
         end do
       end do
     end associate
-    iel = iel - 1
   end if
   call dealloc(nrv)
 end if
@@ -496,124 +502,416 @@ end subroutine
 !-----------------------------------------------------------------------
 ! build_vertices: build vertex connectivities and coordinates from node information
 !
-! only valid for Lagrange P1 and P2 elements
-! it is assumed that vertices are the first nodes
-! it is assumed that global numbering as vertex is less or equal than global numbering as node
+! vertex built is only done for Lagrange P1 and P2 elements
+! it is assumed that vertices are the first nodes, ensured by reorder_nodes()
+! for P2, it is assumed that global numbering as vertex is less or equal than global numbering as node
 !-----------------------------------------------------------------------
 subroutine build_vertices(pmh)
 type(pmh_mesh), intent(inout) :: pmh
 integer, allocatable :: vert2node(:), node2vert(:)
-integer :: nv2d, pos, maxv, i, j, k, ig, ip, valid_fe(10)
-logical nver_eq_nnod
+integer :: nv2d, pos, maxv, i, j, k, ig, ip
+logical :: all_are_p1, all_are_p1_or_p2, some_mm_unallocated
 
-!valid elements types to save a MFM mesh 
-valid_fe = [check_fe(.true.,   1, 1,  0, 0), & !Node
-            check_fe(.true.,   2, 2,  1, 0), & !Edge, Lagrange P1 
-            check_fe(.false.,  3, 2,  1, 0), & !Edge, Lagrange P2
-            check_fe(.true.,   3, 3,  3, 0), & !Triangle, Lagrange P1
-            check_fe(.true.,   4, 4,  4, 0), & !Quadrangle, Lagrange P1
-            check_fe(.false.,  6, 3,  3, 0), & !Triangle, Lagrange P2
-            check_fe(.true.,   4, 4,  6, 4), & !Tetrahedron, Lagrange P1
-            check_fe(.false., 10, 4,  6, 4), & !Tetrahedron, Lagrange P2
-            check_fe(.true.,   8, 8, 12, 6), & !Hexahedron, Lagrange P1
-            check_fe(.true.,   6, 6,  9, 5)]   !Wedge, Lagrange P1
+!reorder_nodes: reorder nodes and/or vertices to have positive jacobian
+call reorder_nodes_P2(pmh)
 
-!check if all the elements are Lagrange P1
-nver_eq_nnod = .true.
 do ip = 1, size(pmh%pc,1)
+  !check whether all elements are Lagrange P1 and/or Lagrange P2; also check whether z is allocated 
+  all_are_p1       = .true.
+  all_are_p1_or_p2 = .true.
+  if (.not. allocated(pmh%pc(ip)%z)) call error('(module_pmh/build_vertices) z is not allocated: piece '//trim(string(ip))//&
+  &'; unable to build vertices')
   do ig = 1, size(pmh%pc(ip)%el,1)
-    if (find_first(valid_fe, pmh%pc(ip)%el(ig)%type) == 0) then
-      call info('(module_pmh/build_vertices) element type '//trim(FEDB(pmh%pc(ip)%el(ig)%type)%desc)//' found; those elements'//&
-      &' cannot be used to construct vertex information and they will be discarded')
-      cycle
-    end if  
-    nver_eq_nnod = nver_eq_nnod .and. FEDB(pmh%pc(ip)%el(ig)%type)%nver_eq_nnod
+      associate(tp => pmh%pc(ip)%el(ig)%type)
+      all_are_p1       = all_are_p1       .and.  FEDB(tp)%nver_eq_nnod
+      all_are_p1_or_p2 = all_are_p1_or_p2 .and. (FEDB(tp)%nver_eq_nnod .or. FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne)
+    end associate
   end do
-end do
-!all elements are Lagrange P1: vertex information is the same than node information
-if (nver_eq_nnod) then
-  do ip = 1, size(pmh%pc,1)
-    if (.not.allocated(pmh%pc(ip)%z)) call error('(module_pmh/build_vertices) z is not allocated: piece '//trim(string(ip))//&
-    &'; unable to build vertices')
+  !all elements are Lagrange P1: vertex information is the same than node information
+  if (all_are_p1) then
     do ig = 1, size(pmh%pc(ip)%el,1)
       if (pmh%pc(ip)%nver == 0) pmh%pc(ip)%nver = pmh%pc(ip)%nnod
-      associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type) !elg: current group, tp: element type
-        if (find_first(valid_fe, tp) == 0) cycle
-        if (allocated(elg%nn) .and. .not.allocated(elg%mm)) then
+      associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+        if (.not. allocated(elg%mm)) then
+          if (.not.allocated(elg%nn)) call error('(module_pmh/build_vertices) neither mm nor nn are not allocated: piece '//&
+          &trim(string(ip))//', group '//trim(string(ig))//'; unable to build vertices')
           call move_alloc(from=elg%nn, to=elg%mm)
-        elseif (.not.allocated(elg%nn) .and. .not.allocated(elg%mm)) then
-          call error('(module_pmh/build_vertices) neither mm nor nn are not allocated: piece '//trim(string(ip))//&
-          &', group '//trim(string(ig))//'; unable to build vertices')
         end if
+        call dealloc(elg%nn)
       end associate      
     end do
-  end do
-  return
-end if
-
-!transformation for Lagrange P1/P2 elements
-do ip = 1, size(pmh%pc,1)
-  if (.not.allocated(pmh%pc(ip)%z)) call error('(module_pmh/build_vertices)  z is not allocated: piece '//trim(string(ip))//&
-  &'; unable to build vertices')
-  nv2d = 0
-  do ig = 1, size(pmh%pc(ip)%el,1)
-    associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type) !elg: current group, tp: element type
-      if (find_first(valid_fe, tp) == 0) cycle !proceed only with Lagrange P1 or P2 elements
-      if (.not.allocated(elg%nn)) call error('(module_pmh/build_vertices) nn is not allocated: piece '//trim(string(ip))//&
-      &', group '//trim(string(ig))//'; unable to build vertices')
-      !vert2node: stores global numbering of vertices (numbered as nodes) for all groups in a piece; 
-      do k = 1, elg%nel
-        do i = 1, FEDB(tp)%lnv
-          if (elg%nn(i,k) == 0) call error('(module_pmh/build_vertices) node numbering is zero: piece '//trim(string(ip))//&
-          &', group '//trim(string(ig))//', node '//trim(string(i))//', element '//trim(string(k))//'; unable to build vertices')
-          pos = bsearch(vert2node, elg%nn(i,k), nv2d) 
-          if (pos < 0) then
-            call insert(vert2node, elg%nn(i,k), -pos, nv2d, fit=.false.)
-            nv2d = nv2d + 1 
-          endif
-        end do
-      end do
-    end associate
-  end do
-  call reduce(vert2node, nv2d)
-  !nver: total number of vertices
-  pmh%pc(ip)%nver = nv2d
-  !node2vert: given the global numbering of vertices (numbered as nodes), returns global numbering as vertices
-  maxv = 0
-  do i = 1, size(vert2node, 1)
-    maxv = max(maxv, vert2node(i))
-  enddo
-  allocate(node2vert(maxv))
-  node2vert = 0
-  do i = 1, size(vert2node, 1)
-    if (vert2node(i) == 0) cycle
-    node2vert(vert2node(i)) = i
-  enddo
-  !vertices renumbering
-  do ig = 1, size(pmh%pc(ip)%el,1)
-    associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type) !elg: current group, tp: element type
-      if (find_first(valid_fe, tp) == 0) cycle
-      call alloc(elg%mm, FEDB(tp)%lnv, elg%nel)
-      do k = 1, elg%nel
-        do i = 1, FEDB(tp)%lnv
-          elg%mm(i,k) = node2vert(elg%nn(i,k))
-        end do
-      end do
-    end associate
-  end do
-  !vertices coordinates: assume that i <= vert2node(i); thus z can be overwritten
-  associate(pi => pmh%pc(ip))
-    do j = 1, pi%nver
-      pi%z(1:pi%dim, j) = pi%z(1:pi%dim, vert2node(j))
+  elseif (all_are_p1_or_p2) then 
+    some_mm_unallocated = .false.
+    do ig = 1, size(pmh%pc(ip)%el,1)
+      associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+        if (.not. allocated(elg%mm)) then
+          if (.not.allocated(elg%nn)) call error('(module_pmh/build_vertices) neither mm nor nn are not allocated: piece '//&
+          &trim(string(ip))//', group '//trim(string(ig))//'; unable to build vertices')
+          some_mm_unallocated =  .true.
+        end if
+      end associate
     end do
-    call reduce(pi%z, pi%dim, pi%nver)
-  end associate
+    if (some_mm_unallocated) then
+      !transformation for Lagrange P1/P2 elements: create mm from nn
+      nv2d = 0
+      do ig = 1, size(pmh%pc(ip)%el,1)
+        associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+          do k = 1, elg%nel
+            do i = 1, FEDB(tp)%lnv
+              if (elg%nn(i,k) == 0) call error('(module_pmh/build_vertices) node numbering is zero: piece '//trim(string(ip))//&
+              &', group '//trim(string(ig))//', node '//trim(string(i))//', element '//trim(string(k))//'; unable to build vertex')
+              pos = bsearch(vert2node, elg%nn(i,k), nv2d) 
+              if (pos < 0) then
+                call insert(vert2node, elg%nn(i,k), -pos, nv2d, fit=.false.)
+                nv2d = nv2d + 1 
+              end if
+            end do
+          end do
+        end associate
+      end do    
+      call reduce(vert2node, nv2d)
+      !nver: total number of vertices
+      pmh%pc(ip)%nver = nv2d
+      !node2vert: given the global numbering of vertices (numbered as nodes), returns global numbering as vertices
+      maxv = 0
+      do i = 1, size(vert2node, 1)
+        maxv = max(maxv, vert2node(i))
+      enddo
+      call alloc(node2vert, maxv)
+      do i = 1, size(vert2node, 1)
+        if (vert2node(i) == 0) cycle
+        node2vert(vert2node(i)) = i
+      enddo
+      !vertices renumbering
+      do ig = 1, size(pmh%pc(ip)%el,1)
+        associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type) !elg: current group, tp: element type
+          call alloc(elg%mm, FEDB(tp)%lnv, elg%nel)
+          do k = 1, elg%nel
+            do i = 1, FEDB(tp)%lnv
+              elg%mm(i,k) = node2vert(elg%nn(i,k))
+            end do
+          end do
+        end associate
+      end do
+      !vertices coordinates: assume that i <= vert2node(i); thus z can be overwritten
+      associate(pi => pmh%pc(ip))
+        do j = 1, pi%nver
+          pi%z(1:pi%dim, j) = pi%z(1:pi%dim, vert2node(j))
+        end do
+        call reduce(pi%z, pi%dim, pi%nver)
+      end associate
+    end if
+  else !there are elements that are not P1 or P2
+    do ig = 1, size(pmh%pc(ip)%el,1)
+      associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type) !elg: current group, tp: element type
+        if (.not. allocated(elg%mm)) call error('(module_pmh/build_vertices) mm is not allocated and there are elements of type '//&
+        &trim(FEDB(tp)%desc)//': piece '//trim(string(ip))//', group '//trim(string(ig))//'; unable to build vertices')
+      end associate
+    end do    
+  end if
   call dealloc(vert2node)
   call dealloc(node2vert)
 end do
+
+! positive_jacobian: ensure positive jacobian
+call positive_jacobian(pmh)
 end subroutine
 
+!-----------------------------------------------------------------------
+! PRIVATE PROCEDURES
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! reorder_nodes_P2: ensure that mid-points in Lagrange P2 appear at the 
+! end of conectivity arrays
+!
+! it must be called at the beginning of build_vertices
+!-----------------------------------------------------------------------
+subroutine reorder_nodes_P2(pmh)
+type(pmh_mesh), intent(inout) :: pmh
+integer :: ip, ig, k
+integer, allocatable :: inew(:) 
+character(maxpath) :: reorder_type
+
+!check what type of reorder must be applied
+if (is_arg('-r')) then
+  select case(get_post_arg('-r'))
+  case('hard', 'soft', 'salome') !recognized options
+    reorder_type = get_post_arg('-r')
+  case default
+    call error('(module_pmh/reorder_nodes) option -r not recognized: '//trim(get_post_arg('-r'))//&
+    &'; use ''feconv -h'' to see available options')
+  end select
+else
+  reorder_type = 'hard'
+end if    
+do ip = 1, size(pmh%pc,1)
+  do ig = 1, size(pmh%pc(ip)%el,1)
+    associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type, z => pmh%pc(ip)%z)
+      if (FEDB(tp)%nver_eq_nnod) then !Lagrange P1 elements, do nothing
+        continue      
+      elseif (tp == check_fe(.false.,  3, 2,  1, 0)) then
+        !************************************* Edge, Lagrange P2 ********************************
+        !reorder nn such that mid-points appear at the end
+        if (.not.allocated(elg%nn)) call error('(module_pmh/reorder_nodes) nn not allocated for an Lagrange P2 edge mesh: piece '//&
+        &trim(string(ip))//', group '//trim(string(ig)))
+        select case(reorder_type)
+        case ('hard') !check every element
+          do k = 1, elg%nel
+            if     (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(2,k)))/2-z(:,elg%nn(3,k)))) < 1e3*epsilon(z)) then
+              elg%nn([1, 2, 3],k) = elg%nn(:,k)
+            elseif (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(2,k)))) < 1e3*epsilon(z)) then
+              elg%nn([1, 3, 2],k) = elg%nn(:,k)
+            elseif (maxval(abs((z(:,elg%nn(2,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(1,k)))) < 1e3*epsilon(z)) then
+              elg%nn([2, 3, 1],k) = elg%nn(:,k)
+            else
+              call info('(module_pmh/reorder_nodes) the nodes of an Lagrange P2 edge do not lie on a straight line: piece '//&
+              &trim(string(ip))//', group '//trim(string(ig))//', element '//trim(string(k))//'; reordering is not guaranteed.')
+            end if
+          end do
+        case('soft') !check the first element, asume the rest have the same behavior
+          call alloc(inew, FEDB(tp)%lnn)
+          k = 1
+          if     (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(2,k)))/2-z(:,elg%nn(3,k)))) < 1e3*epsilon(z)) then
+            inew = [1, 2, 3]
+          elseif (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(2,k)))) < 1e3*epsilon(z)) then
+            inew = [1, 3, 2]
+          elseif (maxval(abs((z(:,elg%nn(2,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(1,k)))) < 1e3*epsilon(z)) then
+            inew = [2, 3, 1]
+          else
+            call info('(module_pmh/reorder_nodes) the nodes of an Lagrange P2 edge do not lie on a straight line: piece '//&
+            &trim(string(ip))//', group '//trim(string(ig))//', element '//trim(string(k))//'; reordering is not guaranteed.')
+          end if
+          do k = 1, elg%nel
+            elg%nn(inew(:),k) = elg%nn(:,k)
+          end do
+        case('salome') !node order is the one prescribed by Salome: vert. and mid-points sandwiched
+          do k = 1, elg%nel
+            elg%nn([1,3,2],k) = elg%nn(:,k)
+          end do
+        end select
+      elseif (tp == check_fe(.false.,  6, 3,  3, 0)) then
+        !************************************* Triangle, Lagrange P2 ****************************
+        if (.not.allocated(elg%nn)) call error('(module_pmh/reorder_nodes) nn not allocated for an Lagrange P2 tria mesh: piece '//&
+        &trim(string(ip))//', group '//trim(string(ig)))
+        select case(reorder_type)
+        case('hard') !check every element
+          !check whether mid-points appear at the end of nn
+          call alloc(inew, FEDB(tp)%lnn)
+          do k = 1, elg%nel
+            call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, k, inew)
+            elg%nn(:,k) = elg%nn(inew(:),k)
+          end do
+        case('soft') !check the first element, asume the rest have the same behavior
+          !check whether mid-points appear at the end of nn
+          call alloc(inew, FEDB(tp)%lnn)
+          call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, 1, inew)
+          do k = 1, elg%nel
+            elg%nn(:,k) = elg%nn(inew(:),k)
+          end do
+        case('salome') !node order is the one prescribed by Salome for isoparam. P2 triangles: vert. and mid-points sandwiched
+          do k = 1, elg%nel
+            elg%nn([1,4,2,5,3,6],k) = elg%nn(:,k)
+          end do
+        end select
+      elseif (tp == check_fe(.false., 10, 4,  6, 4)) then
+        !************************************* Tetrahedron, Lagrange P2 *************************
+        if (.not.allocated(elg%nn)) call error('(module_pmh/reorder_nodes) nn not allocated for an Lagrange P2 tet mesh: piece '//&
+        &trim(string(ip))//', group '//trim(string(ig)))
+        select case(get_post_arg('-r'))
+        case('hard') !check every element
+          !check whether mid-points appear at the end of nn
+          call alloc(inew, FEDB(tp)%lnn)
+          do k = 1, elg%nel
+            call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, k, inew)
+            elg%nn(:,k) = elg%nn(inew(:),k)
+          end do
+        case('soft') !check the first element, asume the rest have the same behavior
+          !check whether mid-points appear at the end of nn
+          call alloc(inew, FEDB(tp)%lnn)
+          call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, 1, inew)
+          do k = 1, elg%nel
+            elg%nn(:,k) = elg%nn(inew(:),k)
+          end do
+        case('salome') !node order is the one prescribed by Salome for isoparam. P2 triangles: vert. and mid-points sandwiched
+          call info('(module_pmh/reorder_nodes) option ''-r salome'' not implemented for tetrahedra Lagrange P2')
+        end select
+      else
+        call info('(module_pmh/reorder_nodes) reordering of element type '//trim(string(FEDB(pmh%pc(ip)%el(ig)%type)%desc))//&
+        &' is not implemented: piece '//trim(string(ip))//', group '//trim(string(ig))//'; node order remains unchanged')
+      end if
+    end associate
+  end do
+end do
+end subroutine
+
+!-----------------------------------------------------------------------
+! positive_jacobian: ensure positive jacobian
+!
+! it must be called at the end of build_vertices to guarantee that mm exists
+!-----------------------------------------------------------------------
+subroutine positive_jacobian(pmh)
+type(pmh_mesh), intent(inout) :: pmh
+integer :: ip, ig, i, k
+integer, allocatable :: pos(:) 
+logical :: QJac(4) 
+
+do ip = 1, size(pmh%pc,1)
+  do ig = 1, size(pmh%pc(ip)%el,1)
+    associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type, z => pmh%pc(ip)%z)
+      if (tp == check_fe(.true.,   1, 1,  0, 0) .or. tp == check_fe(.true.,   2, 2,  1, 0) .or. &
+          tp == check_fe(.false.,  3, 2,  1, 0)) then !Node, Edge Lagrange P1 or P2
+        continue
+      elseif (tp == check_fe(.true.,   3, 3,  3, 0)) then
+        !************************************* Triangle, Lagrange P1 ****************************
+        do k = 1, elg%nel
+          if ( (z(1,elg%mm(2,k)) - z(1,elg%mm(1,k))) * (z(2,elg%mm(3,k)) - z(2,elg%mm(1,k))) & !only x and y coordinates are used
+             - (z(2,elg%mm(2,k)) - z(2,elg%mm(1,k))) * (z(1,elg%mm(3,k)) - z(1,elg%mm(1,k))) < 0 ) &
+          call swap(elg%mm(2,k), elg%mm(3,k))
+        end do
+      elseif (tp == check_fe(.false.,  6, 3,  3, 0)) then
+        !************************************* Triangle, Lagrange P2 ****************************
+        do k = 1, elg%nel
+          if ( (z(1,elg%mm(2,k)) - z(1,elg%mm(1,k))) * (z(2,elg%mm(3,k)) - z(2,elg%mm(1,k))) & !only x and y coordinates are used
+             - (z(2,elg%mm(2,k)) - z(2,elg%mm(1,k))) * (z(1,elg%mm(3,k)) - z(1,elg%mm(1,k))) < 0 ) then
+            call swap(elg%mm(2,k), elg%mm(3,k))
+            call swap(elg%mm(4,k), elg%mm(6,k))
+          end if
+          if ( (z(1,elg%nn(2,k)) - z(1,elg%nn(1,k))) * (z(2,elg%nn(3,k)) - z(2,elg%nn(1,k))) & !only x and y coordinates are used
+             - (z(2,elg%nn(2,k)) - z(2,elg%nn(1,k))) * (z(1,elg%nn(3,k)) - z(1,elg%nn(1,k))) < 0 ) then
+            call swap(elg%nn(2,k), elg%nn(3,k))
+            call swap(elg%nn(4,k), elg%nn(6,k))
+          end if
+        end do
+      elseif (tp == check_fe(.true.,   4, 4,  4, 0)) then
+        !************************************* Quadrangle, Lagrange P1 **************************
+        !check 4-node quadrilateral jacobian (see http://mms2.ensmp.fr/ef_paris/technologie/transparents/e_Pathology.pdf)
+        QJac = [QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1, -1), &
+                QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1, -1), &
+                QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1,  1), &
+                QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1,  1)]
+        call sfind(QJac, .true., pos)
+        if     (size(pos,1) == 4) then
+          call swap(elg%mm(1,k), elg%mm(2,k))
+          call swap(elg%mm(4,k), elg%mm(6,k))
+        elseif (size(pos,1) == 2) then
+          call swap(elg%mm(pos(1),k), elg%mm(pos(2),k))
+        end if
+      elseif (tp == check_fe(.true.,   4, 4,  6, 4)) then
+        !************************************* Tetrahedron, Lagrange P1 *************************
+        do k = 1, elg%nel
+          if (.not. detDFT_pos(z(:,elg%mm(1,k)), z(:,elg%mm(2,k)), z(:,elg%mm(3,k)), z(:,elg%mm(4,k)))) &
+          call swap(elg%mm(2,k), elg%mm(3,k))
+        end do
+      elseif (tp == check_fe(.false., 10, 4,  6, 4)) then
+        !************************************* Tetrahedron, Lagrange P2 *************************
+        do k = 1, elg%nel
+          if (.not. detDFT_pos(z(:,elg%mm(1,k)), z(:,elg%mm(2,k)), z(:,elg%mm(3,k)), z(:,elg%mm(4,k)))) &
+            call swap(elg%mm(2,k), elg%mm( 3,k))
+          if (.not. detDFT_pos(z(:,elg%nn(1,k)), z(:,elg%nn(2,k)), z(:,elg%nn(3,k)), z(:,elg%nn(4,k)))) then
+            call swap(elg%nn(2,k), elg%nn( 3,k))
+            call swap(elg%nn(5,k), elg%nn( 7,k))
+            call swap(elg%nn(9,k), elg%nn(10,k))
+          end if
+        end do
+      elseif (tp == check_fe(.true.,   8, 8, 12, 6)) then
+        !************************************* Hexahedron, Lagrange P1 **************************
+        !sufficient condition to ensure positive Jacobian for an hexahedron
+        !(see http://www.math.udel.edu/~szhang/research/p/subtettest.pdf)
+        do k = 1, elg%nel
+          do i = 1, size(Pc, 1)
+            if (.not. detDFT_pos(z(:,elg%mm(Pc(i,1),k)), z(:,elg%mm(Pc(i,2),k)), z(:,elg%mm(Pc(i,3),k)), z(:,elg%mm(Pc(i,4),k)))) &
+            call info('(module_pmh/reorder_nodes) hexahedron '//trim(string(k))//' does not fulfill sufficient condition to '//&
+            &' ensure positive Jacobian: piece '//trim(string(ip))//', group '//trim(string(ig))//'; node order remains unchanged')
+          end do
+        end do
+      else
+        call info('(module_pmh/reorder_nodes) reordering of element type '//trim(string(FEDB(pmh%pc(ip)%el(ig)%type)%desc))//&
+        &' is not implemented: piece '//trim(string(ip))//', group '//trim(string(ig))//'; node order remains unchanged')
+      end if
+    end associate
+  end do
+end do
+end subroutine
+
+!-----------------------------------------------------------------------
+! swap: swap the value of two variables
+!-----------------------------------------------------------------------
+subroutine swap(a,b)
+integer :: a,b,c
+c = a; a = b; b = c
+end subroutine
+
+!-----------------------------------------------------------------------
+! reorder_nodes_simplex_P2: calculate inew to reorder nn (vertices first)
+!-----------------------------------------------------------------------
+subroutine reorder_nodes_simplex_P2(ip, ig, elg, tp, z, k, inew)
+type(elgroup), intent(in)    :: elg
+integer,       intent(in)    :: ip, ig, tp, k
+real(real64),  intent(in)    :: z(:,:)
+integer,       intent(inout) :: inew(:)
+integer :: i, j, l, nv, newnn(size(inew))
+
+!search first the vertices, checking that they are not mid-points
+nv = 0
+NODES: do i = 1, FEDB(tp)%lnn !nodes
+  do j = 1, FEDB(tp)%lnn !first possible vertex
+    if (j /= i) then
+      do l = j+1, FEDB(tp)%lnn !second possible vertex
+        if (l /= i) then
+          if ( maxval(abs((z(:,elg%nn(j,k))+z(:,elg%nn(l,k)))/2-z(:,elg%nn(i,k)))) < 1e3*epsilon(z) ) cycle NODES
+        end if
+      end do
+    end if
+  end do
+  !elg%nn(i,k) is not a mid-point, so it is a vertex
+  nv = nv + 1    
+  newnn(nv) = elg%nn(i,k)
+  inew (nv) = i
+  if (nv > FEDB(tp)%lnv)  call error('(module_pmh/reorder_nodes_simplex_P2) too many vertices were found in a Lagrange P2 '//&
+  &'element: piece '//trim(string(ip))//', group '//trim(string(ig))//', element '//trim(string(k))//&
+  &'; some edges can be singular or it can be an isoparametric element. Use ''feconv -h'' to see available options')
+end do NODES
+!identify mid-points and save it in PMH order
+do i = 1, FEDB(tp)%lnn !nodes
+  if (find_first(newnn == elg%nn(i,k)) > 0) cycle !it is a vertex
+  do j = 1, FEDB(tp)%lne
+    if (maxval(abs((z(:,newnn(FEDB(tp)%edge(1,j))) + z(:,newnn(FEDB(tp)%edge(2,j))))/2 - z(:,elg%nn(i,k)))) < 1e3*epsilon(z)) then
+      inew (FEDB(tp)%lnv + j) = i
+      exit
+    end if
+  end do
+end do
+end subroutine
+
+!-----------------------------------------------------------------------
+! QJ_pos: check whether the 4-node quadrilateral jacobian is positive
+! Only (x,y) coordinates are used
+!-----------------------------------------------------------------------
+function QJ_pos(a1, a2, a3, a4, r, s) result(res)
+real(real64), intent(in) :: a1(2), a2(2), a3(2), a4(2)
+integer :: r, s
+logical :: res
+
+res = (a4(2)-a2(2))*(a3(1)-a1(1))-(a3(2)-a1(2))*(a4(1)-a2(1))+ &
+     ((a3(2)-a4(2))*(a2(1)-a1(1))-(a2(2)-a1(2))*(a3(1)-a4(1)))*r+ &
+     ((a4(2)-a1(2))*(a3(1)-a2(1))-(a3(2)-a2(2))*(a4(1)-a1(1)))*s > 0
+end function
+
+
+!-----------------------------------------------------------------------
+! detDFT_pos: check whether the tetrahedron jacobian is positive
+!-----------------------------------------------------------------------
+function detDFT_pos(a1, a2, a3, a4) result(res)
+real(real64), intent(in) :: a1(3), a2(3), a3(3), a4(3)
+logical :: res
+
+res = (a2(1)-a1(1))*(a3(2)-a1(2))*(a4(3)-a1(3)) + (a2(3)-a1(3))*(a3(1)-a1(1))*(a4(2)-a1(2)) & 
+    + (a2(2)-a1(2))*(a3(3)-a1(3))*(a4(1)-a1(1)) - (a2(3)-a1(3))*(a3(2)-a1(2))*(a4(1)-a1(1)) &
+    - (a2(2)-a1(2))*(a3(1)-a1(1))*(a4(3)-a1(3)) - (a2(1)-a1(1))*(a3(3)-a1(3))*(a4(2)-a1(2)) > 0
+end function
+
 end module
+
 
 ! PASOS A DAR:
 !   Definición de pmh
