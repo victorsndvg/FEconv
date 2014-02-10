@@ -7,6 +7,7 @@ use module_ALLOC
 use module_files, only: get_unit
 use module_mesh
 use module_read_mphtxt
+use module_write_mphtxt
 implicit none
 
 !Types
@@ -57,14 +58,13 @@ end subroutine
 !-----------------------------------------------------------------------
 ! read: read MPHTXT file
 !-----------------------------------------------------------------------
-subroutine read_mphtxt(this, m, mphtxt_m, maxdim)
+subroutine read_mphtxt(this, m, pmh, maxdim)
 
   type(mphtxt),                             intent(inout) :: this     ! mphtxt object
   type(mfm_mesh), dimension(:), allocatable,intent(inout) :: m        ! mfm mesh
-  type(pmh_mesh),                           intent(inout) :: mphtxt_m ! pmh_mesh
+  type(pmh_mesh),                           intent(inout) :: pmh      ! pmh_mesh
   integer,                                  intent(inout) :: maxdim   ! dimension detected
-  integer :: ios, n, j, i
-  logical :: fit(2)
+  integer :: ios, i
 
   maxdim = 0
 
@@ -72,14 +72,39 @@ subroutine read_mphtxt(this, m, mphtxt_m, maxdim)
   if (ios /= 0) call error('mphtxt/read/rewind, #'//trim(string(ios)))
 
   ! Reads the mphtxt file header and allocates the number of pieces
-  call read_mphtxt_header(this%unit, mphtxt_m)
+  call read_mphtxt_header(this%unit, pmh)
 
   ! Reads every piece of the mesh and calculate the max of its space dimension
-  if (.not. allocated(mphtxt_m%pc)) call error('mphtxt/read/object, objects not allocated')
-  do i = 1, size(mphtxt_m%pc,1)
+  if (.not. allocated(pmh%pc)) call error('mphtxt/read/object, objects not allocated')
+  do i = 1, size(pmh%pc,1)
       call info('Reading piece '//trim(string(i))//' ...')
-      call read_mphtxt_object(this%unit, mphtxt_m%pc(i))
-      if (maxdim < mphtxt_m%pc(i)%dim) maxdim = mphtxt_m%pc(i)%dim
+      call read_mphtxt_object(this%unit, pmh%pc(i))
+      if (maxdim < pmh%pc(i)%dim) maxdim = pmh%pc(i)%dim
+  enddo
+
+end subroutine
+
+!-----------------------------------------------------------------------
+! write: write MPHTXT file
+!-----------------------------------------------------------------------
+subroutine write_mphtxt(this, pmh)
+
+  type(mphtxt),        intent(inout) :: this     ! mphtxt object
+  type(pmh_mesh),      intent(inout) :: pmh      ! pmh_mesh
+  integer                            :: i, ios      
+
+
+  rewind(unit=this%unit, iostat=ios)
+  if (ios /= 0) call error('mphtxt/read/rewind, #'//trim(string(ios)))
+
+  ! Reads the mphtxt file header and allocates the number of pieces
+  call write_mphtxt_header(this%unit, pmh)
+
+  ! Reads every piece of the mesh and calculate the max of its space dimension
+  if (.not. allocated(pmh%pc)) call error('mphtxt/read/object, objects not allocated')
+  do i = 1, size(pmh%pc,1)
+      call info('Writing piece '//trim(string(i))//' ...')
+      call write_mphtxt_object(this%unit, pmh%pc(i),i)
   enddo
 
 end subroutine

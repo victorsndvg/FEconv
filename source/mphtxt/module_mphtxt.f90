@@ -26,8 +26,8 @@ contains
 !-----------------------------------------------------------------------
 ! load_mphtxt: read a MPHTXT file
 !-----------------------------------------------------------------------
-subroutine load_mphtxt(mphtxtfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  character(len=*),         intent(in)  :: mphtxtfile
+subroutine load_mphtxt(filename, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  character(len=*),         intent(in)  :: filename
   integer,                  intent(out) :: nel, nnod, nver, dim, lnn, lnv, lne, lnf
   integer, allocatable,     intent(out) :: nn(:,:), mm(:,:), nrc(:,:), nra(:,:), nrv(:,:), nsd(:)
   real(real64),allocatable, intent(out) :: z(:,:)
@@ -41,7 +41,7 @@ subroutine load_mphtxt(mphtxtfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn,
  
   ! Open mphtxt file and reads the mesh
   call info('Reading mphtxt file ...')
-  call open_mphtxt(u, mphtxtfile)
+  call open_mphtxt(u, filename)
   call read_mphtxt(u, m, pmh, dim)
   call close_mphtxt(u)
 
@@ -51,6 +51,20 @@ subroutine load_mphtxt(mphtxtfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn,
   ! Translates pmh structure to mfm
   call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
 
+
+end subroutine
+
+!-----------------------------------------------------------------------
+! save_mphtxt: write a MPHTXT file
+!-----------------------------------------------------------------------
+subroutine save_mphtxt(filename, pmh)
+  character(len=*),         intent(in)     :: filename
+  type(pmh_mesh),           intent(inout)  :: pmh
+  type(mphtxt)                             :: u
+
+  call open_mphtxt(u, filename)
+  call write_mphtxt(u, pmh)
+  call close_mphtxt(u)
 
 end subroutine
 

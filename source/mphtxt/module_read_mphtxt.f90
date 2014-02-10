@@ -1,7 +1,7 @@
 module module_read_mphtxt
 !-----------------------------------------------------------------------
 ! Module for mphtxt file read
-! Last update: 08/01/2014
+! Last update: 07/02/2014
 !-----------------------------------------------------------------------
 use module_COMPILER_DEPENDANT, only: real64
 use module_os_dependant, only: maxpath
@@ -40,7 +40,7 @@ subroutine read_mphtxt_header(iu, mphtxt_m)
 
     do 
       read (unit=iu, fmt='(a)', iostat = ios) line
-      if (ios /= 0) call error('mphtxt_file/header, #'//trim(string(ios)))
+      if (ios /= 0) call error('read_mphtxt/header, #'//trim(string(ios)))
 
       line = trim(line,'#')
 
@@ -48,7 +48,7 @@ subroutine read_mphtxt_header(iu, mphtxt_m)
         ! File version
         if (version(1) == -1 .and. version(2) == -1 .and. word_count(line,' ') == 2) then
           read(line,*) version(1),version(2)
-          if (version(1) /= 0 .or. version(2) /= 1) call error('mphtxt_file/header, 0.1 is the only supported version #'//&
+          if (version(1) /= 0 .or. version(2) /= 1) call error('read_mphtxt/header, 0.1 is the only supported version #'//&
           &string(version))  
         ! Number of tags
         elseif (ntags == -1 .and. word_count(line,' ') == 1) then
