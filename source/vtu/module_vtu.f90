@@ -21,6 +21,8 @@ implicit none
 !Constants
 !edge_tria(i,j), vertice i de la arista j de un triangulo
 integer, parameter, dimension(2,3) :: edge_tria = reshape([1,2, 2,3, 3,1], [2,3])
+!edge_quad(i,j), vertice i de la arista j de un cuadrangulo
+integer, parameter, dimension(2,4) :: edge_quad = reshape([1,2, 2,3, 3,4, 4,1], [2,4])
 !edge_tetra(i,j), vertice i de la arista j de un tetraedro
 integer, parameter, dimension(2,6) :: edge_tetra = reshape([1,2, 2,3, 3,1, 1,4, 2,4, 3,4], [2,6])
 !face_tetra(i,j), vertice i de la cara j de un tetraedro
@@ -140,6 +142,31 @@ case('triangle2') !triangles P2
       call VTU_write_pointdata(eln, 'nra_'//trim(string(ref(j))), 'scalar')
     enddo
   endif
+case('quad') !Quad P1
+  !nrv
+  call sunique(pack(nrv, nrv/=0), ref)
+  if (size(ref, 1) > 0) then 
+    call ssort(ref)
+    do j = 1, size(ref, 1)
+      elv = 0._real64
+      do k = 1, nel; do l = 1,lnv
+          elv(mm(l,k)) = max(elv(mm(l,k)), true64(nrv(l,k)==ref(j)))
+      end do; end do
+      call VTU_write_pointdata(elv, 'nrv_'//trim(string(ref(j))), 'scalar')
+    end do
+  endif
+  !nra
+  call sunique(pack(nra, nra/=0), ref)
+  if (size(ref, 1) > 0) then
+    call ssort(ref)
+    do j = 1, size(ref, 1)
+      elv = 0._real64
+      do k = 1, nel; do l = 1, lnv; do m = 1, 2
+        elv(mm(edge_quad(m,l),k)) = max(elv(mm(edge_quad(m,l),k)), true64(nra(l,k)==ref(j)))
+      end do; end do; end do
+      call VTU_write_pointdata(elv, 'nra_'//trim(string(ref(j))), 'scalar')
+    end do
+  end if
 case('tetra') !tetrahedra P1
   !nrv
   call sunique(pack(nrv, nrv/=0), ref)
