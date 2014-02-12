@@ -7,8 +7,8 @@ module module_mphtxt
 ! Last update: 08/01/2014
 !
 ! PUBLIC PROCEDURES:
-!   load_mphtxt: loads a mesh from a MPHTXT format file
-!   NOTES: 1) mesh must be composed of a single FE type
+! load_mphtxt: loads a mesh from a MPHTXT format file
+! NOTES: 1) mesh must be composed of a single FE type
 !-----------------------------------------------------------------------
 use module_compiler_dependant, only: real64
 use module_os_dependant, only: maxpath
@@ -26,14 +26,14 @@ contains
 !-----------------------------------------------------------------------
 ! load_mphtxt: read a MPHTXT file
 !-----------------------------------------------------------------------
-subroutine load_mphtxt(filename, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  character(len=*),         intent(in)  :: filename
-  integer,                  intent(out) :: nel, nnod, nver, dim, lnn, lnv, lne, lnf
-  integer, allocatable,     intent(out) :: nn(:,:), mm(:,:), nrc(:,:), nra(:,:), nrv(:,:), nsd(:)
+subroutine load_mphtxt(filename, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  character(len=*), intent(in) :: filename
+  integer, intent(out) :: nel, nnod, nver, dim, lnn, lnv, lne, lnf
+  integer, allocatable, intent(out) :: nn(:,:), mm(:,:), nrc(:,:), nra(:,:), nrv(:,:), nsd(:)
   real(real64),allocatable, intent(out) :: z(:,:)
-  type(mphtxt)                          :: u
-  type(pmh_mesh)                        :: pmh
-  type(mfm_mesh), allocatable           :: m(:)
+  type(pmh_mesh), intent(inout):: pmh
+  type(mphtxt) :: u
+  type(mfm_mesh), allocatable :: m(:)
 
 
   ! Inital settings
@@ -48,21 +48,17 @@ subroutine load_mphtxt(filename, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, m
   ! Build vertex connectivities and coordinates from node information
   call build_vertices(pmh)
 
-  ! Translates pmh structure to mfm
-  call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-
-
 end subroutine
 
 !-----------------------------------------------------------------------
 ! save_mphtxt: write a MPHTXT file
 !-----------------------------------------------------------------------
 subroutine save_mphtxt(filename, pmh)
-  character(len=*),         intent(in)     :: filename
-  type(pmh_mesh),           intent(inout)  :: pmh
-  type(mphtxt)                             :: u
+  character(len=*), intent(in) :: filename
+  type(pmh_mesh), intent(inout) :: pmh
+  type(mphtxt) :: u
 
-  call open_mphtxt(u, filename)
+  call open_mphtxt(u, filename,'unknown')
   call write_mphtxt(u, pmh)
   call close_mphtxt(u)
 

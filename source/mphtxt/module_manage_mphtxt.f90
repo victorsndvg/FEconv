@@ -13,8 +13,8 @@ implicit none
 !Types
 type mphtxt
   private
-  character(len=MAXPATH)              :: filename = ' '    !file name
-  integer                             :: UNIT     = -1     !associated unit number
+character(len=MAXPATH) :: filename = ' ' !file name
+  integer :: UNIT = -1 !associated unit number
 end type
 
 contains
@@ -25,18 +25,24 @@ contains
 !-----------------------------------------------------------------------
 ! open: open mphtxt file
 !-----------------------------------------------------------------------
-subroutine open_mphtxt(this, filename)
+subroutine open_mphtxt(this, filename, st)
 
-type(mphtxt),     intent(inout) :: this     !mphtxt object
-character(len=*), intent(in)    :: filename !mphtxt file
-integer                         :: ios
+  type(mphtxt), intent(inout) :: this !mphtxt object
+  character(len=*), intent(in) :: filename !mphtxt file
+  integer :: ios
+  character(len=*), optional, intent(in) :: st
+  character(len=MAXPATH) :: aux
+  ! open file
+    this%filename = filename
+    this%unit = get_unit()
+    aux = 'old'
+    if(present(st)) then
+aux = trim(st)
+    endif
 
-! open file
-this%filename = filename
-this%unit = get_unit()
 open (unit=this%unit, file=this%filename, form='formatted', iostat=ios, &
-status='old', position='rewind')
-if (ios /= 0) call error('mphtxt/open, #'//trim(string(ios)))
+    status=trim(aux), position='rewind')
+    if (ios /= 0) call error('mphtxt/open, #'//trim(string(ios)))
 
 end subroutine
 
@@ -46,8 +52,8 @@ end subroutine
 !-----------------------------------------------------------------------
 subroutine close_mphtxt(this)
 
-type(mphtxt),     intent(inout) :: this     !mphtxt object
-integer                         :: ios
+type(mphtxt), intent(inout) :: this !mphtxt object
+integer :: ios
 
   ! closes mphtxt file
   close(unit=this%unit, iostat=ios)
@@ -60,10 +66,10 @@ end subroutine
 !-----------------------------------------------------------------------
 subroutine read_mphtxt(this, m, pmh, maxdim)
 
-  type(mphtxt),                             intent(inout) :: this     ! mphtxt object
-  type(mfm_mesh), dimension(:), allocatable,intent(inout) :: m        ! mfm mesh
-  type(pmh_mesh),                           intent(inout) :: pmh      ! pmh_mesh
-  integer,                                  intent(inout) :: maxdim   ! dimension detected
+  type(mphtxt), intent(inout) :: this ! mphtxt object
+  type(mfm_mesh), dimension(:), allocatable,intent(inout) :: m ! mfm mesh
+  type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
+  integer, intent(inout) :: maxdim ! dimension detected
   integer :: ios, i
 
   maxdim = 0
@@ -80,7 +86,7 @@ subroutine read_mphtxt(this, m, pmh, maxdim)
       call info('Reading piece '//trim(string(i))//' ...')
       call read_mphtxt_object(this%unit, pmh%pc(i))
       if (maxdim < pmh%pc(i)%dim) maxdim = pmh%pc(i)%dim
-  enddo
+enddo
 
 end subroutine
 
@@ -89,9 +95,9 @@ end subroutine
 !-----------------------------------------------------------------------
 subroutine write_mphtxt(this, pmh)
 
-  type(mphtxt),        intent(inout) :: this     ! mphtxt object
-  type(pmh_mesh),      intent(inout) :: pmh      ! pmh_mesh
-  integer                            :: i, ios      
+  type(mphtxt), intent(inout) :: this ! mphtxt object
+  type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
+  integer :: i, ios
 
 
   rewind(unit=this%unit, iostat=ios)
