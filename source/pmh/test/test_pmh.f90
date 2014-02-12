@@ -12,7 +12,7 @@ use module_mfm
 use module_vtu
 implicit none
 
-type(pmh_mesh) :: pmh, pmh2
+type(pmh_mesh) :: pmh, pmh2, pmh3
 
 !Variables for MFM format
 integer                                   :: nel  = 0 !global number of elements
@@ -125,4 +125,49 @@ call save_mfm('prueba.mfm', 10, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm
 !print*,'b'
 call save_vtu('prueba.vtu', nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
 !print*,'c'
+
+
+!Cuadrangulos
+allocate(pmh3%pc(1))
+!Pieza 1
+pmh3%pc(1)%nnod = 13
+pmh3%pc(1)%dim  =  3
+allocate(pmh3%pc(1)%z(3,13))
+pmh3%pc(1)%z(1:3, 1) = real([0,  0,  0], real64)
+pmh3%pc(1)%z(1:3, 2) = real([1,  0,  0], real64)
+pmh3%pc(1)%z(1:3, 3) = real([1,  1,  0], real64)
+pmh3%pc(1)%z(1:3, 4) = real([0,  1,  0], real64)
+pmh3%pc(1)%z(1:3, 5) = real([0.5,0., 0.], real64)
+pmh3%pc(1)%z(1:3, 6) = real([1., 0.5,0.], real64)
+pmh3%pc(1)%z(1:3, 7) = real([0.5,1., 0.], real64)
+pmh3%pc(1)%z(1:3, 8) = real([0., 0.5,0.], real64)
+pmh3%pc(1)%z(1:3, 9) = real([2,  0,  0], real64)
+pmh3%pc(1)%z(1:3,10) = real([2,  1,  0], real64)
+pmh3%pc(1)%z(1:3,11) = real([1.5,0. ,0.], real64)
+pmh3%pc(1)%z(1:3,12) = real([2., 0.5,0.], real64)
+pmh3%pc(1)%z(1:3,13) = real([0.5,1., 0.], real64)
+allocate(pmh3%pc(1)%el(2))
+!Grupo 1
+pmh3%pc(1)%el(1)%nel  = 2
+pmh3%pc(1)%el(1)%type = 7 !quad P1
+allocate(pmh3%pc(1)%el(1)%nn(4,2))
+pmh3%pc(1)%el(1)%nn(1:4,1) = [1,2, 4,3] !bad orientation! (is corrected by the program...)
+pmh3%pc(1)%el(1)%nn(1:4,2) = [2,9,10,3]
+allocate(pmh3%pc(1)%el(1)%ref(2))
+pmh3%pc(1)%el(1)%ref = [1,2]
+!Grupo 2
+pmh3%pc(1)%el(2)%nel  = 2
+pmh3%pc(1)%el(2)%type = 2 !edge P1
+allocate(pmh3%pc(1)%el(2)%nn(3,2))
+pmh3%pc(1)%el(2)%nn(1:2,1) = [1, 4]
+pmh3%pc(1)%el(2)%nn(1:2,2) = [9,10]
+allocate(pmh3%pc(1)%el(2)%ref(2))
+pmh3%pc(1)%el(2)%ref = [11, 12]
+
+call build_vertices(pmh3)
+deallocate(nn, mm, nrv, nra, z, nsd)
+nver = 0; nel = 0; nnod = 0
+call pmh2mfm(pmh3, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+call save_vtu('prueba-quad.vtu', nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+
 end program

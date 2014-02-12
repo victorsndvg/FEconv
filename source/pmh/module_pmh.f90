@@ -309,7 +309,6 @@ if (max_tdim > 1) then
     end if
   end do
 end if
-
 !nrc: visit element groups of tdim = 2 to set edge references
 if (max_tdim > 2) then
   call alloc(nrc, lnf, nel); nrc = 0
@@ -785,17 +784,19 @@ do ip = 1, size(pmh%pc,1)
       elseif (tp == check_fe(.true.,   4, 4,  4, 0)) then
         !************************************* Quadrangle, Lagrange P1 **************************
         !check 4-node quadrilateral jacobian (see http://mms2.ensmp.fr/ef_paris/technologie/transparents/e_Pathology.pdf)
-        QJac = [QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1, -1), &
-                QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1, -1), &
-                QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1,  1), &
-                QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1,  1)]
-        call sfind(QJac, .true., pos)
-        if     (size(pos,1) == 4) then
-          call swap(elg%mm(1,k), elg%mm(2,k))
-          call swap(elg%mm(4,k), elg%mm(6,k))
-        elseif (size(pos,1) == 2) then
-          call swap(elg%mm(pos(1),k), elg%mm(pos(2),k))
-        end if
+        do k = 1, elg%nel
+          QJac = [QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1, -1), &
+                  QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1, -1), &
+                  QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1,  1), &
+                  QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1,  1)]
+          call sfind(QJac, .false., pos)
+          if     (size(pos,1) == 4) then
+            call swap(elg%mm(1,k), elg%mm(2,k))
+            call swap(elg%mm(3,k), elg%mm(4,k))
+          elseif (size(pos,1) == 2) then
+            call swap(elg%mm(pos(1),k), elg%mm(pos(2),k))
+          end if
+        end do
       elseif (tp == check_fe(.true.,   4, 4,  6, 4)) then
         !************************************* Tetrahedron, Lagrange P1 *************************
         do k = 1, elg%nel
@@ -851,6 +852,7 @@ real(real64),  intent(in)    :: z(:,:)
 integer,       intent(inout) :: inew(:)
 integer :: i, j, l, nv, newnn(size(inew))
 
+newnn = 0
 !search first the vertices, checking that they are not mid-points
 nv = 0
 NODES: do i = 1, FEDB(tp)%lnn !nodes
