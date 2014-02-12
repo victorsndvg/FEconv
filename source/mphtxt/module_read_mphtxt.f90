@@ -243,16 +243,10 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
         ! Number of parameters
         elseif (allocated(mphtxt_t%ref) .and. (k <= nindices) .and. word_count(line,' ') == 1) then
           read(line,*) mphtxt_t%ref(k)
+          mphtxt_t%ref(k) = mphtxt_t%ref(k) + 1 !PMH indices starts in 1
           k = k+1
-          if (k > nindices) then  ! Number of geometric indices already readed.
-            aux = minval(mphtxt_t%ref)
-            if(aux <=0) then
-              do k=1, nindices
-                mphtxt_t%ref(k) = mphtxt_t%ref(k) + abs(aux) !PMH min value = 1
-              enddo
-            endif
-            cycle
-          endif
+          if (k > nindices) cycle ! Number of geometric indices already readed.
+
 
         ! Number of up/down pairs
         elseif (nupdownpairs == -1 .and. word_count(line,' ') == 1) then

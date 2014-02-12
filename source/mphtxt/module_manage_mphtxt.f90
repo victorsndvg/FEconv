@@ -25,24 +25,18 @@ contains
 !-----------------------------------------------------------------------
 ! open: open mphtxt file
 !-----------------------------------------------------------------------
-subroutine open_mphtxt(this, filename, st)
+subroutine open_mphtxt(this, filename)
 
-  type(mphtxt),     intent(inout)        :: this     !mphtxt object
-  character(len=*), intent(in)           :: filename !mphtxt file
-  integer                                :: ios
-  character(len=*), optional, intent(in) :: st
-  character(len=MAXPATH)                 :: aux
-  ! open file
-    this%filename = filename
-    this%unit = get_unit()
-    aux = 'old'
-    if(present(st)) then
-      aux = trim(st)
-    endif
+type(mphtxt),     intent(inout) :: this     !mphtxt object
+character(len=*), intent(in)    :: filename !mphtxt file
+integer                         :: ios
 
-    open (unit=this%unit, file=this%filename, form='formatted', iostat=ios, &
-    status=trim(aux), position='rewind')
-    if (ios /= 0) call error('mphtxt/open, #'//trim(string(ios)))
+! open file
+this%filename = filename
+this%unit = get_unit()
+open (unit=this%unit, file=this%filename, form='formatted', iostat=ios, &
+status='old', position='rewind')
+if (ios /= 0) call error('mphtxt/open, #'//trim(string(ios)))
 
 end subroutine
 
