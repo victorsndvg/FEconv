@@ -24,8 +24,12 @@ use module_patran, only: load_patran
 use module_mfm, only: load_mfm, save_mfm
 use module_mum, only: load_mum, save_mum
 use module_vtu, only: save_vtu, type_cell
-use module_mphtxt, only: load_mphtxt
+use module_mphtxt, only: load_mphtxt,save_mphtxt
+use module_pmh
 implicit none
+
+!PMH structure
+type(pmh_mesh)                            :: pmh
 
 !Variables for MFM format
 integer                                   :: nel  = 0 !global number of elements
@@ -64,7 +68,7 @@ if (len_trim(outfile) == 0) call  error('(module_feconv/fe_conv) unable to find 
 if (len_trim(inext)   == 0) call  error('(module_feconv/fe_conv) unable to find input file extension.')
 if (len_trim(outext)  == 0) call  error('(module_feconv/fe_conv) unable to find output file extension.')
 select case (trim(adjustlt(outext))) !check outfile extension now (avoid reading infile when outfile is invalid)
-case('mfm', 'mum', 'vtu')
+case('mfm', 'mum', 'vtu', 'mphtxt')
   continue
 case default
   call  error('(module_feconv/fe_conv) output file extension not implemented: '//trim(adjustlt(outext)))
@@ -91,11 +95,11 @@ case('bdf')
   call load_patran(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
 case('mphtxt')
   print '(a)', 'Loading COMSOL mesh file...'
-  call load_mphtxt(infile,            nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  call load_mphtxt(infile,            nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
 case default
   call  error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
 end select
-print '(a)', 'FE type of the input mesh: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf))
+!print '(a)', 'FE type of the input mesh: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf))
 
 !transform
 if (is_arg('-l2')) then
@@ -118,6 +122,11 @@ end if
 select case (trim(adjustlt(outext)))
 case('mfm')
   print '(/a)', 'Saving MFM mesh file...'
+  select case (trim(adjustlt(inext)))
+  case('mphtxt')
+    ! Translates pmh structure to mfm
+    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  end select
   call save_mfm(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   print '(a)', 'Done!'
 case('mum')
@@ -126,6 +135,10 @@ case('mum')
   print '(a)', 'Done!'
 case('vtu')
   call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+case('mphtxt')
+  print '(/a)', 'Saving COMSOL mesh file...'
+  call save_mphtxt(outfile, pmh)
+  print '(a)', 'Done!'
 end select !case default, already checked before reading infile
 end subroutine
 
