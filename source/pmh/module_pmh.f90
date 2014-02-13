@@ -267,7 +267,7 @@ if (max_tdim > 0) then
       !STEP2: for every vertex in mm, check whether it is in ref
       do k = nel_piece(ipp-1)+1, nel_piece(ipp)
         do j = 1, FEDB(type_by_tdim(max_tdim))%lnv
-          pos = find_first(ref(1,:), mm(j,k))
+          pos = find_first(ref(:,1), mm(j,k))
           if (pos > 0) nrv(j,k) = ref(pos, 2)
         end do
       end do
@@ -716,7 +716,7 @@ do ip = 1, size(pmh%pc,1)
         !************************************* Tetrahedron, Lagrange P2 *************************
         if (.not.allocated(elg%nn)) call error('(module_pmh/reorder_nodes) nn not allocated for an Lagrange P2 tet mesh: piece '//&
         &trim(string(ip))//', group '//trim(string(ig)))
-        select case(get_post_arg('-r'))
+        select case(reorder_type)
         case('hard') !check every element
           !check whether mid-points appear at the end of nn
           call alloc(inew, FEDB(tp)%lnn)
@@ -773,7 +773,6 @@ do ip = 1, size(pmh%pc,1)
           if ( (z(1,elg%mm(2,k)) - z(1,elg%mm(1,k))) * (z(2,elg%mm(3,k)) - z(2,elg%mm(1,k))) & !only x and y coordinates are used
              - (z(2,elg%mm(2,k)) - z(2,elg%mm(1,k))) * (z(1,elg%mm(3,k)) - z(1,elg%mm(1,k))) < 0 ) then
             call swap(elg%mm(2,k), elg%mm(3,k))
-            call swap(elg%mm(4,k), elg%mm(6,k))
           end if
           if ( (z(1,elg%nn(2,k)) - z(1,elg%nn(1,k))) * (z(2,elg%nn(3,k)) - z(2,elg%nn(1,k))) & !only x and y coordinates are used
              - (z(2,elg%nn(2,k)) - z(2,elg%nn(1,k))) * (z(1,elg%nn(3,k)) - z(1,elg%nn(1,k))) < 0 ) then

@@ -27,6 +27,10 @@ integer, parameter, dimension(2,4) :: edge_quad = reshape([1,2, 2,3, 3,4, 4,1], 
 integer, parameter, dimension(2,6) :: edge_tetra = reshape([1,2, 2,3, 3,1, 1,4, 2,4, 3,4], [2,6])
 !face_tetra(i,j), vertice i de la cara j de un tetraedro
 integer, parameter, dimension(3,4) :: face_tetra = reshape([1,3,2, 1,4,3, 1,2,4, 2,3,4], [3,4])
+!EDGE_HEXA(i,j), vertex #i of edge #j of a hexahedron
+integer, parameter :: edge_hexa(2,12) = reshape([1,2, 2,3, 3,4, 4,1, 1,5, 2,6, 3,7, 4,8, 5,6, 6,7, 7,8, 8,5], [2,12])
+!FACE_HEXA(i,j), vertex #i of face #j of a tetrahedron
+integer, parameter :: face_hexa(4,6) = reshape([1,4,3,2, 1,5,8,4, 1,2,6,5, 5,6,7,8, 2,3,7,6, 3,4,8,7], [4,6])
 
 !Private procedures
 private :: true64, save_w_field !save_w_field must change
@@ -227,15 +231,57 @@ case('tetra2') !tetrahedra P2
   if (size(ref, 1) > 0) then 
     call ssort(ref)
     do j = 1, size(ref, 1)
-      elv = 0._real64
+      eln = 0._real64
       do k = 1, nel
-        do l = 1, lne; do m = 1, 2
-          elv(nn(edge_tetra(m,l),k)) = max(elv(nn(edge_tetra(m,l),k)), true64(nra(l,k)==ref(j)))
-        end do; end do
+        do l = 1, lne
+          do m = 1, 2
+            eln(nn(edge_tetra(m,l),k)) = max(eln(nn(edge_tetra(m,l),k)), true64(nra(l,k)==ref(j)))
+          end do
+          eln(nn(l+lnv,k))           = max(eln(nn(l+lnv,k)),           true64(nra(l,k)==ref(j))) 
+        end do
+      end do
+      call VTU_write_pointdata(eln, 'nra_'//trim(string(ref(j))), 'scalar')
+    enddo
+  endif
+  !nrc
+  call sunique(pack(nrc, nrc/=0), ref)
+  if (size(ref, 1) > 0) then 
+    call ssort(ref)
+    do j = 1, size(ref, 1)
+      eln = 0._real64
+      do k = 1,nel
+        do l = 1, lnf; do m = 1,3
+          eln(nn(face_tetra(m,l),k)) = max(eln(nn(face_tetra(m,l),k)), true64(nrc(l,k)==ref(j)))
+        enddo; enddo
         do l = 1, lnn-lnv
           eln(nn(l+lnv,k)) = max(eln(nn(l+lnv,k)), min(eln(nn(edge_tetra(1,l),k)),eln(nn(edge_tetra(2,l),k))))
         end do
-      end do
+      enddo
+      call VTU_write_pointdata(eln, 'nrc_'//trim(string(ref(j))), 'scalar')
+    enddo
+  endif
+case('hexahedron') !hexahedron P1
+  !nrv
+  call sunique(pack(nrv, nrv/=0), ref)
+  if (size(ref, 1) > 0) then 
+    call ssort(ref)
+    do j = 1, size(ref, 1)
+      elv = 0._real64
+      do k = 1, nel; do l = 1, lnv
+        elv(mm(l,k)) = max(elv(mm(l,k)), true64(nrv(l,k)==ref(j)))
+      end do; end do
+      call VTU_write_pointdata(elv, 'nrv_'//trim(string(ref(j))), 'scalar')
+    enddo
+  endif
+! nra
+  call sunique(pack(nra, nra/=0), ref)
+  if (size(ref, 1) > 0) then 
+    call ssort(ref)
+    do j = 1, size(ref, 1)
+      elv = 0._real64
+      do k = 1, nel; do l = 1, lne; do m = 1, 2
+        elv(mm(edge_hexa(m,l),k)) = max(elv(mm(edge_hexa(m,l),k)), true64(nra(l,k)==ref(j)))
+      end do; end do; end do
       call VTU_write_pointdata(elv, 'nra_'//trim(string(ref(j))), 'scalar')
     enddo
   endif
@@ -245,18 +291,13 @@ case('tetra2') !tetrahedra P2
     call ssort(ref)
     do j = 1, size(ref, 1)
       elv = 0._real64
-      do k = 1,nel
-        do l = 1, lnf; do m = 1,3
-          elv(nn(face_tetra(m,l),k)) = max(elv(nn(face_tetra(m,l),k)), true64(nrc(l,k)==ref(j)))
-        enddo; enddo
-        do l = 1, lnn-lnv
-          eln(nn(l+lnv,k)) = max(eln(nn(l+lnv,k)), min(eln(nn(face_tetra(1,l),k)),eln(nn(face_tetra(2,l),k)),&
-          eln(nn(face_tetra(3,l),k))))
-        end do
-      enddo
-      call VTU_write_pointdata(eln, 'nrc_'//trim(string(ref(j))), 'scalar')
+      do k = 1, nel; do l = 1, lnf; do m = 1, 4
+        elv(mm(face_hexa(m,l),k)) = max(elv(mm(face_hexa(m,l),k)), true64(nrc(l,k)==ref(j)))
+      enddo; enddo; enddo
+      call VTU_write_pointdata(elv, 'nrc_'//trim(string(ref(j))), 'scalar')
     enddo
   endif
+
 end select
 call VTU_end_pointdata()
 
