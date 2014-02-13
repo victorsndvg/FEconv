@@ -39,7 +39,7 @@ subroutine read_mphtxt_header(iu, mphtxt_m)
     j = 1
 
     do
-read (unit=iu, fmt='(a)', iostat = ios) line
+      read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('read_mphtxt/header, #'//trim(string(ios)))
 
       line = trim(line,'#')
@@ -47,26 +47,26 @@ read (unit=iu, fmt='(a)', iostat = ios) line
       if (len_trim(line) /= 0) then ! Discards empty lines
         ! File version
         if (version(1) == -1 .and. version(2) == -1 .and. word_count(line,' ') == 2) then
-read(line,*) version(1),version(2)
+          read(line,*) version(1),version(2)
           if (version(1) /= 0 .or. version(2) /= 1) call error('read_mphtxt/header, 0.1 is the only supported version #'//&
           &string(version))
         ! Number of tags
         elseif (ntags == -1 .and. word_count(line,' ') == 1) then
-read(line,*) ntags
+          read(line,*) ntags
           allocate(tags(ntags))
         ! Tags
         elseif (allocated(tags) .and. (i <= ntags) .and. (word_count(line,' ') == 2)) then
-read(line,*) aux,tags(i)
+          read(line,*) aux,tags(i)
           i = i+1
           if (i > ntags) cycle ! All tags already readed
         ! Number of types
         elseif (ntypes == -1 .and. word_count(line,' ') == 1) then
-read(line,*) ntypes
+          read(line,*) ntypes
           allocate(types(ntypes))
           allocate(mphtxt_m%pc(ntypes))
         ! Types and objects
         elseif (allocated(types) .and. (j <= ntypes) .and. (word_count(line,' ') == 2)) then
-read(line,*) aux,types(j)
+          read(line,*) aux,types(j)
           j = j+1
           if (j > ntypes) exit ! All types already readed. Header readed.
         else
@@ -108,7 +108,7 @@ subroutine read_mphtxt_object(iu, mphtxt_o)
 
     ! Read object header
     do
-read (unit=iu, fmt='(a)', iostat = ios) line
+      read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/object, #'//trim(string(ios)))
 
       line = trim(line,'#')
@@ -116,41 +116,41 @@ read (unit=iu, fmt='(a)', iostat = ios) line
       if (len_trim(line) /= 0) then ! Discards empty lines
         ! Serializable object
         if (serializable(1) == -1 .and. serializable(2) == -1 .and. serializable(3) == -1 .and. word_count(line,' ') == 3) then
-read(line,*) serializable(1), serializable(2), serializable(3)
+          read(line,*) serializable(1), serializable(2), serializable(3)
           if (.not. (serializable(1) == 0 .or. serializable(1) == 1)) call error('mphtxt_file/object, Only versions 0 or 1 &
 &supported #'//string(serializable))
           if (serializable(3) /= 1) call error('mphtxt_file/object, Not serializable object #'//string(serializable))
         ! Object class
         elseif (obj_class == '' .and. word_count(line,' ') == 2) then
-read(line,*) aux, obj_class
+          read(line,*) aux, obj_class
           if (obj_class /= 'Mesh') call error('mphtxt_file/object, Only mesh object allowed #'//trim(obj_class))
         ! Object version
         elseif (version == -1 .and. (word_count(line,' ') == 1)) then
-read(line,*) version
+          read(line,*) version
         ! Space dimension
         elseif ((mphtxt_o%dim == -1) .and. (word_count(line,' ') == 1)) then
-read(line,*) mphtxt_o%dim
+          read(line,*) mphtxt_o%dim
         ! Number of points
         elseif ((mphtxt_o%nnod == -1) .and. (word_count(line,' ') == 1)) then
-read(line,*) mphtxt_o%nnod
+          read(line,*) mphtxt_o%nnod
         ! Lowest mesh point index
         elseif ((offset == -1) .and. (word_count(line,' ') == 1)) then
-read(line,*) offset
+          read(line,*) offset
           allocate(mphtxt_o%z(mphtxt_o%dim,mphtxt_o%nnod))
         ! Point coordinates
         elseif (allocated(mphtxt_o%z) .and. (i <= mphtxt_o%nnod) .and. (word_count(line,' ') == mphtxt_o%dim)) then
-read(line,*) (mphtxt_o%z(k,i), k=1,mphtxt_o%dim)
-             i = i+1
-             if (i > mphtxt_o%nnod) cycle ! All coords already readed
+          read(line,*) (mphtxt_o%z(k,i), k=1,mphtxt_o%dim)
+          i = i+1
+          if (i > mphtxt_o%nnod) cycle ! All coords already readed
         elseif ((netypes == -1) .and. (word_count(line,' ') == 1)) then
-read(line,*) netypes
+          read(line,*) netypes
           allocate(mphtxt_o%el(netypes))
           exit ! Number of elements already readed. Object header readed.
         else
-exit
-endif
-endif
-enddo
+          exit
+        endif
+      endif
+    enddo
 
     ! Read object element types
     do i = 1, netypes
@@ -198,7 +198,7 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
 
     ! Read object header
     do
-read (unit=iu, fmt='(a)', iostat = ios) line
+      read (unit=iu, fmt='(a)', iostat = ios) line
       if (ios /= 0) call error('mphtxt_file/object/etype, #'//trim(string(ios)))
 
       line = trim(line,'#')
@@ -206,18 +206,18 @@ read (unit=iu, fmt='(a)', iostat = ios) line
       if (len_trim(line) /= 0) then ! Discards empty lines
         ! FE type
         if (len_trim(fetype_name) == 0 .and. word_count(line,' ') == 2) then
-read(line,*) aux, fetype_name
+          read(line,*) aux, fetype_name
           mphtxt_t%type = mphtxt_get_type(fetype_name)
         ! Local number of nodes per element
         elseif (local_nnodes == -1 .and. word_count(line,' ') == 1) then
-read(line,*) local_nnodes
+          read(line,*) local_nnodes
         ! Number of elements
         elseif (mphtxt_t%nel == -1 .and. word_count(line,' ') == 1) then
-read(line,*) mphtxt_t%nel
+          read(line,*) mphtxt_t%nel
           allocate(mphtxt_t%nn(local_nnodes, mphtxt_t%nel))
         ! Elements
         elseif (allocated(mphtxt_t%nn) .and. (i <= mphtxt_t%nel).and. word_count(line,' ') == local_nnodes) then
-read(line,*) (mphtxt_t%nn(m,i), m=1,local_nnodes)
+          read(line,*) (mphtxt_t%nn(m,i), m=1,local_nnodes)
           mphtxt_t%nn(:,i) = mphtxt_t%nn(:,i) - offset + 1
           call mphtxt_node_ordering(mphtxt_t%nn(:,i), mphtxt_t%type)
           i = i+1
@@ -225,10 +225,10 @@ read(line,*) (mphtxt_t%nn(m,i), m=1,local_nnodes)
 
         ! Local number of parameters per element
         elseif (local_nparam == -1 .and. word_count(line,' ') == 1) then
-read(line,*) local_nparam
+          read(line,*) local_nparam
         ! Number of parameters
         elseif (nparam == -1 .and. word_count(line,' ') == 1) then
-read(line,*) nparam
+          read(line,*) nparam
           if(nparam == 0) cycle
         ! Parameters
         elseif ((j <= nparam)) then ! .and. word_count(line,' ') == local_nparam*mphtxt_t%local_nnodes) then
@@ -238,25 +238,25 @@ read(line,*) nparam
 
         ! Number of geometric indices
         elseif (nindices == -1 .and. word_count(line,' ') == 1) then
-read(line,*) nindices
+          read(line,*) nindices
           allocate(mphtxt_t%ref(nindices))
         ! Number of parameters
         elseif (allocated(mphtxt_t%ref) .and. (k <= nindices) .and. word_count(line,' ') == 1) then
-read(line,*) mphtxt_t%ref(k)
+          read(line,*) mphtxt_t%ref(k)
           k = k+1
           if (k > nindices) then ! Number of geometric indices already readed.
             aux = minval(mphtxt_t%ref)
             if(aux <=0) then
-do k=1, nindices
-                mphtxt_t%ref(k) = mphtxt_t%ref(k) + abs(aux) !PMH min value = 1
+              do k=1, nindices
+                mphtxt_t%ref(k) = mphtxt_t%ref(k) + abs(aux) + 1!PMH min value = 1
               enddo
             endif
-cycle
-endif
+            cycle
+          endif
 
         ! Number of up/down pairs
         elseif (nupdownpairs == -1 .and. word_count(line,' ') == 1) then
-read(line,*) nupdownpairs
+          read(line,*) nupdownpairs
           if(nupdownpairs == 0) exit
         ! Up/down pairs
         elseif ((nupdownpairs == 0) .or. (l <= nupdownpairs .and. word_count(line,' ') == 2)) then
@@ -264,10 +264,10 @@ read(line,*) nupdownpairs
           l = l+1
           if (l > nupdownpairs) exit ! Number of up/down pairs already readed. Type readed.
         else
-exit
-endif
-endif
-enddo
+          exit
+        endif
+      endif
+    enddo
 
 
 end subroutine
@@ -334,7 +334,7 @@ subroutine mphtxt_node_ordering(el, tp)
   integer, dimension(:), allocatable :: auxel
 
     if (tp <= 0) then
-call error('module_read_mphtxt/node_ordering # Element type not supported')
+      call error('module_read_mphtxt/node_ordering # Element type not supported')
     endif
 
 if ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Nodes
@@ -358,9 +358,9 @@ if ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Nodes
         ! PMH and MPHTXT don't have the same node ordering in quadrangles lagrange P1
         ! PMH[1,2,3,4] = MPH[1,2,4,3]
         if (size(el,1) /= FEDB(tp)%lnn) then
-call error('module_read_mphtxt/node_ordering # Wrong element size' )
+          call error('module_read_mphtxt/node_ordering # Wrong element size' )
         endif
-aux = el(4); el(4) = el(3); el(3) = aux
+        aux = el(4); el(4) = el(3); el(3) = aux
 
     elseif ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Tetrahedron Lagrange P1
             (FEDB(tp)%lnn == 4) .and. (FEDB(tp)%lnv == 4) .and. &
@@ -373,9 +373,9 @@ aux = el(4); el(4) = el(3); el(3) = aux
         ! PMH and MPHTXT don't have the same node ordering in hexahedrons lagrange P1
         ! PMH[1,2,3,4,5,6,7,8] = MPH[1,2,4,3,5,6,8,7]
         if (size(el,1) /= FEDB(tp)%lnn) then
-call error('module_read_mphtxt/node_ordering # Wrong element size' )
+          call error('module_read_mphtxt/node_ordering # Wrong element size' )
         endif
-aux = el(4); el(4) = el(3); el(3) = aux
+        aux = el(4); el(4) = el(3); el(3) = aux
         aux = el(8); el(8) = el(7); el(7) = aux
 
     elseif ((FEDB(tp)%nver_eq_nnod .eqv. .false.) .and. & ! Edge Lagrange P2
@@ -389,9 +389,9 @@ aux = el(4); el(4) = el(3); el(3) = aux
         ! PMH and MPHTXT don't have the same node ordering in triangles lagrange P2
         ! PMH[1,2,3,4,5,6] = MPH[1,2,3,4,6,5]
         if (size(el,1) /= FEDB(tp)%lnn) then
-call error('module_read_mphtxt/node_ordering # Wrong element size' )
+          call error('module_read_mphtxt/node_ordering # Wrong element size' )
         endif
-aux = el(6); el(6) = el(5); el(5) = aux
+          aux = el(6); el(6) = el(5); el(5) = aux
 
     elseif ((FEDB(tp)%nver_eq_nnod .eqv. .false.) .and. & ! Quadragle Lagrange P2
             (FEDB(tp)%lnn == 9) .and. (FEDB(tp)%lnv == 4) .and. &
@@ -404,9 +404,9 @@ aux = el(6); el(6) = el(5); el(5) = aux
         ! PMH and MPHTXT don't have the same node ordering in tetrahedrons lagrange P2
         ! PMH[1,2,3,4,5,6,7,8,9,10] = MPH[1,2,4,3,5,7,6,8,9,10]
         if (size(el,1) /= FEDB(tp)%lnn) then
-call error('module_read_mphtxt/node_ordering # Wrong element size' )
+          call error('module_read_mphtxt/node_ordering # Wrong element size' )
         endif
-aux = el(7); el(7) = el(6); el(6) = aux
+        aux = el(7); el(7) = el(6); el(6) = aux
 
     elseif ((FEDB(tp)%nver_eq_nnod .eqv. .false.) .and. & ! Hexahedron Lagrange P2
             (FEDB(tp)%lnn == 26) .and. (FEDB(tp)%lnv == 8) .and. &
@@ -416,10 +416,10 @@ aux = el(7); el(7) = el(6); el(6) = aux
         ! MPH[1,2,4,3,5,6,8,7,9,12,13,10,14,16,22,20,23,26,27,24,11,17,15,25,19,21]
 
         if (size(el,1) /= 27) then
-call error('module_read_mphtxt/node_ordering # Wrong element size' )
+          call error('module_read_mphtxt/node_ordering # Wrong element size' )
         endif
 
-if (allocated(auxel)) deallocate(auxel)
+        if (allocated(auxel)) deallocate(auxel)
         allocate(auxel(size(el,1)))
         auxel(:) = el(:)
 

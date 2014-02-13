@@ -96,7 +96,9 @@ case('bdf')
 case('mphtxt')
   print '(a)', 'Loading COMSOL mesh file...'
   call load_mphtxt(infile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  if(trim(adjustlt(outext)) /= 'mphtxt') then
+    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  endif
 case default
   call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
 end select

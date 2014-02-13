@@ -48,7 +48,6 @@ subroutine write_mphtxt_object(iu, pmh_o, n)
   type(piece), intent(in) :: pmh_o ! PMH piece
   integer, intent(in) :: n ! Piece number
   integer :: i
-  character(len=MAXPATH) :: aux
 
   call write_comment(iu,'#','--------- Object '//trim(string(n))//' ----------')
   call write_empty_line(iu)
@@ -62,8 +61,7 @@ subroutine write_mphtxt_object(iu, pmh_o, n)
     call write_empty_line(iu)
     call write_comment(iu, '#', 'Mesh point coordinates')
     do i=1,pmh_o%nnod
-      aux = string(pmh_o%z(:,i))
-      call write_line(iu, aux)
+      call write_line(iu, string(pmh_o%z(:,i)))
     enddo
   else ! z = vertices
     call write_line(iu, string(pmh_o%nver), '#', 'number of mesh points') ! nver
@@ -71,8 +69,7 @@ subroutine write_mphtxt_object(iu, pmh_o, n)
     call write_empty_line(iu)
     call write_comment(iu, '#', 'Mesh point coordinates')
     do i=1,pmh_o%nver
-      aux = string(pmh_o%z(:,i))
-      call write_line(iu, aux)
+      call write_line(iu, string(pmh_o%z(:,i)))
     enddo
   endif
 call write_empty_line(iu)
@@ -143,17 +140,17 @@ subroutine write_line(iu,line,ch,comm)
   character(len=MAXPATH) :: aux
 
   if(present(comm)) then
-if(present(ch)) then
-aux = trim(ch)//' '//trim(comm)
+    if(present(ch)) then
+      aux = trim(ch)//' '//trim(comm)
     else
-aux = '# '//trim(comm)
+      aux = '# '//trim(comm)
     endif
-else
-aux = ''
+  else
+    aux = ''
   endif
 
 
-write(unit=iu, fmt='(a)', iostat = ios) trim(line)//' '//trim(aux)
+  write(unit=iu, fmt='(a)', iostat = ios) trim(line)//' '//trim(aux)
   if (ios /= 0) call error('write_mphtxt/header, #'//trim(string(ios)))
 
 end subroutine
@@ -182,18 +179,18 @@ subroutine write_string(iu,str,ch,comm)
   character(len=MAXPATH) :: aux1, aux2
 
   if(present(ch)) then
-aux1 = '# '//trim(ch)
+    aux1 = trim(ch)
   else
-aux1 = ''
+    aux1 = ''
   endif
 
-if(present(comm)) then
-aux2 = '# '//trim(comm)
+  if(present(comm)) then
+    aux2 = trim(comm)
   else
-aux2 = ''
+    aux2 = ''
   endif
 
-call write_line(iu,trim(string(len_trim(str)))//' '//trim(str),trim(aux1),trim(aux2))
+  call write_line(iu,trim(string(len_trim(str)))//' '//trim(str),trim(aux1),trim(aux2))
 
 end subroutine
 
@@ -207,50 +204,50 @@ function mphtxt_get_desc(num) result(res)
 
     if((FEDB(num)%nver_eq_nnod .eqv. .true.) .and. (1==FEDB(num)%lnn) .and. & ! Node
         (1==FEDB(num)%lnv) .and. (0==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
-res = 'vtx'
+      res = 'vtx'
       call info('Element type: Node')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .true.) .and. (2==FEDB(num)%lnn) .and. & ! Edge Lagrange P1
         (2==FEDB(num)%lnv) .and. (1==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
-res = 'edg'
+      res = 'edg'
       call info('Element type: Edge lagrange P1')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .true.) .and. (3==FEDB(num)%lnn) .and. & ! Triangle Lagrange P1
         (3==FEDB(num)%lnv) .and. (3==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
-res = 'tri'
+      res = 'tri'
       call info('Element type: Triangle lagrange P1')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .true.) .and. (4==FEDB(num)%lnn) .and. & ! Quadrangle Lagrange P1
         (4==FEDB(num)%lnv) .and. (4==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
-res = 'quad'
+      res = 'quad'
       call info('Element type: Quadrangle lagrange P1')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .true.) .and. (4==FEDB(num)%lnn) .and. & ! Tetrahedron Lagrange P1
         (4==FEDB(num)%lnv) .and. (6==FEDB(num)%lne) .and. (4==FEDB(num)%lnf)) then
-res = 'tet'
+      res = 'tet'
       call info('Element type: Tetrahedron lagrange P1')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .true.) .and. (8==FEDB(num)%lnn) .and. & ! Hexahedron Lagrange P1
         (8==FEDB(num)%lnv) .and. (12==FEDB(num)%lne) .and. (6==FEDB(num)%lnf)) then
-res = 'hex'
+      res = 'hex'
       call info('Element type: Hexahedron lagrange P1')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (3==FEDB(num)%lnn) .and. & ! Edge Lagrange P2
         (2==FEDB(num)%lnv) .and. (1==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
-res = 'edg2'
+      res = 'edg2'
       call info('Element type: Edge lagrange P2')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (6==FEDB(num)%lnn) .and. & ! Triangle Lagrange P2
         (3==FEDB(num)%lnv) .and. (3==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
-res = 'tri2'
+      res = 'tri2'
       call info('Element type: Triangle lagrange P2')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (9==FEDB(num)%lnn) .and. & ! Quadrangle Lagrange P2
         (4==FEDB(num)%lnv) .and. (4==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
-res = 'quad2'
+      res = 'quad2'
       call info('Element type: Quadrangle lagrange P2')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (10==FEDB(num)%lnn) .and. & ! Tetrahedron Lagrange P2
         (4==FEDB(num)%lnv) .and. (4==FEDB(num)%lne) .and. (4==FEDB(num)%lnf)) then
-res = 'tet2'
+      res = 'tet2'
       call info('Element type: Tetrahedron lagrange P2')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (26==FEDB(num)%lnn) .and. & ! Hexahedron Lagrange P2
         (8==FEDB(num)%lnv) .and. (8==FEDB(num)%lne) .and. (6==FEDB(num)%lnf)) then
-res = 'hex2'
+      res = 'hex2'
       call info('Element type: Hexahedron lagrange P2')
     else
-call error('Finite element type not supported')
+      call error('Finite element type not supported')
   endif
 
 
