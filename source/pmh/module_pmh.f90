@@ -511,7 +511,7 @@ integer, allocatable :: vert2node(:), node2vert(:)
 integer :: nv2d, pos, maxv, i, j, k, ig, ip
 logical :: all_are_p1, all_are_p1_or_p2, some_mm_unallocated
 
-!reorder_nodes: reorder nodes and/or vertices to have positive jacobian
+!reorder_nodes: reorder nodes and/or vertices of Lagrange P2 elements to have vertices before mid-points
 call reorder_nodes_P2(pmh)
 
 do ip = 1, size(pmh%pc,1)
@@ -552,13 +552,21 @@ do ip = 1, size(pmh%pc,1)
     end do
     if (some_mm_unallocated) then
       !transformation for Lagrange P1/P2 elements: create mm from nn
+! garaizatas que estamos en P2 y que no existe MM pero si NN
       nv2d = 0
       do ig = 1, size(pmh%pc(ip)%el,1)
         associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
           do k = 1, elg%nel
             do i = 1, FEDB(tp)%lnv
-              if (elg%nn(i,k) == 0) call error('(module_pmh/build_vertices) node numbering is zero: piece '//trim(string(ip))//&
-              &', group '//trim(string(ig))//', node '//trim(string(i))//', element '//trim(string(k))//'; unable to build vertex')
+              if (allocated(elg%mm)) then !elements are P1 or have mm already constructed: save them in vert2node
+                pos = bsearch(vert2node, elg%mm(i,k), nv2d) 
+                if (pos < 0) then
+                  call insert(vert2node, elg%mm(i,k), -pos, nv2d, fit=.false.)
+                  nv2d = nv2d + 1 
+                end if
+              else !only nn is allocated: take
+                if (elg%nn(i,k) == 0) call error('(module_pmh/build_vertices) node numbering is zero: piece '//trim(string(ip))//&
+                &', group '//trim(string(ig))//', node '//trim(string(i))//', element '//trim(string(k))//'; unable to build vertex')
               pos = bsearch(vert2node, elg%nn(i,k), nv2d) 
               if (pos < 0) then
                 call insert(vert2node, elg%nn(i,k), -pos, nv2d, fit=.false.)
@@ -744,6 +752,50 @@ end do
 end subroutine
 
 !-----------------------------------------------------------------------
+! reorder_nodes_simplex_P2: calculate inew to reorder nn (vertices first)
+!-----------------------------------------------------------------------
+subroutine reorder_nodes_simplex_P2(ip, ig, elg, tp, z, k, inew)
+type(elgroup), intent(in)    :: elg
+integer,       intent(in)    :: ip, ig, tp, k
+real(real64),  intent(in)    :: z(:,:)
+integer,       intent(inout) :: inew(:)
+integer :: i, j, l, nv, newnn(size(inew))
+
+newnn = 0
+!search first the vertices, checking that they are not mid-points
+nv = 0
+NODES: do i = 1, FEDB(tp)%lnn !nodes
+  do j = 1, FEDB(tp)%lnn !first possible vertex
+    if (j /= i) then
+      do l = j+1, FEDB(tp)%lnn !second possible vertex
+        if (l /= i) then
+          if ( maxval(abs((z(:,elg%nn(j,k))+z(:,elg%nn(l,k)))/2-z(:,elg%nn(i,k)))) < 1e3*epsilon(z) ) cycle NODES
+
+        end if
+      end do
+    end if
+  end do
+  !elg%nn(i,k) is not a mid-point, so it is a vertex
+  nv = nv + 1    
+  newnn(nv) = elg%nn(i,k)
+  inew (nv) = i
+  if (nv > FEDB(tp)%lnv)  call error('(module_pmh/reorder_nodes_simplex_P2) too many vertices were found in a Lagrange P2 '//&
+  &'element: piece '//trim(string(ip))//', group '//trim(string(ig))//', element '//trim(string(k))//&
+  &'; some edges can be singular or it can be an isoparametric element. Use ''feconv -h'' to see available options')
+end do NODES
+!identify mid-points and save it in PMH order
+do i = 1, FEDB(tp)%lnn !nodes
+  if (find_first(newnn == elg%nn(i,k)) > 0) cycle !it is a vertex
+  do j = 1, FEDB(tp)%lne
+    if (maxval(abs((z(:,newnn(FEDB(tp)%edge(1,j))) + z(:,newnn(FEDB(tp)%edge(2,j))))/2 - z(:,elg%nn(i,k)))) < 1e3*epsilon(z)) then
+      inew (FEDB(tp)%lnv + j) = i
+      exit
+    end if
+  end do
+end do
+end subroutine
+
+!-----------------------------------------------------------------------
 ! positive_jacobian: ensure positive jacobian
 !
 ! it must be called at the end of build_vertices to guarantee that mm exists
@@ -839,49 +891,6 @@ end subroutine
 subroutine swap(a,b)
 integer :: a,b,c
 c = a; a = b; b = c
-end subroutine
-
-!-----------------------------------------------------------------------
-! reorder_nodes_simplex_P2: calculate inew to reorder nn (vertices first)
-!-----------------------------------------------------------------------
-subroutine reorder_nodes_simplex_P2(ip, ig, elg, tp, z, k, inew)
-type(elgroup), intent(in)    :: elg
-integer,       intent(in)    :: ip, ig, tp, k
-real(real64),  intent(in)    :: z(:,:)
-integer,       intent(inout) :: inew(:)
-integer :: i, j, l, nv, newnn(size(inew))
-
-newnn = 0
-!search first the vertices, checking that they are not mid-points
-nv = 0
-NODES: do i = 1, FEDB(tp)%lnn !nodes
-  do j = 1, FEDB(tp)%lnn !first possible vertex
-    if (j /= i) then
-      do l = j+1, FEDB(tp)%lnn !second possible vertex
-        if (l /= i) then
-          if ( maxval(abs((z(:,elg%nn(j,k))+z(:,elg%nn(l,k)))/2-z(:,elg%nn(i,k)))) < 1e3*epsilon(z) ) cycle NODES
-        end if
-      end do
-    end if
-  end do
-  !elg%nn(i,k) is not a mid-point, so it is a vertex
-  nv = nv + 1    
-  newnn(nv) = elg%nn(i,k)
-  inew (nv) = i
-  if (nv > FEDB(tp)%lnv)  call error('(module_pmh/reorder_nodes_simplex_P2) too many vertices were found in a Lagrange P2 '//&
-  &'element: piece '//trim(string(ip))//', group '//trim(string(ig))//', element '//trim(string(k))//&
-  &'; some edges can be singular or it can be an isoparametric element. Use ''feconv -h'' to see available options')
-end do NODES
-!identify mid-points and save it in PMH order
-do i = 1, FEDB(tp)%lnn !nodes
-  if (find_first(newnn == elg%nn(i,k)) > 0) cycle !it is a vertex
-  do j = 1, FEDB(tp)%lne
-    if (maxval(abs((z(:,newnn(FEDB(tp)%edge(1,j))) + z(:,newnn(FEDB(tp)%edge(2,j))))/2 - z(:,elg%nn(i,k)))) < 1e3*epsilon(z)) then
-      inew (FEDB(tp)%lnv + j) = i
-      exit
-    end if
-  end do
-end do
 end subroutine
 
 !-----------------------------------------------------------------------
