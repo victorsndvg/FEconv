@@ -55,7 +55,7 @@ contains
 !-----------------------------------------------------------------------
 subroutine convert()
 character(maxpath) :: infile = ' ', inext = ' ', outfile = ' ', outext = ' '
-integer :: i, p, nargs
+integer :: p, nargs
 
 !find infile and out file among arguments
 nargs = command_argument_count()

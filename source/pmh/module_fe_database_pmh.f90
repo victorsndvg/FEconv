@@ -24,24 +24,32 @@ module module_fe_database_pmh
 implicit none
 
 !Constants
-!EDGE_TRIA(i,j), vertex #i of edge #j of a triangle
-integer, parameter :: EDGE_TRIA(2,12) = reshape([1,2, 2,3, 3,1, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0], [2,12])
-!EDGE_QUAD(i,j), vertex #i of edge #j of a quadrangle
-integer, parameter :: EDGE_QUAD(2,12) = reshape([1,2, 2,3, 3,4, 4,1, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0], [2,12])
-!EDGE_TETR(i,j), vertex #i of edge #j of a tetrahedron
-integer, parameter :: EDGE_TETR(2,12) = reshape([1,2, 2,3, 3,1, 1,4, 2,4, 3,4, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0], [2,12])
-!EDGE_HEXA(i,j), vertex #i of edge #j of a hexahedron
-integer, parameter :: EDGE_HEXA(2,12) = reshape([1,2, 2,3, 3,4, 4,1, 1,5, 2,6, 3,7, 4,8, 5,6, 6,7, 7,8, 8,5], [2,12])
-!EDGE_WEDG(i,j), vertex #i of edge #j of a wedge
-integer, parameter :: EDGE_WEDG(2,12) = reshape([1,2, 2,3, 3,1, 1,4, 2,5, 3,6, 4,5, 5,6, 6,4, 0,0, 0,0, 0,0], [2,12])
-
-!FACE_TETR(i,j), vertex #i of face #j of a tetrahedron
-integer, parameter :: FACE_TETR(4,6) = reshape([1,3,2,0, 1,4,3,0, 1,2,4,0, 2,3,4,0, 0,0,0,0, 0,0,0,0], [4,6])
-!FACE_HEXA(i,j), vertex #i of face #j of a tetrahedron
-integer, parameter :: FACE_HEXA(4,6) = reshape([1,4,3,2, 1,5,8,4, 1,2,6,5, 5,6,7,8, 2,3,7,6, 3,4,8,7], [4,6])
-!FACE_WEDG(i,j), vertex #i of face #j of a wedge; note that faces 1 and 4 have only three valid vertices
-integer, parameter :: FACE_WEDG(4,6) = reshape([1,3,2,0, 1,4,6,3, 1,2,5,4, 4,5,6,0, 2,3,6,5, 0,0,0,0], [4,6]) 
-
+!ED_????(i,j), vertex #i of edge #j of element ????
+integer, parameter :: ED_TRIA(2,12) = reshape([1,2, 2,3, 3,1, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0], [2,12])
+integer, parameter :: ED_QUAD(2,12) = reshape([1,2, 2,3, 3,4, 4,1, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0], [2,12])
+integer, parameter :: ED_TETR(2,12) = reshape([1,2, 2,3, 3,1, 1,4, 2,4, 3,4, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0], [2,12])
+integer, parameter :: ED_HEXA(2,12) = reshape([1,2, 2,3, 3,4, 4,1, 1,5, 2,6, 3,7, 4,8, 5,6, 6,7, 7,8, 8,5], [2,12])
+integer, parameter :: ED_WEDG(2,12) = reshape([1,2, 2,3, 3,1, 1,4, 2,5, 3,6, 4,5, 5,6, 6,4, 0,0, 0,0, 0,0], [2,12])
+!ED_????_P2(i,j), node #i of edge #j of element Lagrange P2 ????
+integer, parameter :: ED_TRIA_P2(3,12) = reshape([1,2,4,  2,3,5,  3,1,6,  0,0,0,  0,0,0,  0,0,0,  0,0,0,  0,0,0,  0,0,0,  0,0,0, &
+ 0,0,0,  0,0,0], [3,12])
+integer, parameter :: ED_QUAD_P2(3,12) = reshape([1,2,5,  2,3,6,  3,4,7,  4,1,8,  0,0,0,  0,0,0,  0,0,0,  0,0,0,  0,0,0,  0,0,0, &
+ 0,0,0,  0,0,0], [3,12])
+integer, parameter :: ED_TETR_P2(3,12) = reshape([1,2,5,  2,3,6,  3,1,7,  1,4,8,  2,4,9, 3,4,10,  0,0,0,  0,0,0,  0,0,0,  0,0,0, &
+ 0,0,0,  0,0,0], [3,12])
+integer, parameter :: ED_HEXA_P2(3,12) = reshape([1,2,9, 2,3,10, 3,4,11, 4,1,12, 1,5,13, 2,6,14, 3,7,15, 4,8,16, 5,6,17, 6,7,18, &
+7,8,19, 8,5,20], [3,12])
+!FA_????(i,j), vertex #i of face #j of element ????
+integer, parameter :: FA_TETR(4,6) = reshape([1,3,2,0, 1,4,3,0, 1,2,4,0, 2,3,4,0, 0,0,0,0, 0,0,0,0], [4,6])
+integer, parameter :: FA_HEXA(4,6) = reshape([1,4,3,2, 1,5,8,4, 1,2,6,5, 5,6,7,8, 2,3,7,6, 3,4,8,7], [4,6])
+integer, parameter :: FA_WEDG(4,6) = reshape([1,3,2,0, 1,4,6,3, 1,2,5,4, 4,5,6,0, 2,3,6,5, 0,0,0,0], [4,6]) 
+!FA_????_P2(i,j), node #i of face #j of element Lagrange P2 ????
+integer, parameter :: FA_TETR_P2(8,6) = reshape([0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, &
+0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0], [8,6]) 
+integer, parameter :: FA_HEXA_P2(8,6) = reshape([0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, &
+0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0], [8,6]) 
+!Faltan por poner los correctos!!!!!!!!!!
+ 
 !Types
 type :: fe_db_pmh
   character(len=46) :: desc         = ' '     !description
@@ -52,27 +60,31 @@ type :: fe_db_pmh
   integer           :: lne          = 0       !local number of edges
   integer           :: lnf          = 0       !local number of faces
   integer           :: v_type       = 0       !f.e. type induced in vertices
-  integer           :: e_type       = 0       !f.e. type induced in edges (only P1 is induced)
-  integer           :: edge(2,12)   = 0       !local numbering of vertices in each edge (lnv/edge  = 2, lne <= 12)
-  integer           :: f_type       = 0       !f.e. type induced in faces (only P1 is induced)
-  integer           :: face(4,6)    = 0       !local numbering of vertices in each edge (lnv/face <= 4, lnf <= 6)
+  integer           :: e_type       = 0       !f.e. type induced in edges (for P1, RT, ND, edges P1 are induced) 
+  integer           :: edge( 2,12)  = 0       !local numbering of vertices in each edge (lnv/edge  = 2, lne <= 12)
+  integer           :: nedge(3,12)  = 0       !local numbering of nodes    in each edge (lnn/edge  = 3, lne <= 12)
+  integer           :: f_type       = 0       !f.e. type induced in faces (for P1, RT, ND, faces P1 are induced)
+  integer           :: face( 4,6)   = 0       !local numbering of vertices in each edge (lnv/face <= 4, lnf <= 6)
+  integer           :: nface(8,6)   = 0       !local numbering of nodes    in each edge (lnn/face <= 8, lnf <= 6)
 end type
 
-!Constants             char(46)                         td   n  v   e  f vt et         ed ft         fa
-type(fe_db_pmh), parameter :: FEDB(13) = [ &
-fe_db_pmh('Vertex                            ', .true.,  0,  1, 1,  0, 0, 0, 0,         0, 0,         0), & ! 1
-fe_db_pmh('Edge, Lagrange P1                 ', .true.,  1,  2, 2,  1, 0, 1, 0,         0, 0,         0), & ! 2 
-fe_db_pmh('Edge, Lagrange P2                 ', .false., 1,  3, 2,  1, 0, 1, 0,         0, 0,         0), & ! 3
-fe_db_pmh('Triangle, Lagrange P1             ', .true.,  2,  3, 3,  3, 0, 1, 2, EDGE_TRIA, 0,         0), & ! 4
-fe_db_pmh('Triangle, Lagrange P2             ', .false., 2,  6, 3,  3, 0, 1, 2, EDGE_TRIA, 0,         0), & ! 5
-fe_db_pmh('Triangle, Raviart-Thomas (edge)   ', .false., 2,  3, 3,  3, 0, 1, 2, EDGE_TRIA, 0,         0), & ! 6
-fe_db_pmh('Quadrangle, Lagrange P1           ', .true.,  2,  4, 4,  4, 0, 1, 2, EDGE_QUAD, 0,         0), & ! 7
-fe_db_pmh('Tetrahedron, Lagrange P1          ', .true.,  3,  4, 4,  6, 4, 1, 2, EDGE_TETR, 4, FACE_TETR), & ! 8
-fe_db_pmh('Tetrahedron, Lagrange P2          ', .false., 3, 10, 4,  6, 4, 1, 2, EDGE_TETR, 4, FACE_TETR), & ! 9
-fe_db_pmh('Tetrahedron, Raviart-Thomas (face)', .false., 3,  4, 4,  6, 4, 1, 2, EDGE_TETR, 4, FACE_TETR), & !10
-fe_db_pmh('Tetrahedron, Nedelec (edge)       ', .false., 3,  6, 4,  6, 4, 1, 2, EDGE_TETR, 4, FACE_TETR), & !11
-fe_db_pmh('Hexahedron, Lagrange P1           ', .true.,  3,  8, 8, 12, 6, 1, 2, EDGE_HEXA, 7, FACE_HEXA), & !12
-fe_db_pmh('Wedge, Lagrange P1                ', .true.,  3,  6, 6,  9, 5, 1, 2, EDGE_WEDG, 0, FACE_WEDG)]   !13 (vf variable)
+!Constants             char(46)                         td   n  v   e  f vt et       ev          en ft       fv
+type(fe_db_pmh), parameter :: FEDB(15) = [ &
+fe_db_pmh('Vertex                            ', .true.,  0,  1, 1,  0, 0, 0, 0,       0,          0, 0,       0,          0), & ! 1
+fe_db_pmh('Edge, Lagrange P1                 ', .true.,  1,  2, 2,  1, 0, 1, 0,       0,          0, 0,       0,          0), & ! 2 
+fe_db_pmh('Edge, Lagrange P2                 ', .false., 1,  3, 2,  1, 0, 1, 0,       0,          0, 0,       0,          0), & ! 3
+fe_db_pmh('Triangle, Lagrange P1             ', .true.,  2,  3, 3,  3, 0, 1, 2, ED_TRIA,          0, 0,       0,          0), & ! 4
+fe_db_pmh('Triangle, Lagrange P2             ', .false., 2,  6, 3,  3, 0, 1, 3, ED_TRIA, ED_TRIA_P2, 0,       0,          0), & ! 5
+fe_db_pmh('Triangle, Raviart-Thomas (edge)   ', .false., 2,  3, 3,  3, 0, 1, 2, ED_TRIA,          0, 0,       0,          0), & ! 6
+fe_db_pmh('Quadrangle, Lagrange P1           ', .true.,  2,  4, 4,  4, 0, 1, 2, ED_QUAD,          0, 0,       0,          0), & ! 7
+fe_db_pmh('Quadrangle, Lagrange P2           ', .false., 2,  8, 4,  4, 0, 1, 3, ED_QUAD, ED_TRIA_P2, 0,       0,          0), & ! 8
+fe_db_pmh('Tetrahedron, Lagrange P1          ', .true.,  3,  4, 4,  6, 4, 1, 2, ED_TETR,          0, 4, FA_TETR,          0), & ! 9
+fe_db_pmh('Tetrahedron, Lagrange P2          ', .false., 3, 10, 4,  6, 4, 1, 3, ED_TETR, ED_TRIA_P2, 5, FA_TETR, FA_TETR_P2), & !10
+fe_db_pmh('Tetrahedron, Raviart-Thomas (face)', .false., 3,  4, 4,  6, 4, 1, 2, ED_TETR,          0, 4, FA_TETR,          0), & !11
+fe_db_pmh('Tetrahedron, Nedelec (edge)       ', .false., 3,  6, 4,  6, 4, 1, 2, ED_TETR,          0, 4, FA_TETR,          0), & !12
+fe_db_pmh('Hexahedron, Lagrange P1           ', .true.,  3,  8, 8, 12, 6, 1, 2, ED_HEXA,          0, 7, FA_HEXA,          0), & !13
+fe_db_pmh('Hexahedron, Lagrange P2           ', .true.,  3,  8, 8, 12, 6, 1, 3, ED_HEXA, ED_TRIA_P2, 8, FA_HEXA, FA_HEXA_P2), & !14
+fe_db_pmh('Wedge, Lagrange P1                ', .true.,  3,  6, 6,  9, 5, 1, 2, ED_WEDG,          0, 0, FA_WEDG, 0)]!vf variable 15
 
 contains
 

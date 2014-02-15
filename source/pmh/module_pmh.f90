@@ -428,14 +428,18 @@ if (FEDB(tp)%tdim > 2) then
     associate (melg => pmh%pc(1)%el(nelg), elg => pmh%pc(1)%el(iel)) !melg: max. tdim group, elg: current group
       elg%nel = count(nrc > 0)
       elg%type = FEDB(melg%type)%f_type
-      !nn is not relevant for groups without maximal topological dimension
+      !in faces, nn is only relevant for Lagrange P2
+      if (FEDB(elg%type)%lnn == FEDB(elg%type)%lnv + FEDB(elg%type)%lne) &
+      call alloc(elg%nn, FEDB(elg%type)%lnn, elg%nel)
       call alloc(elg%mm, FEDB(elg%type)%lnv, elg%nel) 
       call alloc(elg%ref, elg%nel) 
       ic = 1
       do k = 1, melg%nel
         do j = 1, FEDB(melg%type)%lnf
           if (nrc(j,k) /= 0) then
-            elg%mm(:, ic) = melg%mm(FEDB(melg%type)%face(1:FEDB(elg%type)%lnv, j), k)
+            if (FEDB(elg%type)%lnn == FEDB(elg%type)%lnv + FEDB(elg%type)%lne) &
+            elg%nn(:, ic) = melg%nn(FEDB(melg%type)%nface(1:FEDB(elg%type)%lnn, j), k)
+            elg%mm(:, ic) = melg%mm(FEDB(melg%type)%face( 1:FEDB(elg%type)%lnv, j), k)
             elg%ref(ic)   = nrc(j,k)
             ic = ic + 1
           end if  
@@ -453,14 +457,18 @@ if (FEDB(tp)%tdim > 1) then
     associate (melg => pmh%pc(1)%el(nelg), elg => pmh%pc(1)%el(iel)) !melg: max. tdim group, elg: current group
       elg%nel = count(nra > 0)
       elg%type = FEDB(melg%type)%e_type
-      !nn is not relevant for groups without maximal topological dimension
+      !in edges, nn is only relevant for Lagrange P2
+      if (FEDB(elg%type)%lnn == FEDB(elg%type)%lnv + FEDB(elg%type)%lne) &
+      call alloc(elg%nn, FEDB(elg%type)%lnn, elg%nel)
       call alloc(elg%mm, FEDB(elg%type)%lnv, elg%nel) 
       call alloc(elg%ref, elg%nel) 
       ic = 1
       do k = 1, melg%nel
         do j = 1, FEDB(melg%type)%lne
           if (nra(j,k) /= 0) then
-            elg%mm(:, ic) = melg%mm(FEDB(melg%type)%edge(1:FEDB(elg%type)%lnv, j), k)
+            if (FEDB(elg%type)%lnn == FEDB(elg%type)%lnv + FEDB(elg%type)%lne) &
+            elg%nn(:, ic) = melg%nn(FEDB(melg%type)%nedge(1:FEDB(elg%type)%lnn, j), k)          
+            elg%mm(:, ic) = melg%mm(FEDB(melg%type)%edge( 1:FEDB(elg%type)%lnv, j), k)
             elg%ref(ic)   = nra(j,k)
             ic = ic + 1
           end if  
@@ -478,7 +486,7 @@ if (FEDB(tp)%tdim > 0) then
     associate (melg => pmh%pc(1)%el(nelg), elg => pmh%pc(1)%el(iel)) !melg: max. tdim group, elg: current group
       elg%nel = count(nrv > 0)
       elg%type = FEDB(melg%type)%v_type
-      !nn is not relevant for groups without maximal topological dimension
+      !in vertices, nn is not relevant
       call alloc(elg%mm, FEDB(elg%type)%lnv, elg%nel) 
       call alloc(elg%ref, elg%nel) 
       ic = 1
@@ -509,115 +517,132 @@ subroutine build_vertices(pmh)
 type(pmh_mesh), intent(inout) :: pmh
 integer, allocatable :: vert2node(:), node2vert(:)
 integer :: nv2d, pos, maxv, i, j, k, ig, ip
-logical :: all_are_p1, all_are_p1_or_p2, some_mm_unallocated
+logical :: all_are_P1
+logical, allocatable :: unalloc_mm_P2(:)
 
 !reorder_nodes: reorder nodes and/or vertices of Lagrange P2 elements to have vertices before mid-points
 call reorder_nodes_P2(pmh)
 
+!create mm (and reconstruct z) if necessary
 do ip = 1, size(pmh%pc,1)
-  !check whether all elements are Lagrange P1 and/or Lagrange P2; also check whether z is allocated 
-  all_are_p1       = .true.
-  all_are_p1_or_p2 = .true.
   if (.not. allocated(pmh%pc(ip)%z)) call error('(module_pmh/build_vertices) z is not allocated: piece '//trim(string(ip))//&
   &'; unable to build vertices')
+  if (pmh%pc(ip)%nver /= size(pmh%pc(ip)%z,2) .and. pmh%pc(ip)%nnod /= size(pmh%pc(ip)%z,2)) &
+  call error('(module_pmh/build_vertices) z has an incorrect number of columns: '//trim(string(size(pmh%pc(ip)%z,2)))//&
+  &' while nver is '//trim(string(pmh%pc(ip)%nver))//' and nnod is '//trim(string(pmh%pc(ip)%nnod))//': piece '//trim(string(ip)))
+  all_are_P1 = .true.
+  call alloc(unalloc_mm_P2, size(pmh%pc(ip)%el,1))
   do ig = 1, size(pmh%pc(ip)%el,1)
-      associate(tp => pmh%pc(ip)%el(ig)%type)
-      all_are_p1       = all_are_p1       .and.  FEDB(tp)%nver_eq_nnod
-      all_are_p1_or_p2 = all_are_p1_or_p2 .and. (FEDB(tp)%nver_eq_nnod .or. FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne)
-    end associate
-  end do
-  !all elements are Lagrange P1: vertex information is the same than node information
-  if (all_are_p1) then
-    do ig = 1, size(pmh%pc(ip)%el,1)
-      if (pmh%pc(ip)%nver == 0) pmh%pc(ip)%nver = pmh%pc(ip)%nnod
-      associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+    associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+      if (FEDB(tp)%nver_eq_nnod) then
+        !Lagrange P1: create mm and erase nn      
         if (.not. allocated(elg%mm)) then
-          if (.not.allocated(elg%nn)) call error('(module_pmh/build_vertices) neither mm nor nn are not allocated: piece '//&
+          if (.not.allocated(elg%nn)) call error('(module_pmh/build_vertices) neither mm nor nn are allocated: piece '//&
           &trim(string(ip))//', group '//trim(string(ig))//'; unable to build vertices')
           call move_alloc(from=elg%nn, to=elg%mm)
         end if
         call dealloc(elg%nn)
-      end associate      
-    end do
-  elseif (all_are_p1_or_p2) then 
-    some_mm_unallocated = .false.
+      elseif (FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne) then
+        !Lagrange P2: if mm is not defined, it will created later with vert2node
+        if (.not. allocated(elg%mm)) then
+          if (.not.allocated(elg%nn)) call error('(module_pmh/build_vertices) neither mm nor nn are allocated: piece '//&
+          &trim(string(ip))//', group '//trim(string(ig))//'; unable to build vertices')
+          unalloc_mm_P2(ig) = .true.
+        end if
+        all_are_P1 = .false.
+      else
+        !Other types: if mm is not defined, it cannot be created from nn
+        if (.not. allocated(elg%mm)) call error('(module_pmh/build_vertices) mm is not allocated and there are elements of type '//&
+        &trim(FEDB(tp)%desc)//': piece '//trim(string(ip))//', group '//trim(string(ig))//'; unable to build vertices')
+        all_are_P1 = .false.
+      end if
+    end associate
+  end do
+  if (any(unalloc_mm_P2) .or. (.not. all_are_P1 .and. pmh%pc(ip)%nnod == size(pmh%pc(ip)%z,2))) then
+    !there are some unallocated mm for Lagrange P2 elements or z must be reconstructed: construct global vertex numbering 
+    nv2d = 0
     do ig = 1, size(pmh%pc(ip)%el,1)
       associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
-        if (.not. allocated(elg%mm)) then
-          if (.not.allocated(elg%nn)) call error('(module_pmh/build_vertices) neither mm nor nn are not allocated: piece '//&
-          &trim(string(ip))//', group '//trim(string(ig))//'; unable to build vertices')
-          some_mm_unallocated =  .true.
-        end if
-      end associate
-    end do
-    if (some_mm_unallocated) then
-      !transformation for Lagrange P1/P2 elements: create mm from nn
-! garaizatas que estamos en P2 y que no existe MM pero si NN
-      nv2d = 0
-      do ig = 1, size(pmh%pc(ip)%el,1)
-        associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
-          do k = 1, elg%nel
-            do i = 1, FEDB(tp)%lnv
-              if (allocated(elg%mm)) then !elements are P1 or have mm already constructed: save them in vert2node
-                pos = bsearch(vert2node, elg%mm(i,k), nv2d) 
-                if (pos < 0) then
-                  call insert(vert2node, elg%mm(i,k), -pos, nv2d, fit=.false.)
-                  nv2d = nv2d + 1 
-                end if
-              else !only nn is allocated: take
-                if (elg%nn(i,k) == 0) call error('(module_pmh/build_vertices) node numbering is zero: piece '//trim(string(ip))//&
-                &', group '//trim(string(ig))//', node '//trim(string(i))//', element '//trim(string(k))//'; unable to build vertex')
+        do k = 1, elg%nel
+          do i = 1, FEDB(tp)%lnv
+            if (allocated(elg%mm)) then 
+              !elements have mm already constructed: save them in vert2node
+              pos = bsearch(vert2node, elg%mm(i,k), nv2d) 
+              if (pos < 0) then
+                call insert(vert2node, elg%mm(i,k), -pos, nv2d, fit=.false.)
+                nv2d = nv2d + 1 
+              end if
+            else 
+              !only nn is allocated; previous checkings ensure that it must be a Lagrange P2 element 
+              if (elg%nn(i,k) == 0) call error('(module_pmh/build_vertices) node numbering is zero: piece '//trim(string(ip))//&
+              &', group '//trim(string(ig))//', node '//trim(string(i))//', element '//trim(string(k))//'; unable to build vertex')
               pos = bsearch(vert2node, elg%nn(i,k), nv2d) 
               if (pos < 0) then
                 call insert(vert2node, elg%nn(i,k), -pos, nv2d, fit=.false.)
                 nv2d = nv2d + 1 
               end if
-            end do
+            end if
           end do
-        end associate
-      end do    
-      call reduce(vert2node, nv2d)
-      !nver: total number of vertices
-      pmh%pc(ip)%nver = nv2d
-      !node2vert: given the global numbering of vertices (numbered as nodes), returns global numbering as vertices
-      maxv = 0
-      do i = 1, size(vert2node, 1)
-        maxv = max(maxv, vert2node(i))
-      enddo
-      call alloc(node2vert, maxv)
-      do i = 1, size(vert2node, 1)
-        if (vert2node(i) == 0) cycle
-        node2vert(vert2node(i)) = i
-      enddo
-      !vertices renumbering
+        end do  
+      end associate
+    end do    
+    call reduce(vert2node, nv2d)
+    !nver: total number of vertices
+    pmh%pc(ip)%nver = nv2d
+    !node2vert: given the global numbering of vertices (numbered as nodes), returns global numbering as vertices
+    maxv = 0
+    do i = 1, size(vert2node, 1)
+      maxv = max(maxv, vert2node(i))
+    enddo
+    call alloc(node2vert, maxv)
+    do i = 1, size(vert2node, 1)
+      if (vert2node(i) == 0) cycle
+      node2vert(vert2node(i)) = i
+    enddo
+    if (any(unalloc_mm_P2)) then
+      !only if there are some unallocated mm for Lagrange P2 elements, we use global vertex numbering to create mm
       do ig = 1, size(pmh%pc(ip)%el,1)
-        associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type) !elg: current group, tp: element type
-          call alloc(elg%mm, FEDB(tp)%lnv, elg%nel)
-          do k = 1, elg%nel
-            do i = 1, FEDB(tp)%lnv
+        if (.not. unalloc_mm_P2(ig)) cycle !only for groups of Lagrange P2 elements where mm is not allocated
+          associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+            call alloc(elg%mm, FEDB(tp)%lnv, elg%nel)
+            do k = 1, elg%nel
+              do i = 1, FEDB(tp)%lnv
               elg%mm(i,k) = node2vert(elg%nn(i,k))
             end do
           end do
         end associate
       end do
-      !vertices coordinates: assume that i <= vert2node(i); thus z can be overwritten
-      associate(pi => pmh%pc(ip))
+    end if
+    !vertex coordinates
+    associate(pi => pmh%pc(ip))
+      if (pi%nver == size(pi%z,2)) then 
+        call info('(module_pmh/build_vertices) z has the correct number of columns although some mm for Lagrange P2 '//&
+        &'elements where initially unallocated')
+      elseif (pi%nnod == size(pi%z,2)) then !z stores node coord.: assume that i <= vert2node(i); thus z can be overwritten
         do j = 1, pi%nver
           pi%z(1:pi%dim, j) = pi%z(1:pi%dim, vert2node(j))
         end do
         call reduce(pi%z, pi%dim, pi%nver)
-      end associate
-    end if
-  else !there are elements that are not P1 or P2
-    do ig = 1, size(pmh%pc(ip)%el,1)
-      associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type) !elg: current group, tp: element type
-        if (.not. allocated(elg%mm)) call error('(module_pmh/build_vertices) mm is not allocated and there are elements of type '//&
-        &trim(FEDB(tp)%desc)//': piece '//trim(string(ip))//', group '//trim(string(ig))//'; unable to build vertices')
-      end associate
-    end do    
+      else
+        call error('(module_pmh/build_vertices (2)) z has an incorrect number of columns: '//trim(string(size(pmh%pc(ip)%z,2)))//&
+        &' while nver is '//trim(string(pmh%pc(ip)%nver))//' and nnod is '//trim(string(pmh%pc(ip)%nnod))//': piece '//&
+        &trim(string(ip)))
+      end if
+    end associate
+    call dealloc(vert2node)
+    call dealloc(node2vert)
   end if
-  call dealloc(vert2node)
-  call dealloc(node2vert)
+  !at the end, z must store only vertex coordinates
+  if (pmh%pc(ip)%nver == 0) then
+    if (all_are_P1) then
+      pmh%pc(ip)%nver = pmh%pc(ip)%nnod
+    else
+      call error('(module_pmh/build_vertices) nver is still zero: piece '//trim(string(ip)))
+    end if
+  end if      
+  if (pmh%pc(ip)%nver /= size(pmh%pc(ip)%z,2)) &
+  call error('(module_pmh/build_vertices (3)) z has an incorrect number of columns: '//trim(string(size(pmh%pc(ip)%z,2)))//&
+  &' while nver is '//trim(string(pmh%pc(ip)%nver))//' and nnod is '//trim(string(pmh%pc(ip)%nnod))//': piece '//trim(string(ip)))
 end do
 
 ! positive_jacobian: ensure positive jacobian
