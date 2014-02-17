@@ -20,21 +20,22 @@ contains
 !-----------------------------------------------------------------------
 
 subroutine write_mphtxt_header(iu, pmh)
-  integer, intent(in) :: iu ! File unit number
+  integer, intent(in)        :: iu  ! File unit number
   type(pmh_mesh), intent(in) :: pmh ! PMH mesh
 
 
-  call write_comment(iu,'#','Converted with FEconv')
+  call write_comment(iu,                           '#','Converted with FEconv')
   call write_empty_line(iu)
-  call write_comment(iu,'#','Major & minor version')
+  call write_comment(iu,                           '#','Major & minor version')
   call write_line(iu, '0 1')
   call write_line(iu, trim(string(size(pmh%pc,1))),'#','number of tags')
-  call write_comment(iu,'#','Tags')
+  call write_comment(iu,                           '#','Tags')
   do i=1, size(pmh%pc,1)
     call write_string(iu, 'mesh'//trim(string(i)))
   enddo
+  ! Types of objects in mphtxt mesh
   call write_line(iu, trim(string(size(pmh%pc,1))),'#','number of types')
-  call write_comment(iu,'#','Types')
+  call write_comment(iu,                           '#','Types')
   do i=1, size(pmh%pc,1)
     call write_string(iu, 'obj')
   enddo
@@ -44,35 +45,38 @@ end subroutine
 
 
 subroutine write_mphtxt_object(iu, pmh_o, n)
-  integer, intent(in) :: iu ! File unit number
+  integer, intent(in)     :: iu    ! File unit number
   type(piece), intent(in) :: pmh_o ! PMH piece
-  integer, intent(in) :: n ! Piece number
-  integer :: i
+  integer, intent(in)     :: n     ! Piece number
+  integer                 :: i
 
-  call write_comment(iu,'#','--------- Object '//trim(string(n))//' ----------')
+  call write_comment(iu,                        '#','--------- Object '//trim(string(n))//' ----------')
   call write_empty_line(iu)
   call write_line(iu, '0 0 1')
-  call write_string(iu, 'Mesh', '#', 'class')
-  call write_line(iu, '2', '#', 'version')
-  call write_line(iu, string(pmh_o%dim), '#', 'sdim')
-  if(pmh_o%nver == 0) then ! z = nodes
-    call write_line(iu, string(pmh_o%nnod), '#', 'number of mesh points') ! nnod
-    call write_line(iu, '1', '#', 'lowest mesh point index')
+  call write_string(iu, 'Mesh',                 '#', 'class')
+  call write_line(iu, '2',                      '#', 'version')
+  call write_line(iu, string(pmh_o%dim),        '#', 'sdim')
+  ! Node coords
+  if(pmh_o%nver == 0) then                                                    ! z = nodes
+    call write_line(iu, string(pmh_o%nnod),     '#', 'number of mesh points') ! nnod
+    call write_line(iu, '1',                    '#', 'lowest mesh point index')
     call write_empty_line(iu)
-    call write_comment(iu, '#', 'Mesh point coordinates')
+    call write_comment(iu,                      '#', 'Mesh point coordinates')
     do i=1,pmh_o%nnod
       call write_line(iu, string(pmh_o%z(:,i)))
     enddo
-  else ! z = vertices
-    call write_line(iu, string(pmh_o%nver), '#', 'number of mesh points') ! nver
-    call write_line(iu, '1', '#', 'lowest mesh point index')
+  else                                                                        ! z = vertices
+    call write_line(iu, string(pmh_o%nver),     '#', 'number of mesh points') ! nver
+    call write_line(iu, '1',                    '#', 'lowest mesh point index')
     call write_empty_line(iu)
-    call write_comment(iu, '#', 'Mesh point coordinates')
+    call write_comment(iu,                      '#', 'Mesh point coordinates')
     do i=1,pmh_o%nver
       call write_line(iu, string(pmh_o%z(:,i)))
     enddo
   endif
-call write_empty_line(iu)
+
+  ! Element groups types
+  call write_empty_line(iu)
   call write_line(iu, string(size(pmh_o%el,1)), '#', 'number of element types')
   call write_empty_line(iu)
 
@@ -85,47 +89,53 @@ end subroutine
 
 
 subroutine write_mphtxt_etype(iu, pmh_t,n)
-  integer, intent(in) :: iu ! File unit number
+  integer, intent(in)       :: iu    ! File unit number
   type(elgroup), intent(in) :: pmh_t ! PMH elgroup
-  integer, intent(in) :: n ! Piece number
-  integer :: i
+  integer, intent(in)       :: n     ! Piece number
+  integer                   :: i
 
-  call write_comment(iu, '#', 'Type #'//trim(string(n)))
+  ! Element type
+  call write_comment(iu,                           '#', 'Type #'//trim(string(n)))
   call write_empty_line(iu)
   call write_string(iu,mphtxt_get_desc(pmh_t%type),'#', 'type name')
   call write_empty_line(iu)
-  if(allocated(pmh_t%mm)) then
-call write_line(iu, string(size(pmh_t%mm,1)),'#', 'number of nodes per element')
-    call write_line(iu, string(pmh_t%nel), '#', 'number of elements')
-    call write_comment(iu, '#', 'Elements')
-    do i=1, size(pmh_t%mm,2)
-      call write_line(iu, string(pmh_t%mm(:,i)))
-    enddo
-    call write_empty_line(iu)
-    call write_line(iu, string(size(pmh_t%nn,1)),'#', 'number of parameter values per element')
-  elseif(allocated(pmh_t%nn)) then
-call write_line(iu, string(size(pmh_t%nn,1)),'#', 'number of nodes per element')
-    call write_line(iu, string(pmh_t%nel), '#', 'number of elements')
-    call write_comment(iu, '#', 'Elements')
+  ! Node conectivity
+  if(allocated(pmh_t%nn)) then
+    call write_line(iu, string(size(pmh_t%nn,1)),  '#', 'number of nodes per element')
+    call write_line(iu, string(pmh_t%nel),         '#', 'number of elements')
+    call write_comment(iu,                         '#', 'Elements')
     do i=1, size(pmh_t%nn,2)
       call write_line(iu, string(pmh_t%nn(:,i)))
     enddo
     call write_empty_line(iu)
-    call write_line(iu, string(size(pmh_t%nn,1)),'#', 'number of parameter values per element')
+    call write_line(iu, string(size(pmh_t%nn,1)),  '#', 'number of parameter values per element')
+  elseif(allocated(pmh_t%mm)) then
+    call write_line(iu, string(size(pmh_t%mm,1)),  '#', 'number of nodes per element')
+    call write_line(iu, string(pmh_t%nel),         '#', 'number of elements')
+    call write_comment(iu,                         '#', 'Elements')
+    do i=1, size(pmh_t%mm,2)
+      call write_line(iu, string(pmh_t%mm(:,i)))
+    enddo
+    call write_empty_line(iu)
+    call write_line(iu, string(size(pmh_t%nn,1)),  '#', 'number of parameter values per element')
+
   else
-call error('mphtxt/write_etype# Wrong node definition: No allocated')
+    call error('mphtxt/write_etype# Wrong node definition: No allocated')
   endif
-call write_line(iu, '0', '#', 'number of parameters')
-  call write_comment(iu, '#', 'Parameters')
+  ! Parameters
+  call write_line(iu, '0',                         '#', 'number of parameters')
+  call write_comment(iu,                           '#', 'Parameters')
   call write_empty_line(iu)
-  call write_line(iu, string(size(pmh_t%ref,1)), '#', 'number of geometric entity indices')
-  call write_comment(iu, '#', 'Geometric entity indices')
+  ! Geometric entity indices
+  call write_line(iu, string(size(pmh_t%ref,1)),   '#', 'number of geometric entity indices')
+  call write_comment(iu,                           '#', 'Geometric entity indices')
   do i=1, size(pmh_t%ref,1)
     call write_line(iu, string(pmh_t%ref(i)))
   enddo
+  ! Up/down pairs
   call write_empty_line(iu)
-  call write_line(iu, '0', '#', 'number of up/down pairs')
-  call write_comment(iu, '#', 'Up/down')
+  call write_line(iu, '0',                         '#', 'number of up/down pairs')
+  call write_comment(iu,                           '#', 'Up/down')
   call write_empty_line(iu)
 
 
@@ -202,7 +212,7 @@ function mphtxt_get_desc(num) result(res)
     res = ''
 
 
-    if((FEDB(num)%nver_eq_nnod .eqv. .true.) .and. (1==FEDB(num)%lnn) .and. & ! Node
+    if((FEDB(num)%nver_eq_nnod .eqv. .true.) .and. (1==FEDB(num)%lnn) .and. &     ! Node
         (1==FEDB(num)%lnv) .and. (0==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
       res = 'vtx'
       call info('Element type: Node')
@@ -234,16 +244,16 @@ function mphtxt_get_desc(num) result(res)
         (3==FEDB(num)%lnv) .and. (3==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
       res = 'tri2'
       call info('Element type: Triangle lagrange P2')
-    elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (9==FEDB(num)%lnn) .and. & ! Quadrangle Lagrange P2
+    elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (8==FEDB(num)%lnn) .and. & ! Quadrangle Lagrange P2
         (4==FEDB(num)%lnv) .and. (4==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
       res = 'quad2'
       call info('Element type: Quadrangle lagrange P2')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (10==FEDB(num)%lnn) .and. & ! Tetrahedron Lagrange P2
-        (4==FEDB(num)%lnv) .and. (4==FEDB(num)%lne) .and. (4==FEDB(num)%lnf)) then
+        (4==FEDB(num)%lnv) .and. (4==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
       res = 'tet2'
       call info('Element type: Tetrahedron lagrange P2')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (26==FEDB(num)%lnn) .and. & ! Hexahedron Lagrange P2
-        (8==FEDB(num)%lnv) .and. (8==FEDB(num)%lne) .and. (6==FEDB(num)%lnf)) then
+        (8==FEDB(num)%lnv) .and. (12==FEDB(num)%lne) .and. (6==FEDB(num)%lnf)) then
       res = 'hex2'
       call info('Element type: Hexahedron lagrange P2')
     else

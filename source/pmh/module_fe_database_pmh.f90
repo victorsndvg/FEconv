@@ -83,7 +83,7 @@ fe_db_pmh('Tetrahedron, Lagrange P2          ', .false., 3, 10, 4,  6, 4, 1, 3, 
 fe_db_pmh('Tetrahedron, Raviart-Thomas (face)', .false., 3,  4, 4,  6, 4, 1, 2, ED_TETR,          0, 4, FA_TETR,          0), & !11
 fe_db_pmh('Tetrahedron, Nedelec (edge)       ', .false., 3,  6, 4,  6, 4, 1, 2, ED_TETR,          0, 4, FA_TETR,          0), & !12
 fe_db_pmh('Hexahedron, Lagrange P1           ', .true.,  3,  8, 8, 12, 6, 1, 2, ED_HEXA,          0, 7, FA_HEXA,          0), & !13
-fe_db_pmh('Hexahedron, Lagrange P2           ', .true.,  3,  8, 8, 12, 6, 1, 3, ED_HEXA, ED_TRIA_P2, 8, FA_HEXA, FA_HEXA_P2), & !14
+fe_db_pmh('Hexahedron, Lagrange P2           ', .false., 3, 26, 8, 12, 6, 1, 3, ED_HEXA, ED_TRIA_P2, 8, FA_HEXA, FA_HEXA_P2), & !14
 fe_db_pmh('Wedge, Lagrange P1                ', .true.,  3,  6, 6,  9, 5, 1, 2, ED_WEDG,          0, 0, FA_WEDG, 0)]!vf variable 15
 
 contains

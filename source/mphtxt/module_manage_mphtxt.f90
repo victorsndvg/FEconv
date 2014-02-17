@@ -86,7 +86,10 @@ subroutine read_mphtxt(this, m, pmh, maxdim)
       call info('Reading piece '//trim(string(i))//' ...')
       call read_mphtxt_object(this%unit, pmh%pc(i))
       if (maxdim < pmh%pc(i)%dim) maxdim = pmh%pc(i)%dim
-enddo
+  enddo
+
+  ! Build mm in modulef style
+  call build_vertices(pmh)
 
 end subroutine
 

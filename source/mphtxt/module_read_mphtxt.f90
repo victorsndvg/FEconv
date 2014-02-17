@@ -117,8 +117,8 @@ subroutine read_mphtxt_object(iu, mphtxt_o)
         ! Serializable object
         if (serializable(1) == -1 .and. serializable(2) == -1 .and. serializable(3) == -1 .and. word_count(line,' ') == 3) then
           read(line,*) serializable(1), serializable(2), serializable(3)
-          if (.not. (serializable(1) == 0 .or. serializable(1) == 1)) call error('mphtxt_file/object, Only versions 0 or 1 &
-&supported #'//string(serializable))
+          if (.not. (serializable(1) == 0 .or. serializable(1) == 1)) &
+            &call error('mphtxt_file/object, Only versions 0 or 1 supported #'//string(serializable))
           if (serializable(3) /= 1) call error('mphtxt_file/object, Not serializable object #'//string(serializable))
         ! Object class
         elseif (obj_class == '' .and. word_count(line,' ') == 2) then
@@ -160,13 +160,6 @@ subroutine read_mphtxt_object(iu, mphtxt_o)
 end subroutine
 
 
-!type elgroup
-! integer :: type = 0 !element type (one of those defined in module_eltype)
-! integer :: nel = 0 !total number of elements
-! integer, allocatable :: nn(:) !global numbering of nodes
-! integer, allocatable :: mm(:) !global numbering of vertices
-! integer, allocatable :: ref(:) !reference numbering
-!end type
 
 !-----------------------------------------------------------------------
 ! read: read a element type from mphtxt file
@@ -269,7 +262,6 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
       endif
     enddo
 
-
 end subroutine
 
 function mphtxt_get_type(desc) result(res)
@@ -308,7 +300,7 @@ function mphtxt_get_type(desc) result(res)
       nnod=6; nver=3; lnn=6; lnv=3; lne=3; lnf=0
       call info('Element type: Triangle lagrange P2')
     elseif(trim(desc) == 'quad2') then ! Quadrangle Lagrange P2
-      nnod=9; nver=4; lnn=9; lnv=4; lne=4; lnf=0
+      nnod=8; nver=4; lnn=8; lnv=4; lne=4; lnf=0
       call info('Element type: Quadrangle lagrange P2')
     elseif(trim(desc) == 'tet2') then ! Tetrahedron Lagrange P2
       nnod=10; nver=4; lnn=10; lnv=4; lne=6; lnf=4
@@ -317,7 +309,7 @@ function mphtxt_get_type(desc) result(res)
       ! Quadratic prism FE not supported
       call error('Wedge lagrange P2 not supported')
     elseif(trim(desc) == 'hex2') then ! Hexahedron Lagrange P2
-      nnod=26; nver=8; lnn=16; lnv=8; lne=12; lnf=6
+      nnod=26; nver=8; lnn=26; lnv=8; lne=12; lnf=6
       call info('Element type: Hexahedron lagrange P2')
   endif
 
@@ -337,7 +329,7 @@ subroutine mphtxt_node_ordering(el, tp)
       call error('module_read_mphtxt/node_ordering # Element type not supported')
     endif
 
-if ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Nodes
+    if ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Nodes
         (FEDB(tp)%lnn == 1) .and. (FEDB(tp)%lnv == 1) .and. &
         (FEDB(tp)%lne == 0) .and. (FEDB(tp)%lnf == 0)) then
         ! PMH and MPHTXT uses the same node ordering in nodes

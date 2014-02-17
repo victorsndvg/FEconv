@@ -45,9 +45,6 @@ subroutine load_mphtxt(filename, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, m
   call read_mphtxt(u, m, pmh, dim)
   call close_mphtxt(u)
 
-  ! Build vertex connectivities and coordinates from node information
-  call build_vertices(pmh)
-
 end subroutine
 
 !-----------------------------------------------------------------------
