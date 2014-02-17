@@ -401,11 +401,11 @@ subroutine mphtxt_node_ordering(el, tp)
         aux = el(7); el(7) = el(6); el(6) = aux
 
     elseif ((FEDB(tp)%nver_eq_nnod .eqv. .false.) .and. & ! Hexahedron Lagrange P2
-            (FEDB(tp)%lnn == 26) .and. (FEDB(tp)%lnv == 8) .and. &
+            (FEDB(tp)%lnn == 20) .and. (FEDB(tp)%lnv == 8) .and. &
             (FEDB(tp)%lne == 12) .and. (FEDB(tp)%lnf == 6)) then
         ! PMH and MPHTXT don't have the same node ordering in hexahedrons lagrange P2
-        ! PMH[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26] =
-        ! MPH[1,2,4,3,5,6,8,7,9,12,13,10,14,16,22,20,23,26,27,24,11,17,15,25,19,21]
+        ! PMH[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27] =
+        ! MPH[1,2,4,3,5,6,8,7,9,12,13,10,14,16,22,20,23,26,27,24,11,17,15,25,19,21,27]
 
         if (size(el,1) /= 27) then
           call error('module_read_mphtxt/node_ordering # Wrong element size' )
@@ -421,7 +421,7 @@ subroutine mphtxt_node_ordering(el, tp)
         el(13) = auxel(14); el(14) = auxel(16); el(15) = auxel(22); el(16) = auxel(20)
         el(17) = auxel(23); el(18) = auxel(26); el(19) = auxel(27); el(20) = auxel(24)
         el(21) = auxel(11); el(22) = auxel(17); el(23) = auxel(15); el(24) = auxel(25)
-        el(25) = auxel(19); el(26) = auxel(21)
+        el(25) = auxel(19); el(26) = auxel(21); el(27) = auxel(27)
 
     endif
 
