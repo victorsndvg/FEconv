@@ -212,7 +212,7 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
         elseif (allocated(mphtxt_t%nn) .and. (i <= mphtxt_t%nel).and. word_count(line,' ') == local_nnodes) then
           read(line,*) (mphtxt_t%nn(m,i), m=1,local_nnodes)
           mphtxt_t%nn(:,i) = mphtxt_t%nn(:,i) - offset + 1
-          call mphtxt_node_ordering(mphtxt_t%nn(:,i), mphtxt_t%type)
+          call pmh_node_ordering(mphtxt_t%nn(:,i), mphtxt_t%type)
           i = i+1
           if (i > mphtxt_t%nel) cycle ! Number of parameters already readed.
 
@@ -318,7 +318,7 @@ res = check_fe(nnod==nver, lnn, lnv, lne, lnf)
 end function
 
 
-subroutine mphtxt_node_ordering(el, tp)
+subroutine pmh_node_ordering(el, tp)
 
   integer, dimension(:), intent(inout) :: el
   integer, intent(in) :: tp
@@ -421,7 +421,7 @@ subroutine mphtxt_node_ordering(el, tp)
         el(13) = auxel(14); el(14) = auxel(16); el(15) = auxel(22); el(16) = auxel(20)
         el(17) = auxel(23); el(18) = auxel(26); el(19) = auxel(27); el(20) = auxel(24)
         el(21) = auxel(11); el(22) = auxel(17); el(23) = auxel(15); el(24) = auxel(25)
-        el(25) = auxel(19); el(26) = auxel(21); el(27) = auxel(27)
+        el(25) = auxel(19); el(26) = auxel(21); el(27) = auxel(18)
 
     endif
 

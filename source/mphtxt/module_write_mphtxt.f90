@@ -45,10 +45,10 @@ end subroutine
 
 
 subroutine write_mphtxt_object(iu, pmh_o, n)
-  integer, intent(in)     :: iu    ! File unit number
-  type(piece), intent(in) :: pmh_o ! PMH piece
-  integer, intent(in)     :: n     ! Piece number
-  integer                 :: i
+  integer, intent(in)        :: iu    ! File unit number
+  type(piece), intent(inout) :: pmh_o ! PMH piece
+  integer, intent(in)        :: n     ! Piece number
+  integer                    :: i
 
   call write_comment(iu,                        '#','--------- Object '//trim(string(n))//' ----------')
   call write_empty_line(iu)
@@ -90,7 +90,7 @@ end subroutine
 
 subroutine write_mphtxt_etype(iu, pmh_t,n)
   integer, intent(in)       :: iu    ! File unit number
-  type(elgroup), intent(in) :: pmh_t ! PMH elgroup
+  type(elgroup), intent(inout) :: pmh_t ! PMH elgroup
   integer, intent(in)       :: n     ! Piece number
   integer                   :: i
 
@@ -104,7 +104,9 @@ subroutine write_mphtxt_etype(iu, pmh_t,n)
     call write_line(iu, string(size(pmh_t%nn,1)),  '#', 'number of nodes per element')
     call write_line(iu, string(pmh_t%nel),         '#', 'number of elements')
     call write_comment(iu,                         '#', 'Elements')
+
     do i=1, size(pmh_t%nn,2)
+      call mphtxt_node_ordering(pmh_t%nn(:,i), pmh_t%type)
       call write_line(iu, string(pmh_t%nn(:,i)))
     enddo
     call write_empty_line(iu)
@@ -249,10 +251,10 @@ function mphtxt_get_desc(num) result(res)
       res = 'quad2'
       call info('Element type: Quadrangle lagrange P2')
     elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (10==FEDB(num)%lnn) .and. & ! Tetrahedron Lagrange P2
-        (4==FEDB(num)%lnv) .and. (4==FEDB(num)%lne) .and. (0==FEDB(num)%lnf)) then
+        (4==FEDB(num)%lnv) .and. (6==FEDB(num)%lne) .and. (4==FEDB(num)%lnf)) then
       res = 'tet2'
       call info('Element type: Tetrahedron lagrange P2')
-    elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (26==FEDB(num)%lnn) .and. & ! Hexahedron Lagrange P2
+    elseif((FEDB(num)%nver_eq_nnod .eqv. .false.) .and. (20==FEDB(num)%lnn) .and. & ! Hexahedron Lagrange P2
         (8==FEDB(num)%lnv) .and. (12==FEDB(num)%lne) .and. (6==FEDB(num)%lnf)) then
       res = 'hex2'
       call info('Element type: Hexahedron lagrange P2')
@@ -262,5 +264,116 @@ function mphtxt_get_desc(num) result(res)
 
 
 end function
+
+subroutine mphtxt_node_ordering(el, tp)
+
+  integer, dimension(:), intent(inout) :: el
+  integer, intent(in) :: tp
+  integer :: aux
+  integer, dimension(:), allocatable :: auxel
+
+    if (tp <= 0) then
+      call error('module_read_mphtxt/node_ordering # Element type not supported')
+    endif
+
+    if ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Nodes
+        (FEDB(tp)%lnn == 1) .and. (FEDB(tp)%lnv == 1) .and. &
+        (FEDB(tp)%lne == 0) .and. (FEDB(tp)%lnf == 0)) then
+        ! PMH and MPHTXT uses the same node ordering in nodes
+
+    elseif ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Edge Lagrange P1
+            (FEDB(tp)%lnn == 2) .and. (FEDB(tp)%lnv == 2) .and. &
+            (FEDB(tp)%lne == 1) .and. (FEDB(tp)%lnf == 0)) then
+        ! PMH and MPHTXT uses the same node ordering in edges lagrange P1
+
+    elseif ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Triangle Lagrange P1
+            (FEDB(tp)%lnn == 3) .and. (FEDB(tp)%lnv == 3) .and. &
+            (FEDB(tp)%lne == 3) .and. (FEDB(tp)%lnf == 0)) then
+        ! PMH and MPHTXT uses the same node ordering in triangles lagrange P1
+
+    elseif ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Quadrangle Lagrange P1
+            (FEDB(tp)%lnn == 4) .and. (FEDB(tp)%lnv == 4) .and. &
+            (FEDB(tp)%lne == 4) .and. (FEDB(tp)%lnf == 0)) then
+        ! PMH and MPHTXT don't have the same node ordering in quadrangles lagrange P1
+        ! PMH[1,2,3,4] = MPH[1,2,4,3]
+        if (size(el,1) /= FEDB(tp)%lnn) then
+          call error('module_read_mphtxt/node_ordering # Wrong element size' )
+        endif
+        aux = el(4); el(4) = el(3); el(3) = aux
+
+    elseif ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Tetrahedron Lagrange P1
+            (FEDB(tp)%lnn == 4) .and. (FEDB(tp)%lnv == 4) .and. &
+            (FEDB(tp)%lne == 6) .and. (FEDB(tp)%lnf == 4)) then
+        ! PMH and MPHTXT uses the same node ordering in tetrahedrons lagrange P1
+
+    elseif ((FEDB(tp)%nver_eq_nnod .eqv. .true.) .and. & ! Hexahedron Lagrange P1
+            (FEDB(tp)%lnn == 8) .and. (FEDB(tp)%lnv == 8) .and. &
+            (FEDB(tp)%lne == 12) .and. (FEDB(tp)%lnf == 6)) then
+        ! PMH and MPHTXT don't have the same node ordering in hexahedrons lagrange P1
+        ! PMH[1,2,3,4,5,6,7,8] = MPH[1,2,4,3,5,6,8,7]
+        if (size(el,1) /= FEDB(tp)%lnn) then
+          call error('module_read_mphtxt/node_ordering # Wrong element size' )
+        endif
+        aux = el(4); el(4) = el(3); el(3) = aux
+        aux = el(8); el(8) = el(7); el(7) = aux
+
+    elseif ((FEDB(tp)%nver_eq_nnod .eqv. .false.) .and. & ! Edge Lagrange P2
+            (FEDB(tp)%lnn == 3) .and. (FEDB(tp)%lnv == 2) .and. &
+            (FEDB(tp)%lne == 1) .and. (FEDB(tp)%lnf == 0)) then
+        ! PMH and MPHTXT uses the same node ordering in edges lagrange P2
+
+    elseif ((FEDB(tp)%nver_eq_nnod .eqv. .false.) .and. & ! Triangle Lagrange P2
+            (FEDB(tp)%lnn == 6) .and. (FEDB(tp)%lnv == 3) .and. &
+            (FEDB(tp)%lne == 3) .and. (FEDB(tp)%lnf == 0)) then
+        ! PMH and MPHTXT don't have the same node ordering in triangles lagrange P2
+        ! PMH[1,2,3,4,5,6] = MPH[1,2,3,4,6,5]
+        if (size(el,1) /= FEDB(tp)%lnn) then
+          call error('module_read_mphtxt/node_ordering # Wrong element size' )
+        endif
+          aux = el(6); el(6) = el(5); el(5) = aux
+
+    elseif ((FEDB(tp)%nver_eq_nnod .eqv. .false.) .and. & ! Quadragle Lagrange P2
+            (FEDB(tp)%lnn == 9) .and. (FEDB(tp)%lnv == 4) .and. &
+            (FEDB(tp)%lne == 4) .and. (FEDB(tp)%lnf == 0)) then
+        ! PMH and MPHTXT uses the same node ordering in quadrangles lagrange P2
+
+    elseif ((FEDB(tp)%nver_eq_nnod .eqv. .false.) .and. & ! Tetrahedron Lagrange P2
+            (FEDB(tp)%lnn == 10) .and. (FEDB(tp)%lnv == 4) .and. &
+            (FEDB(tp)%lne == 6) .and. (FEDB(tp)%lnf == 4)) then
+        ! PMH and MPHTXT don't have the same node ordering in tetrahedrons lagrange P2
+        ! PMH[1,2,3,4,5,6,7,8,9,10] = MPH[1,2,4,3,5,7,6,8,9,10]
+        if (size(el,1) /= FEDB(tp)%lnn) then
+          call error('module_read_mphtxt/node_ordering # Wrong element size' )
+        endif
+        aux = el(7); el(7) = el(6); el(6) = aux
+
+    elseif ((FEDB(tp)%nver_eq_nnod .eqv. .false.) .and. & ! Hexahedron Lagrange P2
+            (FEDB(tp)%lnn == 20) .and. (FEDB(tp)%lnv == 8) .and. &
+            (FEDB(tp)%lne == 12) .and. (FEDB(tp)%lnf == 6)) then
+        ! PMH and MPHTXT don't have the same node ordering in hexahedrons lagrange P2
+        ! PMH[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27] =
+        ! MPH[1,2,4,3,5,6,8,7,9,12,13,10,14,16,22,20,23,26,27,24,11,17,15,25,19,21,27]
+
+        if (size(el,1) /= 27) then
+          call error('module_read_mphtxt/node_ordering # Wrong element size' )
+        endif
+
+        if (allocated(auxel)) deallocate(auxel)
+        allocate(auxel(size(el,1)))
+        auxel(:) = el(:)
+
+        el(1) = auxel(1); el(2) = auxel(2); el(3) = auxel(4); el(4) = auxel(3)
+        el(5) = auxel(5); el(6) = auxel(6); el(7) = auxel(8); el(8) = auxel(7)
+        el(9) = auxel(9); el(10) = auxel(12); el(11) = auxel(21); el(12) = auxel(10)
+        el(13) = auxel(11); el(14) = auxel(13); el(15) = auxel(23); el(16) = auxel(14)
+        el(17) = auxel(22); el(18) = auxel(27); el(19) = auxel(25); el(20) = auxel(16)
+        el(21) = auxel(26); el(22) = auxel(15); el(23) = auxel(17); el(24) = auxel(20)
+        el(25) = auxel(24); el(26) = auxel(18); el(27) = auxel(19)
+
+    endif
+
+
+end subroutine
+
 
 end module
