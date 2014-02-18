@@ -23,7 +23,7 @@ dir_objetos = object
 condir_principal = source/main.f90
  
 # EXECUTABLE NAME 
-ejecutable = feconvv
+ejecutable = feconv
  
 # NEEDED TO convert ejecutable THE DEFAULT RULE: 
 $(ejecutable): $(condir_principal) 
