@@ -44,11 +44,10 @@ integer, parameter :: FA_TETR(4,6) = reshape([1,3,2,0, 1,4,3,0, 1,2,4,0, 2,3,4,0
 integer, parameter :: FA_HEXA(4,6) = reshape([1,4,3,2, 1,5,8,4, 1,2,6,5, 5,6,7,8, 2,3,7,6, 3,4,8,7], [4,6])
 integer, parameter :: FA_WEDG(4,6) = reshape([1,3,2,0, 1,4,6,3, 1,2,5,4, 4,5,6,0, 2,3,6,5, 0,0,0,0], [4,6]) 
 !FA_????_P2(i,j), node #i of face #j of element Lagrange P2 ????
-integer, parameter :: FA_TETR_P2(8,6) = reshape([0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, &
+integer, parameter :: FA_TETR_P2(8,6) = reshape([1,3,2,7,6,5,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, &
 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0], [8,6]) 
 integer, parameter :: FA_HEXA_P2(8,6) = reshape([0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, &
 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0], [8,6]) 
-!Faltan por poner los correctos!!!!!!!!!!
  
 !Types
 type :: fe_db_pmh
