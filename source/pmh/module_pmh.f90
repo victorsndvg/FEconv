@@ -10,6 +10,7 @@ module module_pmh
 !   pmh2mfm: convert a PMH structure into a MFM one
 !   mfm2pmh: convert a MFM mesh into a PMH structure
 !   build_vertices: build vertex connectivities and coordinates from node information (P1, P2 only)
+!   build_node_coordinates: build node coordinates from vertex information
 !
 ! REMARKS:
 !   A mesh is divided into pieces 
@@ -645,8 +646,84 @@ do ip = 1, size(pmh%pc,1)
   &' while nver is '//trim(string(pmh%pc(ip)%nver))//' and nnod is '//trim(string(pmh%pc(ip)%nnod))//': piece '//trim(string(ip)))
 end do
 
-! positive_jacobian: ensure positive jacobian
+!positive_jacobian: ensure positive jacobian
 call positive_jacobian(pmh)
+end subroutine
+
+!-----------------------------------------------------------------------
+! build_node_coordinates: build node coordinates from vertex information
+!
+! this procedure must be called for each piece of a well-constructed PMH
+! when all grous are Lagrange P1, variable all_P1 is .true. and znod is not created
+! thus, the way of calling this procedure is:
+!   do ip = 1, size(pmh%pc, 1)
+!     call build_node_coordinates(pmh%pc(ip), ip, all_P1, znod)
+!     if (.not. all_P1) then
+!        ... work with znod ...
+!     end if
+!   end do
+!-----------------------------------------------------------------------
+subroutine build_node_coordinates(pc, ip, all_P1, znod)
+type(piece),               intent(in)  :: pc
+integer,                   intent(in)  :: ip
+logical,                   intent(out) :: all_P1
+real(real64), allocatable, intent(out) :: znod(:,:)
+integer :: ig, i, j, k
+
+!determine whether all elements are Lagrange P1
+all_P1 = .true.
+do ig = 1, size(pc%el,1)
+  if (.not. FEDB(pc%el(ig)%type)%nver_eq_nnod) then
+    all_P1 = .false.
+    exit
+  end if
+end do
+if (.not. all_P1) then
+  !construct znod
+  call alloc(znod, pc%dim, pc%nnod)
+  do ig = 1, size(pc%el,1)
+    associate(elg => pc%el(ig), tp => pc%el(ig)%type)
+      if (FEDB(tp)%nver_eq_nnod) then
+        !************************************* Lagrange P1 **************************************
+        do k = 1, elg%nel
+          do i = 1, FEDB(tp)%lnv
+            znod(:, elg%nn(i,k)) = pc%z(:, elg%mm(i,k))
+          end do
+        end do
+      elseif (FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne) then
+        !************************************* Lagrange P2 **************************************
+        do k = 1, elg%nel
+          do i = 1, FEDB(tp)%lnv
+            znod(:, elg%nn(i,k)) = pc%z(:, elg%mm(i,k))
+          end do
+          do i = 1, FEDB(tp)%lne
+            znod(:, elg%nn(i+FEDB(tp)%lnv,k)) = (pc%z(:,elg%mm(FEDB(tp)%edge(1,i),k)) + pc%z(:,elg%mm(FEDB(tp)%edge(2,i),k)))/2
+          end do
+        end do
+      elseif (tp == check_fe(.false.,  3, 3,  3, 0) .or. &
+              tp == check_fe(.false.,  6, 4,  6, 4)) then
+        !***** Triangle, Raviart-Thomas (edge) OR Tetrahedron, Nedelec (edge) ******************
+        do k = 1, elg%nel
+          do i = 1, FEDB(tp)%lne
+            znod(:, elg%nn(i,k)) = ( pc%z(:, elg%mm(FEDB(tp)%edge(1,i),k)) + pc%z(:, elg%mm(FEDB(tp)%edge(2,i),k)) )/2
+          end do
+        end do
+      elseif (tp == check_fe(.false.,  4, 4,  6, 4)) then
+        !************************************* Tetrahedron, Raviart-Thomas (face) ***************
+        do k = 1, elg%nel
+          do i = 1, FEDB(tp)%lnf
+            do j = 1, pc%dim
+              znod(j, elg%nn(i,k)) = sum(pc%z(1, elg%mm(FEDB(tp)%face(:,i),k))) / FEDB(FEDB(tp)%f_type)%lnv
+            end do
+          end do
+        end do
+      else
+        call info('(module_pmh/build_node_coordinates) build node coordinates for element type '//trim(string(FEDB(tp)%desc))//&
+        &' is not implemented: piece '//trim(string(ip))//', group '//trim(string(ig))//'; variable znod is not created')
+      end if
+    end associate
+  end do
+end if
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -821,23 +898,30 @@ end do
 end subroutine
 
 !-----------------------------------------------------------------------
-! positive_jacobian: ensure positive jacobian
+! positive_jacobian: ensure positive jacobian in groups with maximal topological dimension
 !
 ! it must be called at the end of build_vertices to guarantee that mm exists
 !-----------------------------------------------------------------------
 subroutine positive_jacobian(pmh)
 type(pmh_mesh), intent(inout) :: pmh
-integer :: ip, ig, i, k
+integer :: ip, ig, i, k, max_tdim
 integer, allocatable :: pos(:) 
 logical :: QJac(4) 
+
+max_tdim = 0 !maximal topological dimension
+do ip = 1, size(pmh%pc,1)
+  do ig = 1, size(pmh%pc(ip)%el, 1)
+      if (max_tdim < FEDB(pmh%pc(ip)%el(ig)%type)%tdim) max_tdim = FEDB(pmh%pc(ip)%el(ig)%type)%tdim
+  end do
+end do
 
 do ip = 1, size(pmh%pc,1)
   do ig = 1, size(pmh%pc(ip)%el,1)
     associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type, z => pmh%pc(ip)%z)
+      if (FEDB(tp)%tdim < max_tdim) cycle !only for groups with maximal topological dimension
       if (tp == check_fe(.true.,   1, 1,  0, 0) .or. tp == check_fe(.true.,   2, 2,  1, 0) .or. &
-          tp == check_fe(.false.,  3, 2,  1, 0)) then !Node, Edge Lagrange P1 or P2
-        continue
-      elseif (tp == check_fe(.true.,   3, 3,  3, 0)) then
+          tp == check_fe(.false.,  3, 2,  1, 0)) cycle !Node, Edge Lagrange P1 or P2, do nothing
+      if (tp == check_fe(.true.,   3, 3,  3, 0)) then
         !************************************* Triangle, Lagrange P1 ****************************
         do k = 1, elg%nel
           if ( (z(1,elg%mm(2,k)) - z(1,elg%mm(1,k))) * (z(2,elg%mm(3,k)) - z(2,elg%mm(1,k))) & !only x and y coordinates are used

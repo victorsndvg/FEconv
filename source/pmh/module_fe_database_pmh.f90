@@ -48,7 +48,6 @@ integer, parameter :: FA_TETR_P2(8,6) = reshape([1,3,2,7,6,5,0,0, 1,4,3,8,10,7,0
 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0], [8,6]) 
 integer, parameter :: FA_HEXA_P2(8,6) = reshape([1,4,3,2,12,11,10,9, 1,5,8,4,13,20,16,12, 1,2,6,5,9,14,17,13, 5,6,7,8,17,18,19,20, &
 2,3,7,6,10,15,18,14, 3,4,8,7,11,16,19,15], [8,6]) 
-!Faltan por poner los correctos!!!!!!!!!!
  
 !Types
 type :: fe_db_pmh
@@ -79,11 +78,11 @@ fe_db_pmh('Triangle, Raviart-Thomas (edge)   ', .false., 2,  3, 3,  3, 0, 1, 2, 
 fe_db_pmh('Quadrangle, Lagrange P1           ', .true.,  2,  4, 4,  4, 0, 1, 2, ED_QUAD,          0, 0,       0,          0), & ! 7
 fe_db_pmh('Quadrangle, Lagrange P2           ', .false., 2,  8, 4,  4, 0, 1, 3, ED_QUAD, ED_TRIA_P2, 0,       0,          0), & ! 8
 fe_db_pmh('Tetrahedron, Lagrange P1          ', .true.,  3,  4, 4,  6, 4, 1, 2, ED_TETR,          0, 4, FA_TETR,          0), & ! 9
-fe_db_pmh('Tetrahedron, Lagrange P2          ', .false., 3, 10, 4,  6, 4, 1, 3, ED_TETR, ED_TRIA_P2, 5, FA_TETR, FA_TETR_P2), & !10
+fe_db_pmh('Tetrahedron, Lagrange P2          ', .false., 3, 10, 4,  6, 4, 1, 3, ED_TETR, ED_TETR_P2, 5, FA_TETR, FA_TETR_P2), & !10
 fe_db_pmh('Tetrahedron, Raviart-Thomas (face)', .false., 3,  4, 4,  6, 4, 1, 2, ED_TETR,          0, 4, FA_TETR,          0), & !11
 fe_db_pmh('Tetrahedron, Nedelec (edge)       ', .false., 3,  6, 4,  6, 4, 1, 2, ED_TETR,          0, 4, FA_TETR,          0), & !12
 fe_db_pmh('Hexahedron, Lagrange P1           ', .true.,  3,  8, 8, 12, 6, 1, 2, ED_HEXA,          0, 7, FA_HEXA,          0), & !13
-fe_db_pmh('Hexahedron, Lagrange P2           ', .false., 3, 20, 8, 12, 6, 1, 3, ED_HEXA, ED_TRIA_P2, 8, FA_HEXA, FA_HEXA_P2), & !14
+fe_db_pmh('Hexahedron, Lagrange P2           ', .false., 3, 20, 8, 12, 6, 1, 3, ED_HEXA, ED_HEXA_P2, 8, FA_HEXA, FA_HEXA_P2), & !14
 fe_db_pmh('Wedge, Lagrange P1                ', .true.,  3,  6, 6,  9, 5, 1, 2, ED_WEDG,          0, 0, FA_WEDG, 0)]!vf variable 15
 
 contains
