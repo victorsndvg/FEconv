@@ -657,7 +657,7 @@ end subroutine
 ! when all grous are Lagrange P1, variable all_P1 is .true. and znod is not created
 ! thus, the way of calling this procedure is:
 !   do ip = 1, size(pmh%pc, 1)
-!     call build_node_coordinates(pmh%pc(ip), all_P1, znod)
+!     call build_node_coordinates(pmh%pc(ip), ip, all_P1, znod)
 !     if (.not. all_P1) then
 !        ... work with znod ...
 !     end if
@@ -697,7 +697,7 @@ if (.not. all_P1) then
             znod(:, elg%nn(i,k)) = pc%z(:, elg%mm(i,k))
           end do
           do i = 1, FEDB(tp)%lne
-            znod(:, elg%nn(FEDB(tp)%nedge(3,i),k)) = (pc%z(:,elg%mm(FEDB(tp)%nedge(1,i),k))+pc%z(:,elg%mm(FEDB(tp)%nedge(2,i),k)))/2
+            znod(:, elg%nn(i+FEDB(tp)%lnv,k)) = (pc%z(:,elg%mm(FEDB(tp)%edge(1,i),k)) + pc%z(:,elg%mm(FEDB(tp)%edge(2,i),k)))/2
           end do
         end do
       elseif (tp == check_fe(.false.,  3, 3,  3, 0) .or. &
@@ -705,7 +705,7 @@ if (.not. all_P1) then
         !***** Triangle, Raviart-Thomas (edge) OR Tetrahedron, Nedelec (edge) ******************
         do k = 1, elg%nel
           do i = 1, FEDB(tp)%lne
-            znod(:, elg%nn(i,k)) = ( pc%z(:, elg%mm(FEDB(tp)%nedge(1,i),k)) + pc%z(:, elg%mm(FEDB(tp)%nedge(2,i),k)) )/2
+            znod(:, elg%nn(i,k)) = ( pc%z(:, elg%mm(FEDB(tp)%edge(1,i),k)) + pc%z(:, elg%mm(FEDB(tp)%edge(2,i),k)) )/2
           end do
         end do
       elseif (tp == check_fe(.false.,  4, 4,  6, 4)) then
@@ -713,7 +713,7 @@ if (.not. all_P1) then
         do k = 1, elg%nel
           do i = 1, FEDB(tp)%lnf
             do j = 1, pc%dim
-              znod(j, elg%nn(i,k)) = sum(pc%z(1, elg%mm(FEDB(tp)%nface(:,i),k))) / FEDB(FEDB(tp)%f_type)%lnv
+              znod(j, elg%nn(i,k)) = sum(pc%z(1, elg%mm(FEDB(tp)%face(:,i),k))) / FEDB(FEDB(tp)%f_type)%lnv
             end do
           end do
         end do
