@@ -25,6 +25,7 @@ implicit none
 
 !Constants
 !ED_????(i,j), vertex #i of edge #j of element ????
+integer, parameter :: ED_EDGE(2,12) = reshape([1,2, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0], [2,12])
 integer, parameter :: ED_TRIA(2,12) = reshape([1,2, 2,3, 3,1, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0], [2,12])
 integer, parameter :: ED_QUAD(2,12) = reshape([1,2, 2,3, 3,4, 4,1, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0], [2,12])
 integer, parameter :: ED_TETR(2,12) = reshape([1,2, 2,3, 3,1, 1,4, 2,4, 3,4, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0], [2,12])
@@ -70,8 +71,8 @@ end type
 !Constants             char(46)                         td   n  v   e  f vt et       ev          en ft       fv
 type(fe_db_pmh), parameter :: FEDB(15) = [ &
 fe_db_pmh('Vertex                            ', .true.,  0,  1, 1,  0, 0, 0, 0,       0,          0, 0,       0,          0), & ! 1
-fe_db_pmh('Edge, Lagrange P1                 ', .true.,  1,  2, 2,  1, 0, 1, 0,       0,          0, 0,       0,          0), & ! 2 
-fe_db_pmh('Edge, Lagrange P2                 ', .false., 1,  3, 2,  1, 0, 1, 0,       0,          0, 0,       0,          0), & ! 3
+fe_db_pmh('Edge, Lagrange P1                 ', .true.,  1,  2, 2,  1, 0, 1, 0, ED_EDGE,          0, 0,       0,          0), & ! 2 
+fe_db_pmh('Edge, Lagrange P2                 ', .false., 1,  3, 2,  1, 0, 1, 0, ED_EDGE,          0, 0,       0,          0), & ! 3
 fe_db_pmh('Triangle, Lagrange P1             ', .true.,  2,  3, 3,  3, 0, 1, 2, ED_TRIA,          0, 0,       0,          0), & ! 4
 fe_db_pmh('Triangle, Lagrange P2             ', .false., 2,  6, 3,  3, 0, 1, 3, ED_TRIA, ED_TRIA_P2, 0,       0,          0), & ! 5
 fe_db_pmh('Triangle, Raviart-Thomas (edge)   ', .false., 2,  3, 3,  3, 0, 1, 2, ED_TRIA,          0, 0,       0,          0), & ! 6
