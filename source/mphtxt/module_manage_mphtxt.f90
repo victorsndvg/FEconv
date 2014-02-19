@@ -8,6 +8,7 @@ use module_files, only: get_unit
 use module_mesh
 use module_read_mphtxt
 use module_write_mphtxt
+use module_utils_mphtxt
 implicit none
 
 !Types
@@ -115,16 +116,16 @@ subroutine write_mphtxt(this, pmh)
   if (.not. allocated(pmh%pc)) call error('mphtxt/read/object, objects not allocated')
   do i = 1, size(pmh%pc, 1)
     call build_node_coordinates(pmh%pc(i), i, all_P1, znod) ! build edge midpoints
-!    do j = 1, size(pmh%pc(i)%el, 1)
-!      tp = pmh%pc(i)%el(j)%type
-!      mphlnn = mphtxt_get_nnod(tp)
-!      if(mphlnn >= FEDB(tp)%lnn + 1) then                   ! build centroids
-!        call build_centroids(pmh%pc(i),i,j,znod)
-!      endif
-!      if(mphlnn >= FEDB(tp)%lnn + FEDB(tp)%lnf + 1) then    ! build face baricenters
-!
-!      endif
-!    enddo
+    do j = 1, size(pmh%pc(i)%el, 1)
+      tp = pmh%pc(i)%el(j)%type
+      mphlnn = mphtxt_get_lnn(tp)
+      if(mphlnn >= FEDB(tp)%lnn + 1) then                   ! build centroids
+        call build_elements_baricenter(pmh%pc(i),i,j,znod)
+      endif
+      if(mphlnn >= FEDB(tp)%lnn + FEDB(tp)%lnf + 1) then    ! build face baricenters
+
+      endif
+    enddo
   end do
   do i = 1, size(pmh%pc,1)
       call info('Writing piece '//trim(string(i))//' ...')

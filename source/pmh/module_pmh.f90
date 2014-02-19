@@ -744,20 +744,12 @@ if (.not. all_P1) then
         end do
       elseif (FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne) then
         !************************************* Lagrange P2 **************************************
-         print*,'tp', tp
         do k = 1, elg%nel
-         print*,'NN', k, elg%nn(:,k)
           do i = 1, FEDB(tp)%lnv
             znod(:, elg%nn(i,k)) = pc%z(:, elg%mm(i,k))
           end do
           do i = 1, FEDB(tp)%lne
-        print*, '1 i k nn znod', i+FEDB(tp)%lnv, k, elg%nn(i+FEDB(tp)%lnv, k), znod(:, elg%nn(i+FEDB(tp)%lnv,k))
-
-       print*, '1---', i, FEDB(tp)%edge(1,i) , k, elg%mm(FEDB(tp)%edge(1,i),k), pc%z(:,elg%mm(FEDB(tp)%edge(1,i),k))
-       print*, '2---', i, FEDB(tp)%edge(2,i) , k, elg%mm(FEDB(tp)%edge(2,i),k), pc%z(:,elg%mm(FEDB(tp)%edge(2,i),k))
-
             znod(:, elg%nn(i+FEDB(tp)%lnv,k)) = (pc%z(:,elg%mm(FEDB(tp)%edge(1,i),k)) + pc%z(:,elg%mm(FEDB(tp)%edge(2,i),k)))/2
-        print*, '2 i k nn znod', i+FEDB(tp)%lnv, k, elg%nn(i+FEDB(tp)%lnv, k), znod(:, elg%nn(i+FEDB(tp)%lnv,k))
           end do
         end do
       elseif (tp == check_fe(.false.,  3, 3,  3, 0) .or. &
@@ -816,16 +808,6 @@ end if
 do ip = 1, size(pmh%pc,1)
   do ig = 1, size(pmh%pc(ip)%el,1)
     associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type, z => pmh%pc(ip)%z)
-print*, 'a0', size(pmh%pc,1)
-print*, 'a00', ip, size(pmh%pc(ip)%el,1), ig
-print*, 'a1', pmh%pc(ip)%nver, pmh%pc(ip)%nnod
-print*, 'a2', allocated(pmh%pc(ip)%z)
-print*, 'a3', size(pmh%pc(ip)%z,1), size(pmh%pc(ip)%z,2)
-print*, 'a4', elg%nel, tp
-print*, 'a5', allocated(elg%mm), allocated(elg%nn)
-print*, 'a6', size(elg%mm, 1), size(elg%mm, 1), size(elg%nn, 1), size(elg%nn, 1)
-print*, 'a7', maxval(elg%nn)
-
       if (FEDB(tp)%nver_eq_nnod) then !Lagrange P1 elements, do nothing
         continue      
       elseif (tp == check_fe(.false.,  3, 2,  1, 0)) then

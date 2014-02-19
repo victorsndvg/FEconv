@@ -81,6 +81,7 @@ module_report.o module_convers.o module_alloc_int_r1.o module_set.o
 module_ALLOC_int_alloc_r2.o: module_alloc.o
 module_ALLOC_log_r2.o: module_report.o
 module_ALLOC_real_r2.o: module_report.o
+module_MATH.o: module_compiler_gfortran.o
 module_desplazamientos.o: module_alloc.o module_ALLOC_int_alloc_r2.o \
 module_ALLOC_real_r2.o module_ALLOC_log_r2.o module_convers.o
 module_fuerzas.o: module_alloc.o module_ALLOC_int_alloc_r2.o \
@@ -88,6 +89,7 @@ module_ALLOC_real_r2.o module_convers.o
 module_MATH.o: module_compiler_gfortran.o
 module_dataset.o: module_report.o module_convers.o
 module_FE_DB.o: module_os_dependant.o
+module_dataset.o: module_report.o module_convers.o
 module_groups.o: module_alloc.o
 module_patran.o: module_compiler_gfortran.o module_desplazamientos.o \
 module_fuerzas.o module_MATH.o module_groups.o
