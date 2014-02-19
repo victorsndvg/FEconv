@@ -37,10 +37,10 @@ subroutine open_mphtxt(this, filename, st)
     this%unit = get_unit()
     aux = 'old'
     if(present(st)) then
-aux = trim(st)
+    aux = trim(st)
     endif
 
-open (unit=this%unit, file=this%filename, form='formatted', iostat=ios, &
+    open (unit=this%unit, file=this%filename, form='formatted', iostat=ios, &
     status=trim(aux), position='rewind')
     if (ios /= 0) call error('mphtxt/open, #'//trim(string(ios)))
 
@@ -98,9 +98,11 @@ end subroutine
 !-----------------------------------------------------------------------
 subroutine write_mphtxt(this, pmh)
 
-  type(mphtxt), intent(inout) :: this ! mphtxt object
+  type(mphtxt), intent(inout)   :: this ! mphtxt object
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
-  integer :: i, ios
+  integer                       :: i, j, ios, tp, mphlnn
+  logical                       :: all_P1
+  real(real64), allocatable     :: znod(:,:)
 
 
   rewind(unit=this%unit, iostat=ios)
@@ -111,9 +113,22 @@ subroutine write_mphtxt(this, pmh)
 
   ! Reads every piece of the mesh and calculate the max of its space dimension
   if (.not. allocated(pmh%pc)) call error('mphtxt/read/object, objects not allocated')
+  do i = 1, size(pmh%pc, 1)
+    call build_node_coordinates(pmh%pc(i), i, all_P1, znod) ! build edge midpoints
+!    do j = 1, size(pmh%pc(i)%el, 1)
+!      tp = pmh%pc(i)%el(j)%type
+!      mphlnn = mphtxt_get_nnod(tp)
+!      if(mphlnn >= FEDB(tp)%lnn + 1) then                   ! build centroids
+!        call build_centroids(pmh%pc(i),i,j,znod)
+!      endif
+!      if(mphlnn >= FEDB(tp)%lnn + FEDB(tp)%lnf + 1) then    ! build face baricenters
+!
+!      endif
+!    enddo
+  end do
   do i = 1, size(pmh%pc,1)
       call info('Writing piece '//trim(string(i))//' ...')
-      call write_mphtxt_object(this%unit, pmh%pc(i),i)
+      call write_mphtxt_object(this%unit, pmh%pc(i),i,znod)
   enddo
 
 end subroutine
