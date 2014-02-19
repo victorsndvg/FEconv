@@ -60,7 +60,8 @@ module_alloc.o: module_alloc_int_r1.o module_alloc_int_r2.o \
 module_alloc_real64_r1.o module_alloc_real64_r2.o module_alloc_char_r1.o \
 module_alloc_log_r1.o
 module_pmh.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
-module_convers.o module_alloc.o module_args.o module_fe_database_pmh.o
+module_convers.o module_alloc.o module_args.o module_feed.o \
+module_fe_database_pmh.o
 module_system.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_convers.o module_alloc_char_r1.o module_files.o
 IR_Precision.o: module_files.o

@@ -83,33 +83,37 @@ if (ios /= 0) call error('module_pmh/save_pmh: open error #'//trim(string(ios)))
 write(iu, '(a/)') '<?xml version="1.0" encoding="UTF-8" ?>'
 write(iu, '(a)') '<pmh>'
 do ip = 1, size(pmh%pc,1)
-  write(iu, '(a)') '<piece, name="'//trim(string(ip))//'">'
-  write(iu, '(a)') '<nnod> '//trim(string(pmh%pc(ip)%nnod))//' </nnod>'
-  write(iu, '(a)') '<nver> '//trim(string(pmh%pc(ip)%nver))//' </nver>'
-  write(iu, '(a)')  '<dim> '//trim(string(pmh%pc(ip)%dim))//' </dim>'
-  write(iu, '(a)') '<z>'
-  do k = 1, pmh%pc(ip)%nver; do j = 1, pmh%pc(ip)%dim; call feed(iu, string(pmh%pc(ip)%z(j,k))); call empty(iu); end do; end do
-  write(iu, '(a)') '</z>'
+  write(iu, '(2x,a)') '<piece name="'//trim(string(ip))//'">'
+  write(iu, '(4x,a)') '<nnod> '//trim(string(pmh%pc(ip)%nnod))//' </nnod>'
+  write(iu, '(4x,a)') '<nver> '//trim(string(pmh%pc(ip)%nver))//' </nver>'
+  write(iu, '(4x,a)')  '<dim> '//trim(string(pmh%pc(ip)%dim))//' </dim>'
+  write(iu, '(4x,a)') '<z>'
+  do k = 1, pmh%pc(ip)%nver; do j = 1, pmh%pc(ip)%dim; call feed(iu, string(pmh%pc(ip)%z(j,k))); end do; end do; call empty(iu)
+  write(iu, '(4x,a)') '</z>'
   do ig = 1, size(pmh%pc(ip)%el,1)
     associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
-      write(iu, '(a)') '<element_group, name="'//trim(string(ig))//'">'
-      write(iu, '(a)')  '<nel> '//trim(string(elg%nel))//' </nel>'
-      write(iu, '(a)') '<type> '//trim(string(elg%type))//' </type>'
+      write(iu, '(4x,a)') '<element_group name="'//trim(string(ig))//'">'
+      write(iu, '(6x,a)')  '<nel> '//trim(string(elg%nel))//' </nel>'
+      write(iu, '(6x,a)') '<type> '//trim(string(elg%type))//' </type>'
+      write(iu, '(6x,a)') '<desc>'
+      write(iu,    '(a)') trim(FEDB(elg%type)%desc)
+      write(iu, '(6x,a)') '</desc>'
+
       if (allocated(elg%nn)) then
-        write(iu, '(a)') '<nn>'
-        do k = 1, elg%nel; do i = 1, FEDB(tp)%lnn; call feed(iu, string(elg%nn(i,k))); call empty(iu); end do; end do
-        write(iu, '(a)') '</nn>'
+        write(iu, '(6x,a)') '<nn>'
+        do k = 1, elg%nel; do i = 1, FEDB(tp)%lnn; call feed(iu, string(elg%nn(i,k))); end do; end do; call empty(iu)
+        write(iu, '(6x,a)') '</nn>'
       end if
-      write(iu, '(a)') '<mm>'
-      do k = 1, elg%nel; do i = 1, FEDB(tp)%lnv; call feed(iu, string(elg%mm(i,k))); call empty(iu); end do; end do
-      write(iu, '(a)') '</mm>'
-      write(iu, '(a)') '<ref>'
-      do k = 1, elg%nel; do i = 1, FEDB(tp)%lnv; call feed(iu, string(elg%mm(i,k))); call empty(iu); end do; end do
-      write(iu, '(a)') '</ref>'
-      write(iu, '(a)') '</element_group>'
+      write(iu, '(6x,a)') '<mm>'
+      do k = 1, elg%nel; do i = 1, FEDB(tp)%lnv; call feed(iu, string(elg%mm(i,k))); end do; end do; call empty(iu)
+      write(iu, '(6x,a)') '</mm>'
+      write(iu, '(6x,a)') '<ref>'
+      do k = 1, elg%nel; call feed(iu, string(elg%ref(k))); end do; call empty(iu)
+      write(iu, '(6x,a)') '</ref>'
+      write(iu, '(4x,a)') '</element_group>'
     end associate
   end do
-  write(iu, '(a)') '</piece>'
+  write(iu, '(2x,a)') '</piece>'
 end do
 write(iu, '(a)') '</pmh>'
 close(iu)
