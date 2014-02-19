@@ -687,7 +687,7 @@ if (.not. all_P1) then
         !************************************* Lagrange P1 **************************************
         do k = 1, elg%nel
           do i = 1, FEDB(tp)%lnv
-            znod(:, elg%nn(i,k)) = pc%z(:, elg%mm(i,k))
+            znod(:, elg%mm(i,k)) = pc%z(:, elg%mm(i,k))
           end do
         end do
       elseif (FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne) then
