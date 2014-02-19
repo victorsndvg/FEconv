@@ -7,6 +7,7 @@ module module_pmh
 ! Last update: 19/01/2014
 !
 ! PUBLIC PROCEDURES:
+!   save_pmh: save mesh into a PMH file
 !   pmh2mfm: convert a PMH structure into a MFM one
 !   mfm2pmh: convert a MFM mesh into a PMH structure
 !   build_vertices: build vertex connectivities and coordinates from node information (P1, P2 only)
@@ -29,6 +30,7 @@ use module_report, only: error, info
 use module_convers, only: string, int
 use module_alloc, only: alloc, dealloc, reduce, sfind, find_first, find_row_sorted, sort, insert, insert_row_sorted, bsearch
 use module_args, only: is_arg, get_post_arg
+use module_feed, only: feed, empty
 use module_fe_database_pmh, only : FEDB, check_fe
 implicit none
 
@@ -66,6 +68,52 @@ integer, parameter, private :: Pc(32,4) = reshape([ &
 private :: swap, reorder_nodes_simplex_P2, QJ_pos, detDFT_pos, reorder_nodes_P2, positive_jacobian
 
 contains
+
+!-----------------------------------------------------------------------
+! save_pmh: save pmh
+!-----------------------------------------------------------------------
+subroutine save_pmh(filename, iu, pmh)
+character(*),   intent(in) :: filename !mesh filename
+integer,        intent(in) :: iu       !file unit
+type(pmh_mesh), intent(in) :: pmh      !pmh structure
+integer :: i, j, k, ip, ig, ios
+
+open (unit=iu, file=filename, form='formatted', position='rewind', iostat=ios)
+if (ios /= 0) call error('module_pmh/save_pmh: open error #'//trim(string(ios)))
+write(iu, '(a/)') '<?xml version="1.0" encoding="UTF-8" ?>'
+write(iu, '(a)') '<pmh>'
+do ip = 1, size(pmh%pc,1)
+  write(iu, '(a)') '<piece, name="'//trim(string(ip))//'">'
+  write(iu, '(a)') '<nnod> '//trim(string(pmh%pc(ip)%nnod))//' </nnod>'
+  write(iu, '(a)') '<nver> '//trim(string(pmh%pc(ip)%nver))//' </nver>'
+  write(iu, '(a)')  '<dim> '//trim(string(pmh%pc(ip)%dim))//' </dim>'
+  write(iu, '(a)') '<z>'
+  do k = 1, pmh%pc(ip)%nver; do j = 1, pmh%pc(ip)%dim; call feed(iu, string(pmh%pc(ip)%z(j,k))); call empty(iu); end do; end do
+  write(iu, '(a)') '</z>'
+  do ig = 1, size(pmh%pc(ip)%el,1)
+    associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+      write(iu, '(a)') '<element_group, name="'//trim(string(ig))//'">'
+      write(iu, '(a)')  '<nel> '//trim(string(elg%nel))//' </nel>'
+      write(iu, '(a)') '<type> '//trim(string(elg%type))//' </type>'
+      if (allocated(elg%nn)) then
+        write(iu, '(a)') '<nn>'
+        do k = 1, elg%nel; do i = 1, FEDB(tp)%lnn; call feed(iu, string(elg%nn(i,k))); call empty(iu); end do; end do
+        write(iu, '(a)') '</nn>'
+      end if
+      write(iu, '(a)') '<mm>'
+      do k = 1, elg%nel; do i = 1, FEDB(tp)%lnv; call feed(iu, string(elg%mm(i,k))); call empty(iu); end do; end do
+      write(iu, '(a)') '</mm>'
+      write(iu, '(a)') '<ref>'
+      do k = 1, elg%nel; do i = 1, FEDB(tp)%lnv; call feed(iu, string(elg%mm(i,k))); call empty(iu); end do; end do
+      write(iu, '(a)') '</ref>'
+      write(iu, '(a)') '</element_group>'
+    end associate
+  end do
+  write(iu, '(a)') '</piece>'
+end do
+write(iu, '(a)') '</pmh>'
+close(iu)
+end subroutine
 
 !-----------------------------------------------------------------------
 ! pmh2mfm: convert a PMH structure into a MFM one
