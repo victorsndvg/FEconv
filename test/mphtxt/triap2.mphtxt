@@ -1,0 +1,126 @@
+# Created by COMSOL Multiphysics Fri Jan 31 08:48:13 2014
+
+
+# Major & minor version
+0 1 
+1 # number of tags
+# Tags
+5 mesh1 
+1 # number of types
+# Types
+3 obj 
+
+# --------- Object 0 ----------
+
+0 0 1 
+4 Mesh # class
+2 # version
+2 # sdim
+13 # number of mesh points
+0 # lowest mesh point index
+
+# Mesh point coordinates
+0 0 
+0.5 0.5 
+1 0 
+0 1 
+1 1 
+0 0.5 
+0.5 0 
+0.5 1 
+1 0.5 
+0.25 0.25 
+0.75 0.25 
+0.25 0.75 
+0.75 0.75 
+
+3 # number of element types
+
+# Type #0
+
+3 vtx # type name
+
+
+1 # number of nodes per element
+4 # number of elements
+# Elements
+0 
+2 
+3 
+4 
+
+1 # number of parameter values per element
+0 # number of parameters
+# Parameters
+
+4 # number of geometric entity indices
+# Geometric entity indices
+0 
+2 
+1 
+3 
+
+0 # number of up/down pairs
+# Up/down
+
+# Type #1
+
+4 edg2 # type name
+
+
+3 # number of nodes per element
+4 # number of elements
+# Elements
+2 0 6 
+0 3 5 
+3 4 7 
+4 2 8 
+
+3 # number of parameter values per element
+4 # number of parameters
+# Parameters
+0 1 0.5 
+0 1 0.5 
+0 1 0.5 
+0 1 0.5 
+
+4 # number of geometric entity indices
+# Geometric entity indices
+1 
+0 
+2 
+3 
+
+4 # number of up/down pairs
+# Up/down
+0 1 
+0 1 
+0 1 
+0 1 
+
+# Type #2
+
+4 tri2 # type name
+
+
+6 # number of nodes per element
+4 # number of elements
+# Elements
+0 2 1 6 9 10 
+3 0 1 5 11 9 
+2 4 1 8 10 12 
+4 3 1 7 12 11 
+
+6 # number of parameter values per element
+0 # number of parameters
+# Parameters
+
+4 # number of geometric entity indices
+# Geometric entity indices
+1 
+1 
+1 
+1 
+
+0 # number of up/down pairs
+# Up/down
