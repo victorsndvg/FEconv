@@ -42,9 +42,9 @@ module_FE_DB.f90 module_groups.f90 module_patran.f90 module_mesh.f90 \
 module_dataset_2467.f90 module_dataset_2412.f90 module_dataset_2411.f90 \
 module_manage_unv.f90 module_unv.f90 module_mfm.f90 module_mum.f90 \
 module_vtu.f90 module_cuthill_mckee.f90 module_transform.f90 \
-module_fe_database_pmh.f90 module_pmh.f90 module_write_mphtxt.f90 \
-module_read_mphtxt.f90 module_manage_mphtxt.f90 module_mphtxt.f90 \
-module_feconv.f90
+module_fe_database_pmh.f90 module_pmh.f90 module_utils_mphtxt.f90 \
+module_write_mphtxt.f90 module_read_mphtxt.f90 module_manage_mphtxt.f90 \
+module_mphtxt.f90 module_feconv.f90
  
 # MODULE DEPENDENCIES
 # if pru1 depends on pru2... pru1.o: pru2.o
@@ -72,7 +72,6 @@ module_alloc_real64_r1.o module_alloc_real64_r2.o module_alloc_char_r1.o \
 module_alloc_log_r1.o
 module_system.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_convers.o module_alloc_char_r1.o module_files.o
-IR_Precision.o: module_files.o
 Lib_VTK_IO.o: IR_Precision.o
 LIB_VTK_IO_READ.o: Lib_VTK_IO.o
 module_writevtu.o: Lib_VTK_IO.o
@@ -81,7 +80,6 @@ module_report.o module_convers.o module_alloc_int_r1.o module_set.o
 module_ALLOC_int_alloc_r2.o: module_alloc.o
 module_ALLOC_log_r2.o: module_report.o
 module_ALLOC_real_r2.o: module_report.o
-module_MATH.o: module_compiler_gfortran.o
 module_desplazamientos.o: module_alloc.o module_ALLOC_int_alloc_r2.o \
 module_ALLOC_real_r2.o module_ALLOC_log_r2.o module_convers.o
 module_fuerzas.o: module_alloc.o module_ALLOC_int_alloc_r2.o \
@@ -89,7 +87,6 @@ module_ALLOC_real_r2.o module_convers.o
 module_MATH.o: module_compiler_gfortran.o
 module_dataset.o: module_report.o module_convers.o
 module_FE_DB.o: module_os_dependant.o
-module_dataset.o: module_report.o module_convers.o
 module_groups.o: module_alloc.o
 module_patran.o: module_compiler_gfortran.o module_desplazamientos.o \
 module_fuerzas.o module_MATH.o module_groups.o
@@ -119,12 +116,15 @@ module_cuthill_mckee.o
 module_pmh.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
 module_convers.o module_alloc.o module_args.o module_feed.o \
 module_fe_database_pmh.o
+module_utils_mphtxt.o: module_alloc.o module_pmh.o
 module_write_mphtxt.o: module_compiler_gfortran.o module_os_dependant.o \
-module_report.o module_convers.o module_alloc.o module_mesh.o module_pmh.o
+module_report.o module_convers.o module_mesh.o module_pmh.o \
+module_utils_mphtxt.o
 module_read_mphtxt.o: module_compiler_gfortran.o module_os_dependant.o \
-module_report.o module_convers.o module_alloc.o module_mesh.o module_pmh.o
+module_report.o module_convers.o module_alloc.o module_mesh.o module_pmh.o \
+module_utils_mphtxt.o
 module_manage_mphtxt.o: module_alloc.o module_files.o module_mesh.o \
-module_read_mphtxt.o module_write_mphtxt.o
+module_read_mphtxt.o module_write_mphtxt.o module_utils_mphtxt.o
 module_mphtxt.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_convers.o module_manage_mphtxt.o module_mesh.o \
 module_pmh.o module_fe_database_pmh.o

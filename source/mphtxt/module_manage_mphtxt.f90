@@ -71,15 +71,17 @@ subroutine read_mphtxt(this, m, pmh, maxdim)
   type(mfm_mesh), dimension(:), allocatable,intent(inout) :: m ! mfm mesh
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
   integer, intent(inout) :: maxdim ! dimension detected
-  integer :: ios, i
+  integer :: ios, i, j
+  integer, dimension(size(FEDB,1)) :: minelindx
 
   maxdim = 0
+  minelindx = 1
 
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('mphtxt/read/rewind, #'//trim(string(ios)))
 
   ! Reads the mphtxt file header and allocates the number of pieces
-  call read_mphtxt_header(this%unit, pmh)
+  call read_mphtxt_header(this%unit, pmh) 
 
   ! Reads every piece of the mesh and calculate the max of its space dimension
   if (.not. allocated(pmh%pc)) call error('mphtxt/read/object, objects not allocated')
@@ -87,6 +89,19 @@ subroutine read_mphtxt(this, m, pmh, maxdim)
       call info('Reading piece '//trim(string(i))//' ...')
       call read_mphtxt_object(this%unit, pmh%pc(i))
       if (maxdim < pmh%pc(i)%dim) maxdim = pmh%pc(i)%dim
+      ! PMH min reference number si 1
+      do j = 1, size(pmh%pc(i)%el,1)
+        if (minelindx(pmh%pc(i)%el(j)%type) > minval(pmh%pc(i)%el(j)%ref)) then
+          minelindx(pmh%pc(i)%el(j)%type) = minval(pmh%pc(i)%el(j)%ref)
+        endif
+      enddo
+  enddo
+  do i = 1, size(pmh%pc,1)
+      do j = 1, size(pmh%pc(i)%el,1)
+        if(minelindx(pmh%pc(i)%el(j)%type) <=0) then
+          pmh%pc(i)%el(j)%ref(:) = pmh%pc(i)%el(j)%ref(:) + abs(minelindx(pmh%pc(i)%el(j)%type)) + 1 !PMH min value = 1
+        endif
+      enddo
   enddo
 
   ! Build mm in modulef style
@@ -119,11 +134,11 @@ subroutine write_mphtxt(this, pmh)
     do j = 1, size(pmh%pc(i)%el, 1)
       tp = pmh%pc(i)%el(j)%type
       mphlnn = mphtxt_get_lnn(tp)
-      if(mphlnn >= FEDB(tp)%lnn + 1) then                   ! build centroids
-        call build_elements_baricenter(pmh%pc(i),i,j,znod)
-      endif
-      if(mphlnn >= FEDB(tp)%lnn + FEDB(tp)%lnf + 1) then    ! build face baricenters
-
+      if(mphlnn >= FEDB(tp)%lnn + 1) then                   ! build element baricenters
+        if(mphlnn == 9) call build_elements_baricenter(pmh%pc(i),i,j,znod)
+        if((FEDB(tp)%lnv + FEDB(tp)%lnf) > (FEDB(tp)%lnv))  then    ! build face baricenters
+          call build_faces_baricenter(pmh%pc(i),i,j,znod)
+        endif
       endif
     enddo
   end do

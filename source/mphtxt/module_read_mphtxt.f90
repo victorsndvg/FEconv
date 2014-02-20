@@ -71,10 +71,10 @@ subroutine read_mphtxt_header(iu, mphtxt_m)
           j = j+1
           if (j > ntypes) exit ! All types already readed. Header readed.
         else
-exit
-endif
-endif
-enddo
+          exit
+        endif
+      endif
+    enddo
 
 
 end subroutine
@@ -238,15 +238,7 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
         elseif (allocated(mphtxt_t%ref) .and. (k <= nindices) .and. word_count(line,' ') == 1) then
           read(line,*) mphtxt_t%ref(k)
           k = k+1
-          if (k > nindices) then ! Number of geometric indices already readed.
-            aux = minval(mphtxt_t%ref)
-            if(aux <=0) then
-              do k=1, nindices
-                mphtxt_t%ref(k) = mphtxt_t%ref(k) + abs(aux) + 1!PMH min value = 1
-              enddo
-            endif
-            cycle
-          endif
+          if (k > nindices) cycle ! Number of geometric indices already readed.
 
         ! Number of up/down pairs
         elseif (nupdownpairs == -1 .and. word_count(line,' ') == 1) then
