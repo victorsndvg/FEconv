@@ -765,7 +765,7 @@ if (.not. all_P1) then
         do k = 1, elg%nel
           do i = 1, FEDB(tp)%lnf
             do j = 1, pc%dim
-              znod(j, elg%nn(i,k)) = sum(pc%z(1, elg%mm(FEDB(tp)%face(:,i),k))) / FEDB(FEDB(tp)%f_type)%lnv
+              znod(j, elg%nn(i,k)) = sum(pc%z(j, elg%mm(FEDB(tp)%face(:,i),k))) / FEDB(FEDB(tp)%f_type)%lnv
             end do
           end do
         end do
