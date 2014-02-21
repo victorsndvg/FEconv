@@ -1,31 +1,46 @@
 module module_manage_mphtxt
+
 !-----------------------------------------------------------------------
-! Module for MPHTXT file management
-! Last update: 04/04/2010
+! Module to manage MPHTXT (Comsol) files
+!
+! Licensing: This code is distributed under the GNU GPL license.
+! Author: Victor Sande, victor(dot)sande(at)usc(dot)es
+! Last update: 21/02/2014
+!
+! PUBLIC PROCEDURES:
+! open_mphtxt:  Open a text file associated with a MPHTXT mesh
+! close_mphtxt: Close a text file associated with a MPHTXT mesh
+! read_mphtxt:  Read a MPHTXT file
+! write_mphtxt: Write a MPHTXT file
 !-----------------------------------------------------------------------
+
 use module_ALLOC
 use module_files, only: get_unit
 use module_mesh
 use module_read_mphtxt
 use module_write_mphtxt
 use module_utils_mphtxt
+
 implicit none
 
 !Types
 type mphtxt
   private
-character(len=MAXPATH) :: filename = ' ' !file name
-  integer :: UNIT = -1 !associated unit number
+  character(len=MAXPATH) :: filename = ' ' !file name
+  integer                :: UNIT = -1      !associated unit number
 end type
 
 contains
 
-!***********************************************************************
-! INPUT PROCEDURES
-!***********************************************************************
+
 !-----------------------------------------------------------------------
-! open: open mphtxt file
+! open_mphtxt(this, filename, st): open mphtxt file
 !-----------------------------------------------------------------------
+! this:     mphtxt type containing name a unit number
+! filename: file name
+! st:       status returned in open statement
+!-----------------------------------------------------------------------
+
 subroutine open_mphtxt(this, filename, st)
 
   type(mphtxt), intent(inout) :: this !mphtxt object
@@ -49,8 +64,11 @@ end subroutine
 
 
 !-----------------------------------------------------------------------
-! close: close mphtxt file
+! close_mphtxt(this): close mphtxt file
 !-----------------------------------------------------------------------
+! this: mphtxt type containing name a unit number
+!-----------------------------------------------------------------------
+
 subroutine close_mphtxt(this)
 
 type(mphtxt), intent(inout) :: this !mphtxt object
@@ -62,13 +80,18 @@ integer :: ios
 
 end subroutine
 
+
 !-----------------------------------------------------------------------
-! read: read MPHTXT file
+! read_mphtxt(this, pmh, maxdim): read MPHTXT file
 !-----------------------------------------------------------------------
-subroutine read_mphtxt(this, m, pmh, maxdim)
+! this:   mphtxt type containing name a unit number
+! pmh:    PMH structure storing the piecewise mesh
+! maxdim: max dimension of the PMH pieces
+!-----------------------------------------------------------------------
+
+subroutine read_mphtxt(this, pmh, maxdim)
 
   type(mphtxt), intent(inout) :: this ! mphtxt object
-  type(mfm_mesh), dimension(:), allocatable,intent(inout) :: m ! mfm mesh
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
   integer, intent(inout) :: maxdim ! dimension detected
   integer :: ios, i, j
@@ -109,9 +132,14 @@ subroutine read_mphtxt(this, m, pmh, maxdim)
 
 end subroutine
 
+
 !-----------------------------------------------------------------------
-! write: write MPHTXT file
+! write_mphtxt(this, pmh): write MPHTXT file
 !-----------------------------------------------------------------------
+! this:   mphtxt type containing name a unit number
+! pmh:    PMH structure storing the piecewise mesh
+!-----------------------------------------------------------------------
+
 subroutine write_mphtxt(this, pmh)
 
   type(mphtxt), intent(inout)   :: this ! mphtxt object
@@ -130,13 +158,16 @@ subroutine write_mphtxt(this, pmh)
   ! Reads every piece of the mesh and calculate the max of its space dimension
   if (.not. allocated(pmh%pc)) call error('mphtxt/read/object, objects not allocated')
   do i = 1, size(pmh%pc, 1)
-    call build_node_coordinates(pmh%pc(i), i, all_P1, znod) ! build edge midpoints
+    ! build edge midpoints
+    call build_node_coordinates(pmh%pc(i), i, all_P1, znod)
     do j = 1, size(pmh%pc(i)%el, 1)
       tp = pmh%pc(i)%el(j)%type
       mphlnn = mphtxt_get_lnn(tp)
-      if(mphlnn >= FEDB(tp)%lnn + 1) then                   ! build element baricenters
-        if(mphlnn == 9) call build_elements_baricenter(pmh%pc(i),i,j,znod)
-        if((FEDB(tp)%lnv + FEDB(tp)%lnf) > (FEDB(tp)%lnv))  then    ! build face baricenters
+      if(mphlnn >= FEDB(tp)%lnn + 1) then                
+        ! build element baricenters
+        call build_elements_baricenter(pmh%pc(i),i,j,znod)
+        if((FEDB(tp)%lnv + FEDB(tp)%lnf) > (FEDB(tp)%lnv))  then
+          ! build face baricenters
           call build_faces_baricenter(pmh%pc(i),i,j,znod)
         endif
       endif

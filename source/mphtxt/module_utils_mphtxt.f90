@@ -1,8 +1,36 @@
 module module_utils_mphtxt
+
+!-----------------------------------------------------------------------
+! Module to manage MPHTXT (Comsol) files
+!
+! Licensing: This code is distributed under the GNU GPL license.
+! Author: Victor Sande, victor(dot)sande(at)usc(dot)es
+! Last update: 21/02/2014
+!
+! PUBLIC PROCEDURES:
+! mphtxt_get_lnn:  return  the number of nodes for each MPHTXT FE type
+! mphtxt_get_type: return the FE type from FEDB given the MPHTXT FE descriptor
+! mphtxt_get_desc:  return the MPHTXT FE descriptor given the FE type from FEDB
+! pmh_node_ordering: translates the node ordering from MPHTXT to PMH
+! mphtxt_node_ordering: translates the node ordering from PMH to MPHTXT
+! build_elements_baricenter: build the baricenter of the given elements
+! build_faces_baricenter: build the baricenter of the faces of the given elements
+!-----------------------------------------------------------------------
+
 use module_alloc, only:set_col,insert_col, reduce
 use module_pmh
 
+implicit none
+
+
 contains
+
+
+!-----------------------------------------------------------------------
+! mphtxt_get_lnn(num): return the number of nodes for each MPHTXT FE type
+!-----------------------------------------------------------------------
+! num: number describing the element type stored in FEDB
+!-----------------------------------------------------------------------
 
 function mphtxt_get_lnn(num) result(res)
 
@@ -22,6 +50,13 @@ function mphtxt_get_lnn(num) result(res)
   endif
 
 end function
+
+
+!-----------------------------------------------------------------------
+! mphtxt_get_type(desc): return the FE type from FEDB given the MPHTXT FE descriptor
+!-----------------------------------------------------------------------
+! desc: MPHTXT FE descriptor
+!-----------------------------------------------------------------------
 
 function mphtxt_get_type(desc) result(res)
 
@@ -77,6 +112,12 @@ res = check_fe(nnod==nver, lnn, lnv, lne, lnf)
 end function
 
 
+!-----------------------------------------------------------------------
+! mphtxt_get_desc(num):  return the MPHTXT FE descriptor given the FE type from FEDB
+!-----------------------------------------------------------------------
+! num: number describing the element type stored in FEDB
+!-----------------------------------------------------------------------
+
 function mphtxt_get_desc(num) result(res)
 
   integer, intent(in) :: num
@@ -125,6 +166,13 @@ function mphtxt_get_desc(num) result(res)
 
 end function
 
+
+!-----------------------------------------------------------------------
+! pmh_node_ordering(el, tp):  translates the node ordering from MPHTXT to PMH
+!-----------------------------------------------------------------------
+! el: array of connectivities from an element stored in nn
+! tp: FE type identifier from FEDB
+!-----------------------------------------------------------------------
 
 subroutine pmh_node_ordering(el, tp)
 
@@ -198,7 +246,9 @@ subroutine pmh_node_ordering(el, tp)
     elseif (tp == check_fe(.false., 20, 8, 12, 6)) then ! Hexahedron Lagrange P2
         ! PMH and MPHTXT don't have the same node ordering in hexahedrons lagrange P2
         ! PMH[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27] =
-        ! MPH[1,2,4,3,5,6,8,7,9,12,13,10,14,16,22,20,23,26,19,24,11,17,15,25,19,21,27]
+        ! MPH[1,2,4,3,5,6,8,7,9,12,21,10,11,13,23,14,22,27,25,16,26,15,17,20,24,18,19]
+
+
 
         if (size(el,1) /= mphtxt_get_lnn(tp)) then
           call error('module_read_mphtxt/node_ordering # Wrong element size' )
@@ -208,14 +258,15 @@ subroutine pmh_node_ordering(el, tp)
         allocate(auxel(size(el,1)))
         auxel(:) = el(:)
 
-
         el(1) = auxel(1); el(2) = auxel(2); el(3) = auxel(4); el(4) = auxel(3)
         el(5) = auxel(5); el(6) = auxel(6); el(7) = auxel(8); el(8) = auxel(7)
         el(9) = auxel(9); el(10) = auxel(12); el(11) = auxel(13); el(12) = auxel(10)
         el(13) = auxel(14); el(14) = auxel(16); el(15) = auxel(22); el(16) = auxel(20)
-        el(17) = auxel(23); el(18) = auxel(26); el(19) = auxel(19); el(20) = auxel(24)
+        el(17) = auxel(23); el(18) = auxel(26); el(19) = auxel(27); el(20) = auxel(24)
         el(21) = auxel(11); el(22) = auxel(17); el(23) = auxel(15); el(24) = auxel(25)
-        el(25) = auxel(19); el(26) = auxel(21); el(27) = auxel(27)
+        el(25) = auxel(19); el(26) = auxel(21); el(27) = auxel(18)
+
+        deallocate(auxel)
 
 
     endif
@@ -223,6 +274,13 @@ subroutine pmh_node_ordering(el, tp)
 
 end subroutine
 
+
+!-----------------------------------------------------------------------
+! mphtxt_node_ordering(el, tp):  translates the node ordering from PMH to MPHTXT
+!-----------------------------------------------------------------------
+! el: array of connectivities from an element stored in nn
+! tp: FE type identifier from FEDB
+!-----------------------------------------------------------------------
 
 subroutine mphtxt_node_ordering(el, tp)
 
@@ -295,7 +353,7 @@ subroutine mphtxt_node_ordering(el, tp)
     elseif (tp == check_fe(.false., 20, 8, 12, 6)) then ! Hexahedron Lagrange P2
         ! PMH and MPHTXT don't have the same node ordering in hexahedrons lagrange P2
         ! PMH[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27] =
-        ! MPH[1,2,4,3,5,6,8,7,9,12,13,10,14,16,22,20,23,26,27,24,11,17,15,25,19,21,27]
+        ! MPH[1,2,4,3,5,6,8,7,9,12,21,10,11,13,23,14,22,27,25,16,26,15,17,20,24,18,19]
 
         if (size(el,1) /= 27) then
           call error('module_write_mphtxt/node_ordering # Wrong element size' )
@@ -311,26 +369,39 @@ subroutine mphtxt_node_ordering(el, tp)
         el(13) = auxel(11); el(14) = auxel(13); el(15) = auxel(23); el(16) = auxel(14)
         el(17) = auxel(22); el(18) = auxel(27); el(19) = auxel(25); el(20) = auxel(16)
         el(21) = auxel(26); el(22) = auxel(15); el(23) = auxel(17); el(24) = auxel(20)
-        el(25) = auxel(24); el(26) = auxel(18); el(27) = auxel(27)
+        el(25) = auxel(24); el(26) = auxel(18); el(27) = auxel(19)
+
+        deallocate(auxel)
 
     endif
 
 
 end subroutine
 
+
+!-----------------------------------------------------------------------
+! build_elements_baricenter(pc, ip, ie, znod): build the baricenter of the given elements
+!-----------------------------------------------------------------------
+! pc:   piece of the mesh
+! ip:   index of the piece
+! ie:   index of the element group
+! znod: array of node coordinates
+!-----------------------------------------------------------------------
+
 subroutine build_elements_baricenter(pc, ip, ie, znod)
-  type(piece),               intent(inout) :: pc ! Pieze
-  integer,                   intent(in)    :: ip ! Pieze number
+
+  type(piece),               intent(inout) :: pc ! Piece
+  integer,                   intent(in)    :: ip ! Piece number
   integer,                   intent(in)    :: ie ! Element group number
   real(real64),dimension(:,:),allocatable, intent(inout) :: znod(:,:)
-  integer                                  :: i, tp, mphlnn, indx, maxindx
+  integer                                  :: i, j, tp, mphlnn, indx, maxindx
   integer, dimension(:,:), allocatable     :: nn
   real(real64),dimension(:), allocatable   :: val
 
     tp = pc%el(ie)%type
     mphlnn = mphtxt_get_lnn(tp)
     if(size(pc%el(ie)%nn,1) /= mphlnn) then
-      if(allocated(nn)) deallocate(nn); allocate(nn(mphlnn,pc%el(nelg)%nel)); nn = 0
+      if(allocated(nn)) deallocate(nn); allocate(nn(mphlnn,pc%el(ie)%nel)); nn = 0
       nn(1:size(pc%el(ie)%nn,1),:) = pc%el(ie)%nn(:,:)
       call move_alloc(from=nn,  to=pc%el(ie)%nn)
       deallocate(nn)
@@ -344,7 +415,6 @@ subroutine build_elements_baricenter(pc, ip, ie, znod)
       enddo
       if (pc%el(ie)%nn(mphlnn,i) == 0) pc%el(ie)%nn(mphlnn,i) = size(znod,1)+1
       indx = pc%el(ie)%nn(mphlnn,i)
-print*, i,mphlnn, indx, FEDB(tp)%lnv, val
       if(indx < size(znod,2)) then; call set_col(znod, val, indx)
       else; call insert_col(znod, val, indx); endif
       if(maxindx<max(indx,size(znod,2))) maxindx=max(indx,size(znod,2))
@@ -355,22 +425,30 @@ print*, i,mphlnn, indx, FEDB(tp)%lnv, val
 
 end subroutine
 
+
+!-----------------------------------------------------------------------
+! build_faces_baricenter(pc, ip, ie, znod): build the faces baricenter of the given elements
+!-----------------------------------------------------------------------
+! pc:   piece of the mesh
+! ip:   index of the piece
+! ie:   index of the element group
+! znod: array of node coordinates
+!-----------------------------------------------------------------------
+
 subroutine build_faces_baricenter(pc, ip, ie, znod)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! POR HACER
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  type(piece),               intent(inout) :: pc ! Pieze
-  integer,                   intent(in)    :: ip ! Pieze number
+
+  type(piece),               intent(inout) :: pc ! Piece
+  integer,                   intent(in)    :: ip ! Piece number
   integer,                   intent(in)    :: ie ! Element group number
   real(real64),dimension(:,:),allocatable, intent(inout) :: znod(:,:)
   integer, dimension(:,:), allocatable     :: nn
   real(real64),dimension(:), allocatable   :: val
-  integer :: i, j, k, tp, indx, maxindx
+  integer :: i, j, k, tp, indx, maxindx, mphlnn
 
     tp = pc%el(ie)%type
     mphlnn = mphtxt_get_lnn(tp)
     if(size(pc%el(ie)%nn,1) /= mphlnn) then
-      if(allocated(nn)) deallocate(nn); allocate(nn(mphlnn,pc%el(nelg)%nel)); nn = 0
+      if(allocated(nn)) deallocate(nn); allocate(nn(mphlnn,pc%el(ie)%nel)); nn = 0
       nn(1:size(pc%el(ie)%nn,1),:) = pc%el(ie)%nn(:,:)
       call move_alloc(from=nn,  to=pc%el(ie)%nn)
       deallocate(nn)

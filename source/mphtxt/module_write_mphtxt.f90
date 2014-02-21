@@ -1,8 +1,22 @@
 module module_write_mphtxt
+
 !-----------------------------------------------------------------------
-! Module for mphtxt file read
-! Last update: 07/02/2014
+! Module to manage MPHTXT (Comsol) files
+!
+! Licensing: This code is distributed under the GNU GPL license.
+! Author: Victor Sande, victor(dot)sande(at)usc(dot)es
+! Last update: 21/02/2014
+!
+! PUBLIC PROCEDURES:
+! write_mphtxt_header: write the header of the MPHTXT file
+! write_mphtxt_object: write a pieze of the MPHTXT mesh
+! write_mphtxt_etype:  write a element group of the MPHTXT mesh
+! write_line:          write a line in the MPHTXT file
+! write_comment:       write a comment in the MPHTXT file
+! write_empty_line:    write an empty line in the MPHTXT file
+! write_string:        write string data in the MPHTXT file
 !-----------------------------------------------------------------------
+
 use module_COMPILER_DEPENDANT, only: real64
 use module_os_dependant, only: maxpath
 use module_report, only:error
@@ -10,18 +24,23 @@ use module_convers
 use module_mesh
 use module_pmh
 use module_utils_mphtxt
+
+implicit none
+
+
 contains
 
-!***********************************************************************
-! OUTPUT PROCEDURES
-!***********************************************************************
-!-----------------------------------------------------------------------
-! write: write mphtxt file header
-!-----------------------------------------------------------------------
 
+!-----------------------------------------------------------------------
+! write_mphtxt_header(iu, pmh): write mphtxt file header
+!-----------------------------------------------------------------------
+! iu:  unit number of the MPHTXT file
+! pmh: PMH structure for store the mphtxt mesh
+!-----------------------------------------------------------------------
 subroutine write_mphtxt_header(iu, pmh)
   integer, intent(in)        :: iu  ! File unit number
   type(pmh_mesh), intent(in) :: pmh ! PMH mesh
+  integer :: i
 
 
   call write_comment(iu,                           '#','Converted with FEconv')
@@ -44,6 +63,14 @@ subroutine write_mphtxt_header(iu, pmh)
 end subroutine
 
 
+!-----------------------------------------------------------------------
+! write_mphtxt_object(iu, pmh_o, n, znod): write a pieze of the MPHTXT mesh
+!-----------------------------------------------------------------------
+! iu:    unit number of the MPHTXT file
+! pmh_o: piece of the PMH structure 
+! n:     piece number
+! znod:  array of node coordinates
+!-----------------------------------------------------------------------
 subroutine write_mphtxt_object(iu, pmh_o, n, znod)
   integer, intent(in)                      :: iu    ! File unit number
   type(piece), intent(inout)               :: pmh_o ! PMH piece
@@ -91,10 +118,18 @@ subroutine write_mphtxt_object(iu, pmh_o, n, znod)
 end subroutine
 
 
+!-----------------------------------------------------------------------
+! write_mphtxt_etype(iu, pmh_t,n): write a element group of the MPHTXT mesh
+!-----------------------------------------------------------------------
+! iu:    unit number of the MPHTXT file
+! pmh_t: element group of the PMH structure 
+! n:     piece number
+!-----------------------------------------------------------------------
+
 subroutine write_mphtxt_etype(iu, pmh_t,n)
-  integer, intent(in)       :: iu    ! File unit number
+  integer, intent(in)       :: iu       ! File unit number
   type(elgroup), intent(inout) :: pmh_t ! PMH elgroup
-  integer, intent(in)       :: n     ! Piece number
+  integer, intent(in)       :: n        ! Piece number
   integer                   :: i
 
   ! Element type
@@ -148,12 +183,22 @@ subroutine write_mphtxt_etype(iu, pmh_t,n)
 end subroutine
 
 
+!-----------------------------------------------------------------------
+! write_line(iu,line,ch,comm): write a line in the MPHTXT file
+!-----------------------------------------------------------------------
+! iu:   unit number of the MPHTXT file
+! line: text included in one line
+! ch:   comments character (Optional)
+! comm: commentary (Optional)
+!-----------------------------------------------------------------------
+
 subroutine write_line(iu,line,ch,comm)
   integer, intent(in) :: iu ! File unit number
   character(len=*), intent(in) :: line ! String
   character(len=*), optional, intent(in) :: ch ! String: Comment character
   character(len=*), optional, intent(in) :: comm ! String: Comment
   character(len=MAXPATH) :: aux
+  integer :: ios
 
   if(present(comm)) then
     if(present(ch)) then
@@ -171,14 +216,30 @@ subroutine write_line(iu,line,ch,comm)
 
 end subroutine
 
+
+!-----------------------------------------------------------------------
+! write_comment(iu,ch,line): write a comment in the MPHTXT file
+!-----------------------------------------------------------------------
+! iu:   unit number of the MPHTXT file
+! ch:   comments character
+! line: commentary
+!-----------------------------------------------------------------------
+
 subroutine write_comment(iu,ch,line)
-  integer, intent(in) :: iu ! File unit number
-  character(len=*), intent(in) :: ch ! String: Comment character
+  integer, intent(in) :: iu            ! File unit number
+  character(len=*), intent(in) :: ch   ! String: Comment character
   character(len=*), intent(in) :: line ! String
 
   call write_line(iu,trim(ch)//' '//trim(line))
 
 end subroutine
+
+
+!-----------------------------------------------------------------------
+! write_empty_line(iu): write an empty line in the MPHTXT file
+!-----------------------------------------------------------------------
+! iu:   unit number of the MPHTXT file
+!-----------------------------------------------------------------------
 
 subroutine write_empty_line(iu)
   integer, intent(in) :: iu ! File unit number
@@ -186,6 +247,16 @@ subroutine write_empty_line(iu)
   call write_line(iu,'')
 
 end subroutine
+
+
+!-----------------------------------------------------------------------
+! write_string(iu,str,ch,comm): write a string in the MPHTXT file
+!-----------------------------------------------------------------------
+! iu:   unit number of the MPHTXT file
+! str:  string to write to the file
+! ch:   comments character (Optional)
+! line: commentary (Optional)
+!-----------------------------------------------------------------------
 
 subroutine write_string(iu,str,ch,comm)
   integer, intent(in) :: iu ! File unit number
