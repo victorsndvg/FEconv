@@ -13,6 +13,7 @@
 ../../basicmod/vtk
 ../../mfm
 ../../vtu
+../../unv
 </sources>
  
 <compiler>
@@ -20,7 +21,7 @@ gfortran
 </compiler>
 
 <fflags>
--Wall -g -fcheck=all -fbacktrace -fall-intrinsics 
+-Wall -ggdb -fcheck=all -fbacktrace -fall-intrinsics 
 </fflags>
 
 </content>

@@ -10,6 +10,7 @@ use module_compiler_dependant, only:real64
 use module_pmh
 use module_mfm
 use module_vtu
+use module_unv
 implicit none
 
 type(pmh_mesh) :: pmh, pmh2, pmh3
@@ -96,6 +97,7 @@ pmh%pc(2)%el(2)%ref = [12]
 call build_vertices(pmh)
 call save_pmh('test.pmh', 10, pmh)
 
+call save_unv('test.unv', 10, pmh)
 
 !print*,'test: ', allocated(pmh%pc(1)%z), allocated(pmh%pc(1)%z)
 call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)

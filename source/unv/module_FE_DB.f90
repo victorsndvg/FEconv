@@ -33,15 +33,54 @@ contains
 !-----------------------------------------------------------------------
 subroutine FE_DB_init()
 
-FE_DB( 11) = fe_db_type('Rod',                            1, 2,2,0,0,.true. )
-FE_DB( 22) = fe_db_type('Tapered beam',                   1, 3,2,0,0,.true. )
-FE_DB( 41) = fe_db_type('Plane Stress Linear Triangle',   2, 3,3,3,0,.false.)
-FE_DB( 42) = fe_db_type('Plane Stress Parabolic Triangle',2, 6,3,3,0,.false.)
-FE_DB( 94) = fe_db_type('Thin Shell Linear Quadrilateral',3, 4,4,4,0,.false.)
-FE_DB(111) = fe_db_type('Solid Linear Tetrahedron',       3, 4,4,6,4,.false.)
-FE_DB(118) = fe_db_type('Solid Parabolic Tetrahedron',    3,10,4,6,4,.false.)
+FE_DB( 11) = fe_db_type('Rod',                                 1, 2,2, 0,0,.true. )
+FE_DB( 22) = fe_db_type('Tapered beam',                        1, 3,2, 0,0,.true. )
 
+FE_DB( 41) = fe_db_type('Plane Stress Linear Triangle',        2, 3,3, 3,0,.false.)
+FE_DB( 42) = fe_db_type('Plane Stress Parabolic Triangle',     2, 6,3, 3,0,.false.)
+FE_DB( 44) = fe_db_type('Plane Stress Linear Quadrilateral',   2, 4,4, 4,0,.false.)
+FE_DB( 45) = fe_db_type('Plane Stress Parabolic Quadrilateral',2, 8,4, 4,0,.false.)  
+
+FE_DB( 91) = fe_db_type('Thin Shell Linear Triangle',          3, 3,3, 3,0,.false.)
+FE_DB( 92) = fe_db_type('Thin Shell Parabolic Triangle',       3, 6,3, 3,0,.false.)
+FE_DB( 94) = fe_db_type('Thin Shell Linear Quadrilateral',     3, 4,4, 4,0,.false.)
+FE_DB( 95) = fe_db_type('Thin Shell Parabolic Quadrilateral',  3, 8,4, 4,0,.false.)
+
+FE_DB(111) = fe_db_type('Solid Linear Tetrahedron',            3, 4,4, 6,4,.false.)
+FE_DB(112) = fe_db_type('Solid Linear Wedge',                  3, 6,6, 9,5,.false.)
+FE_DB(115) = fe_db_type('Solid Linear Brick',                  3, 8,8,12,6,.false.)
+FE_DB(116) = fe_db_type('Solid Parabolic Brick',               3,20,8,12,6,.false.)
+FE_DB(118) = fe_db_type('Solid Parabolic Tetrahedron',         3,10,4, 6,4,.false.)
 end subroutine
+
+!-----------------------------------------------------------------------
+! check_unv_fe: given the finite element parameters, return the index of its position in the database
+!-----------------------------------------------------------------------
+function check_unv_fe(tdim, lnn, lnv, lne, lnf) result(res)
+integer, intent(in) :: tdim, lnn, lnv, lne, lnf
+integer :: res, i
+
+res = 0
+do i = 1, size(FE_DB,1)
+  if (tdim == 1) then
+     if (lnn == FE_DB(i)%LNN .and. lnv == FE_DB(i)%LNV) then
+       res = i
+       return
+     end if
+   elseif (tdim == 2) then
+     if (tdim <= FE_DB(i)%DIM .and. lnn == FE_DB(i)%LNN .and. lnv == FE_DB(i)%LNV .and. lne == FE_DB(i)%LNE) then
+       res = i
+       return
+     end if
+   elseif (tdim == 3) then
+     if (tdim == FE_DB(i)%DIM .and. lnn == FE_DB(i)%LNN .and. lnv == FE_DB(i)%LNV .and. lne == FE_DB(i)%LNE .and. &
+     lnf == FE_DB(i)%LNF) then
+       res = i
+       return
+     end if
+   end if
+enddo
+end function
 
 end module
 
