@@ -1,8 +1,18 @@
 module module_read_mphtxt
+
 !-----------------------------------------------------------------------
-! Module for mphtxt file read
-! Last update: 07/02/2014
+! Module to manage MPHTXT (Comsol) files
+!
+! Licensing: This code is distributed under the GNU GPL license.
+! Author: Victor Sande, victor(dot)sande(at)usc(dot)es
+! Last update: 21/02/2014
+!
+! PUBLIC PROCEDURES:
+! read_mphtxt_header: read the header of the MPHTXT file
+! read_mphtxt_object: read a pieze of the MPHTXT mesh
+! read_mphtxt_etype:  read a element group of the MPHTXT mesh
 !-----------------------------------------------------------------------
+
 use module_COMPILER_DEPENDANT, only: real64
 use module_os_dependant, only: maxpath
 use module_report, only:error
@@ -11,13 +21,18 @@ use module_ALLOC
 use module_mesh
 use module_pmh
 use module_utils_mphtxt
+
+implicit none
+
+
 contains
 
-!***********************************************************************
-! INPUT PROCEDURES
-!***********************************************************************
+
 !-----------------------------------------------------------------------
-! read: read mphtxt file header
+! read_mphtxt_header(iu, mphtxt_m): read mphtxt file header
+!-----------------------------------------------------------------------
+! iu:       unit number of the MPHTXT file
+! mphtxt_m: PMH structure for store the mphtxt mesh
 !-----------------------------------------------------------------------
 
 subroutine read_mphtxt_header(iu, mphtxt_m)
@@ -26,7 +41,7 @@ subroutine read_mphtxt_header(iu, mphtxt_m)
   type(pmh_mesh), intent(inout) :: mphtxt_m
   integer,dimension(2) :: version ! Version of mphtxtfile
   character(len=MAXPATH) :: line
-  integer :: aux, i, j
+  integer :: aux, i, j, ios
   integer :: ntags, ntypes
   character(len=MAXPATH),dimension(:),allocatable :: tags, types ! Tags and typess
 
@@ -71,18 +86,22 @@ subroutine read_mphtxt_header(iu, mphtxt_m)
           j = j+1
           if (j > ntypes) exit ! All types already readed. Header readed.
         else
-exit
-endif
-endif
-enddo
+          exit
+        endif
+      endif
+    enddo
 
 
 end subroutine
 
 
 !-----------------------------------------------------------------------
-! read: read a object from mphtxt file
+! read_mphtxt_object(iu, mphtxt_o): read a object from mphtxt file
 !-----------------------------------------------------------------------
+! iu:       unit number of the MPHTXT file
+! mphtxt_o: PMH pieze to store the objects contined in the MPHTXT file
+!-----------------------------------------------------------------------
+
 subroutine read_mphtxt_object(iu, mphtxt_o)
 
   integer, intent(in) :: iu ! Unit number for mphtxtfile
@@ -91,7 +110,7 @@ subroutine read_mphtxt_object(iu, mphtxt_o)
   character(len=MAXPATH) :: obj_class ! Object class. Must by 'Mesh'.
   integer :: version ! Object version
   character(len=MAXPATH) :: line
-  integer :: aux, i
+  integer :: aux, i, k, ios
   integer :: netypes ! Number of element types
   integer :: offset ! lowest number of node
 
@@ -161,10 +180,14 @@ subroutine read_mphtxt_object(iu, mphtxt_o)
 end subroutine
 
 
+!-----------------------------------------------------------------------
+! read_mphtxt_etype(iu, mphtxt_t, offset): read a element type from mphtxt file
+!-----------------------------------------------------------------------
+! iu:       unit number of the MPHTXT file
+! mphtxt_t: PMH element group to store the element types contined in the MPHTXT file
+! offset:   lowest number of nodes
+!-----------------------------------------------------------------------
 
-!-----------------------------------------------------------------------
-! read: read a element type from mphtxt file
-!-----------------------------------------------------------------------
 subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
 
   integer, intent(in) :: iu ! Unit number for mphtxtfile
@@ -172,7 +195,7 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
   integer, intent(in) :: offset ! Lowest number of node
   character(len=MAXPATH) :: fetype_name ! Object class. Must by 'Mesh'.
   character(len=MAXPATH) :: line
-  integer :: aux, i, j,k ,l
+  integer :: aux, i, j,k ,l, m, ios
   integer :: local_nparam, nparam, local_nnodes, nupdownpairs, nindices
 
     ! Variables initialization
@@ -238,15 +261,7 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
         elseif (allocated(mphtxt_t%ref) .and. (k <= nindices) .and. word_count(line,' ') == 1) then
           read(line,*) mphtxt_t%ref(k)
           k = k+1
-          if (k > nindices) then ! Number of geometric indices already readed.
-            aux = minval(mphtxt_t%ref)
-            if(aux <=0) then
-              do k=1, nindices
-                mphtxt_t%ref(k) = mphtxt_t%ref(k) + abs(aux) + 1!PMH min value = 1
-              enddo
-            endif
-            cycle
-          endif
+          if (k > nindices) cycle ! Number of geometric indices already readed.
 
         ! Number of up/down pairs
         elseif (nupdownpairs == -1 .and. word_count(line,' ') == 1) then

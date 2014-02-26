@@ -95,7 +95,7 @@ case('bdf')
   call load_patran(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
 case('mphtxt')
   print '(a)', 'Loading COMSOL mesh file...'
-  call load_mphtxt(infile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  call load_mphtxt(infile, pmh)
   if(trim(adjustlt(outext)) /= 'mphtxt') then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   endif
