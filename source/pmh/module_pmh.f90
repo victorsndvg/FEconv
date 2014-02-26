@@ -167,6 +167,8 @@ type_by_tdim  = 0 !store the type of element for each topological dimension
 prev_max_tdim = 0 !store the maximal topological dimension
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
+  if (1 > ip .or. ip > size(pmh%pc, 1)) call error('(module_pmh/pmh2mfm) requested piece '//trim(string(ip))//&
+  &' does not exist in the mesh')
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(tp => pmh%pc(ip)%el(ig)%type)
       if (find_first(valid_fe, tp) == 0) then
