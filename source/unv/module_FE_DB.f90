@@ -12,15 +12,24 @@ module module_FE_DB
 use module_OS_DEPENDANT, only: MAXPATH
 implicit none
 
+!Constants
+!ND_????_P2(i,j), Salome node order corresponding to a PMH nn from a Lagrange P2 element
+integer, parameter :: ND_EDGE_P2(20) = [1,3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+integer, parameter :: ND_TRIA_P2(20) = [1,4,2,5,3,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+integer, parameter :: ND_QUAD_P2(20) = [1,5,2,6,3,7,4,8,0,0,0,0,0,0,0,0,0,0,0,0]
+integer, parameter :: ND_TETR_P2(20) = [1,2,3,4,5,6,7,8,9,10,0,0,0,0,0,0,0,0,0,0] !!! hay que corregirlo
+integer, parameter :: ND_HEXA_P2(20) = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20] !!! hay que corregirlo 
+
 !Types
 type fe_db_type
-  character(len=MAXPATH) :: desc = ' '     !description
-  integer                :: DIM  = 0       !space dimension
-  integer                :: LNN  = 0       !local number of nodes
-  integer                :: LNV  = 0       !local number of vertices
-  integer                :: LNE  = 0       !local number of edges
-  integer                :: LNF  = 0       !local number of faces
-  logical                :: Beam = .false. !ef is beam
+  character(len=MAXPATH) :: desc = ' '       !description
+  integer                :: DIM  = 0         !space dimension
+  integer                :: LNN  = 0         !local number of nodes
+  integer                :: LNV  = 0         !local number of vertices
+  integer                :: LNE  = 0         !local number of edges
+  integer                :: LNF  = 0         !local number of faces
+  logical                :: Beam = .false.   !ef is beam
+  integer                :: nn_order(20) = 0 !Salome P2 node order
 end type
 
 !Constants
@@ -33,24 +42,24 @@ contains
 !-----------------------------------------------------------------------
 subroutine FE_DB_init()
 
-FE_DB( 11) = fe_db_type('Rod',                                 1, 2,2, 0,0,.true. )
-FE_DB( 22) = fe_db_type('Tapered beam',                        1, 3,2, 0,0,.true. )
+FE_DB( 11) = fe_db_type('Rod',                                 1, 2,2, 0,0,.true.,          0)
+FE_DB( 22) = fe_db_type('Tapered beam',                        1, 3,2, 0,0,.true., ND_EDGE_P2)
 
-FE_DB( 41) = fe_db_type('Plane Stress Linear Triangle',        2, 3,3, 3,0,.false.)
-FE_DB( 42) = fe_db_type('Plane Stress Parabolic Triangle',     2, 6,3, 3,0,.false.)
-FE_DB( 44) = fe_db_type('Plane Stress Linear Quadrilateral',   2, 4,4, 4,0,.false.)
-FE_DB( 45) = fe_db_type('Plane Stress Parabolic Quadrilateral',2, 8,4, 4,0,.false.)  
+FE_DB( 41) = fe_db_type('Plane Stress Linear Triangle',        2, 3,3, 3,0,.false.,         0)
+FE_DB( 42) = fe_db_type('Plane Stress Parabolic Triangle',     2, 6,3, 3,0,.false.,ND_TRIA_P2)
+FE_DB( 44) = fe_db_type('Plane Stress Linear Quadrilateral',   2, 4,4, 4,0,.false.,         0)
+FE_DB( 45) = fe_db_type('Plane Stress Parabolic Quadrilateral',2, 8,4, 4,0,.false.,ND_QUAD_P2)  
 
-FE_DB( 91) = fe_db_type('Thin Shell Linear Triangle',          3, 3,3, 3,0,.false.)
-FE_DB( 92) = fe_db_type('Thin Shell Parabolic Triangle',       3, 6,3, 3,0,.false.)
-FE_DB( 94) = fe_db_type('Thin Shell Linear Quadrilateral',     3, 4,4, 4,0,.false.)
-FE_DB( 95) = fe_db_type('Thin Shell Parabolic Quadrilateral',  3, 8,4, 4,0,.false.)
+FE_DB( 91) = fe_db_type('Thin Shell Linear Triangle',          3, 3,3, 3,0,.false.,         0)
+FE_DB( 92) = fe_db_type('Thin Shell Parabolic Triangle',       3, 6,3, 3,0,.false.,ND_TRIA_P2)
+FE_DB( 94) = fe_db_type('Thin Shell Linear Quadrilateral',     3, 4,4, 4,0,.false.,         0)
+FE_DB( 95) = fe_db_type('Thin Shell Parabolic Quadrilateral',  3, 8,4, 4,0,.false.,ND_QUAD_P2)
 
-FE_DB(111) = fe_db_type('Solid Linear Tetrahedron',            3, 4,4, 6,4,.false.)
-FE_DB(112) = fe_db_type('Solid Linear Wedge',                  3, 6,6, 9,5,.false.)
-FE_DB(115) = fe_db_type('Solid Linear Brick',                  3, 8,8,12,6,.false.)
-FE_DB(116) = fe_db_type('Solid Parabolic Brick',               3,20,8,12,6,.false.)
-FE_DB(118) = fe_db_type('Solid Parabolic Tetrahedron',         3,10,4, 6,4,.false.)
+FE_DB(111) = fe_db_type('Solid Linear Tetrahedron',            3, 4,4, 6,4,.false.,         0)
+FE_DB(112) = fe_db_type('Solid Linear Wedge',                  3, 6,6, 9,5,.false.,         0)
+FE_DB(115) = fe_db_type('Solid Linear Brick',                  3, 8,8,12,6,.false.,         0)
+FE_DB(116) = fe_db_type('Solid Parabolic Brick',               3,20,8,12,6,.false.,ND_HEXA_P2)
+FE_DB(118) = fe_db_type('Solid Parabolic Tetrahedron',         3,10,4, 6,4,.false.,ND_TETR_P2)
 end subroutine
 
 !-----------------------------------------------------------------------

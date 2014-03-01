@@ -163,7 +163,7 @@ do ipp = 1, size(piece2save,1)
           do k = 1, elg%nel
             write(iu,'(6I10)') prev_nel + k, idesc, 2, 1, 7, FEDB(tp)%lnn
             do l = 0, (FEDB(tp)%lnn-1)/8
-              write(iu,'(8I10)') (prev_coord + elg%nn(i,k), i = 1+8*l, min(8*(l+1), FEDB(tp)%lnn))
+              write(iu,'(8I10)') (prev_coord + elg%nn(FE_DB(idesc)%nn_order(i),k), i = 1+8*l, min(8*(l+1), FEDB(tp)%lnn))
             end do 
           end do
         else !non-Lagrange P2 elements      
@@ -185,7 +185,7 @@ do ipp = 1, size(piece2save,1)
           do k = 1, elg%nel
             write(iu,'(6I10)') prev_nel + k, idesc, 2, 1, 7, FEDB(tp)%lnn
             write(iu,'(3I10)') 0, 0, 0 
-            write(iu,'(8I10)') prev_coord + elg%nn(:,k)
+            write(iu,'(8I10)') (prev_coord + elg%nn(FE_DB(idesc)%nn_order(i),k), i = 1, FEDB(tp)%lnn)
           end do
         else !non-Lagrange P2 elements      
           do k = 1, elg%nel
