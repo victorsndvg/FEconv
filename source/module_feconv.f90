@@ -19,12 +19,13 @@ use module_args, only: get_arg, is_arg, get_post_arg
 use module_transform, only: lagr2l2, lagr2rt, lagr2nd
 use module_cuthill_mckee, only: cuthill_mckee
 use module_ansys, only: load_ansys
-use module_unv, only: load_unv
+use module_unv, only: load_unv,save_unv
 use module_patran, only: load_patran
 use module_mfm, only: load_mfm, save_mfm
 use module_mum, only: load_mum, save_mum
 use module_vtu, only: save_vtu, type_cell
 use module_mphtxt, only: load_mphtxt,save_mphtxt
+!use module_tra, only: load_tra,save_tra
 use module_pmh
 implicit none
 
@@ -68,7 +69,7 @@ if (len_trim(outfile) == 0) call error('(module_feconv/fe_conv) unable to find o
 if (len_trim(inext) == 0) call error('(module_feconv/fe_conv) unable to find input file extension.')
 if (len_trim(outext) == 0) call error('(module_feconv/fe_conv) unable to find output file extension.')
 select case (trim(adjustlt(outext))) !check outfile extension now (avoid reading infile when outfile is invalid)
-case('mfm', 'mum', 'vtu', 'mphtxt')
+case('mfm', 'mum', 'vtu', 'mphtxt', 'unv')
   continue
 case default
   call error('(module_feconv/fe_conv) output file extension not implemented: '//trim(adjustlt(outext)))
@@ -99,6 +100,12 @@ case('mphtxt')
   if(trim(adjustlt(outext)) /= 'mphtxt') then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   endif
+!case('tra')
+!  print '(a)', 'Loading FLUX mesh file...'
+!  call load_tra(infile, pmh)
+!  if(trim(adjustlt(outext)) /= 'mphtxt') then
+!    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+!  endif
 case default
   call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
 end select
@@ -135,7 +142,17 @@ case('vtu')
   call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
 case('mphtxt')
   print '(/a)', 'Saving COMSOL mesh file...'
+  if(.not. allocated(pmh%pc)) then
+    call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  endif
   call save_mphtxt(outfile, pmh)
+  print '(a)', 'Done!'
+case('unv')
+  print '(/a)', 'Saving I-DEAS UNV mesh file...'
+  if(.not. allocated(pmh%pc)) then
+    call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  endif
+  call save_unv(outfile, get_unit(), pmh)
   print '(a)', 'Done!'
 end select !case default, already checked before reading infile
 end subroutine

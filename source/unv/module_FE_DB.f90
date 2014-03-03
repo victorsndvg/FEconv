@@ -17,8 +17,9 @@ implicit none
 integer, parameter :: ND_EDGE_P2(20) = [1,3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 integer, parameter :: ND_TRIA_P2(20) = [1,4,2,5,3,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 integer, parameter :: ND_QUAD_P2(20) = [1,5,2,6,3,7,4,8,0,0,0,0,0,0,0,0,0,0,0,0]
-integer, parameter :: ND_TETR_P2(20) = [1,2,3,4,5,6,7,8,9,10,0,0,0,0,0,0,0,0,0,0] !!! hay que corregirlo
-integer, parameter :: ND_HEXA_P2(20) = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20] !!! hay que corregirlo 
+integer, parameter :: ND_TETR_P2(20) = [1,5,2,6,3,7,8,9,10,4,0,0,0,0,0,0,0,0,0,0] !!! hay que corregirlo
+integer, parameter :: ND_HEXA_P2(20) = [1,9,2,10,3,11,4,12,5,17,6,18,7,19,8,20,13,14,15,16] !!! hay que corregirlo 
+
 
 !Types
 type fe_db_type

@@ -72,7 +72,6 @@ module_alloc_real64_r1.o module_alloc_real64_r2.o module_alloc_char_r1.o \
 module_alloc_log_r1.o
 module_system.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_convers.o module_alloc_char_r1.o module_files.o
-IR_Precision.o: module_files.o
 Lib_VTK_IO.o: IR_Precision.o
 LIB_VTK_IO_READ.o: Lib_VTK_IO.o
 module_writevtu.o: Lib_VTK_IO.o
@@ -81,7 +80,6 @@ module_report.o module_convers.o module_alloc_int_r1.o module_set.o
 module_ALLOC_int_alloc_r2.o: module_alloc.o
 module_ALLOC_log_r2.o: module_report.o
 module_ALLOC_real_r2.o: module_report.o
-module_MATH.o: module_compiler_gfortran.o
 module_desplazamientos.o: module_alloc.o module_ALLOC_int_alloc_r2.o \
 module_ALLOC_real_r2.o module_ALLOC_log_r2.o module_convers.o
 module_fuerzas.o: module_alloc.o module_ALLOC_int_alloc_r2.o \
@@ -89,7 +87,6 @@ module_ALLOC_real_r2.o module_convers.o
 module_MATH.o: module_compiler_gfortran.o
 module_dataset.o: module_report.o module_convers.o
 module_FE_DB.o: module_os_dependant.o
-module_dataset.o: module_report.o module_convers.o
 module_groups.o: module_alloc.o
 module_patran.o: module_compiler_gfortran.o module_desplazamientos.o \
 module_fuerzas.o module_MATH.o module_groups.o
@@ -103,8 +100,6 @@ module_dataset_2411.o: module_compiler_gfortran.o module_alloc.o \
 module_dataset.o module_mesh.o
 module_manage_unv.o: module_alloc.o module_files.o module_mesh.o \
 module_dataset_2411.o module_dataset_2412.o module_dataset_2467.o
-module_unv.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
-module_convers.o module_manage_unv.o module_mesh.o
 module_mfm.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
 module_convers.o module_feed.o
 module_mum.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
