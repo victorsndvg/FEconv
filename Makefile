@@ -14,7 +14,7 @@
 dir_fuentes = source source/basicmod source/basicmod/gfortran \
 source/basicmod/args source/basicmod/alloc source/basicmod/vtk \
 source/cuthill_mckee source/ansys source/patran source/unv source/mfm \
-source/mum source/vtu source/mphtxt source/pmh
+source/mum source/vtu source/mphtxt source/pmh source/flux
  
 # OBJECT AND .MOD FOLDER
 dir_objetos = object
@@ -44,7 +44,8 @@ module_manage_unv.f90 module_mfm.f90 module_mum.f90 module_vtu.f90 \
 module_cuthill_mckee.f90 module_transform.f90 module_fe_database_pmh.f90 \
 module_pmh.f90 module_utils_mphtxt.f90 module_write_mphtxt.f90 \
 module_read_mphtxt.f90 module_manage_mphtxt.f90 module_mphtxt.f90 \
-module_unv.f90 module_feconv.f90
+module_unv.f90 module_read_pf3.f90 module_write_pf3.f90 module_manage_pf3.f90 \
+module_pf3.f90 module_feconv.f90
  
 # MODULE DEPENDENCIES
 # if pru1 depends on pru2... pru1.o: pru2.o
@@ -129,11 +130,20 @@ module_pmh.o module_fe_database_pmh.o
 module_unv.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
 module_convers.o module_alloc.o module_set.o module_args.o module_pmh.o \
 module_fe_database_pmh.o module_manage_unv.o module_mesh.o
+module_read_pf3.o: module_compiler_gfortran.o module_os_dependant.o \
+module_report.o module_convers.o module_alloc.o module_mesh.o module_pmh.o
+module_write_pf3.o: module_compiler_gfortran.o module_os_dependant.o \
+module_report.o module_convers.o module_mesh.o module_pmh.o
+module_manage_pf3.o: module_alloc.o module_files.o module_mesh.o \
+module_read_pf3.o module_write_pf3.o
+module_pf3.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
+module_convers.o module_manage_pf3.o module_mesh.o module_pmh.o \
+module_fe_database_pmh.o
 module_feconv.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_convers.o module_files.o module_args.o \
 module_transform.o module_cuthill_mckee.o module_ansys.o module_unv.o \
 module_patran.o module_mfm.o module_mum.o module_vtu.o module_mphtxt.o \
-module_pmh.o
+module_pf3.o module_pmh.o
  
 # INCLUDES
 includes = 

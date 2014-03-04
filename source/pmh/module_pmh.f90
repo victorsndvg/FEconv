@@ -27,7 +27,7 @@ module module_pmh
 use module_compiler_dependant, only: real64
 use module_os_dependant, only: maxpath
 use module_report, only: error, info
-use module_convers, only: string, int
+use module_convers, only: string, int, dble
 use module_alloc, only: alloc, dealloc, reduce, sfind, find_first, find_row_sorted, sort, insert, insert_row_sorted, bsearch
 use module_args, only: is_arg, get_post_arg
 use module_feed, only: feed, empty
@@ -53,6 +53,7 @@ end type
 
 type pmh_mesh
   type(piece), allocatable :: pc(:) !pieces that compose the mesh
+  real(real64)             :: ztol = epsilon(0.0d0) !mesh tolerance
 end type  
 
 !Constants
@@ -820,11 +821,11 @@ do ip = 1, size(pmh%pc,1)
         select case(reorder_type)
         case ('hard') !check every element
           do k = 1, elg%nel
-            if     (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(2,k)))/2-z(:,elg%nn(3,k)))) < 1e3*epsilon(z)) then
+            if     (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(2,k)))/2-z(:,elg%nn(3,k)))) < 1e3*pmh%ztol) then
               elg%nn([1, 2, 3],k) = elg%nn(:,k)
-            elseif (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(2,k)))) < 1e3*epsilon(z)) then
+            elseif (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(2,k)))) < 1e3*pmh%ztol) then
               elg%nn([1, 3, 2],k) = elg%nn(:,k)
-            elseif (maxval(abs((z(:,elg%nn(2,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(1,k)))) < 1e3*epsilon(z)) then
+            elseif (maxval(abs((z(:,elg%nn(2,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(1,k)))) < 1e3*pmh%ztol) then
               elg%nn([2, 3, 1],k) = elg%nn(:,k)
             else
               call info('(module_pmh/reorder_nodes) the nodes of an Lagrange P2 edge do not lie on a straight line: piece '//&
@@ -834,11 +835,11 @@ do ip = 1, size(pmh%pc,1)
         case('soft') !check the first element, asume the rest have the same behavior
           call alloc(inew, FEDB(tp)%lnn)
           k = 1
-          if     (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(2,k)))/2-z(:,elg%nn(3,k)))) < 1e3*epsilon(z)) then
+          if     (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(2,k)))/2-z(:,elg%nn(3,k)))) < 1e3*pmh%ztol) then
             inew = [1, 2, 3]
-          elseif (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(2,k)))) < 1e3*epsilon(z)) then
+          elseif (maxval(abs((z(:,elg%nn(1,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(2,k)))) < 1e3*pmh%ztol) then
             inew = [1, 3, 2]
-          elseif (maxval(abs((z(:,elg%nn(2,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(1,k)))) < 1e3*epsilon(z)) then
+          elseif (maxval(abs((z(:,elg%nn(2,k))+z(:,elg%nn(3,k)))/2-z(:,elg%nn(1,k)))) < 1e3*pmh%ztol) then
             inew = [2, 3, 1]
           else
             call info('(module_pmh/reorder_nodes) the nodes of an Lagrange P2 edge do not lie on a straight line: piece '//&
@@ -861,13 +862,13 @@ do ip = 1, size(pmh%pc,1)
           !check whether mid-points appear at the end of nn
           call alloc(inew, FEDB(tp)%lnn)
           do k = 1, elg%nel
-            call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, k, inew)
+            call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, pmh%ztol, k, inew)
             elg%nn(:,k) = elg%nn(inew(:),k)
           end do
         case('soft') !check the first element, asume the rest have the same behavior
           !check whether mid-points appear at the end of nn
           call alloc(inew, FEDB(tp)%lnn)
-          call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, 1, inew)
+          call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, pmh%ztol, 1, inew)
           do k = 1, elg%nel
             elg%nn(:,k) = elg%nn(inew(:),k)
           end do
@@ -885,13 +886,13 @@ do ip = 1, size(pmh%pc,1)
           !check whether mid-points appear at the end of nn
           call alloc(inew, FEDB(tp)%lnn)
           do k = 1, elg%nel
-            call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, k, inew)
+            call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, pmh%ztol, k, inew)
             elg%nn(:,k) = elg%nn(inew(:),k)
           end do
         case('soft') !check the first element, asume the rest have the same behavior
           !check whether mid-points appear at the end of nn
           call alloc(inew, FEDB(tp)%lnn)
-          call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, 1, inew)
+          call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, pmh%ztol, 1, inew)
           do k = 1, elg%nel
             elg%nn(:,k) = elg%nn(inew(:),k)
           end do
@@ -910,10 +911,11 @@ end subroutine
 !-----------------------------------------------------------------------
 ! reorder_nodes_simplex_P2: calculate inew to reorder nn (vertices first)
 !-----------------------------------------------------------------------
-subroutine reorder_nodes_simplex_P2(ip, ig, elg, tp, z, k, inew)
+subroutine reorder_nodes_simplex_P2(ip, ig, elg, tp, z,ztol, k, inew)
 type(elgroup), intent(in)    :: elg
 integer,       intent(in)    :: ip, ig, tp, k
 real(real64),  intent(in)    :: z(:,:)
+real(real64),  intent(in)    :: ztol
 integer,       intent(inout) :: inew(:)
 integer :: i, j, l, nv, newnn(size(inew))
 
@@ -925,7 +927,7 @@ NODES: do i = 1, FEDB(tp)%lnn !nodes
     if (j /= i) then
       do l = j+1, FEDB(tp)%lnn !second possible vertex
         if (l /= i) then
-          if ( maxval(abs((z(:,elg%nn(j,k))+z(:,elg%nn(l,k)))/2-z(:,elg%nn(i,k)))) < 1e3*epsilon(z) ) cycle NODES
+          if ( maxval(abs((z(:,elg%nn(j,k))+z(:,elg%nn(l,k)))/2-z(:,elg%nn(i,k)))) < 1e3*ztol ) cycle NODES
 
         end if
       end do
@@ -943,7 +945,7 @@ end do NODES
 do i = 1, FEDB(tp)%lnn !nodes
   if (find_first(newnn == elg%nn(i,k)) > 0) cycle !it is a vertex
   do j = 1, FEDB(tp)%lne
-    if (maxval(abs((z(:,newnn(FEDB(tp)%edge(1,j))) + z(:,newnn(FEDB(tp)%edge(2,j))))/2 - z(:,elg%nn(i,k)))) < 1e3*epsilon(z)) then
+    if (maxval(abs((z(:,newnn(FEDB(tp)%edge(1,j))) + z(:,newnn(FEDB(tp)%edge(2,j))))/2 - z(:,elg%nn(i,k)))) < 1e3*ztol) then
       inew (FEDB(tp)%lnv + j) = i
       exit
     end if

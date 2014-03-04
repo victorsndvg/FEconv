@@ -1,0 +1,148 @@
+module module_manage_pf3
+
+!-----------------------------------------------------------------------
+! Module to manage PF3 (Flux) files
+!
+! Licensing: This code is distributed under the GNU GPL license.
+! Author: Victor Sande, victor(dot)sande(at)usc(dot)es
+! Last update: 21/02/2014
+!
+! PUBLIC PROCEDURES:
+! open_pf3:  Open a text file associated with a PF3 mesh
+! close_pf3: Close a text file associated with a PF3 mesh
+! read_pf3:  Read a PF3 file
+! write_pf3: Write a PF3 file
+!-----------------------------------------------------------------------
+
+use module_ALLOC
+use module_files, only: get_unit
+use module_mesh
+use module_read_pf3
+use module_write_pf3
+
+implicit none
+
+!Types
+type pf3
+  private
+  character(len=MAXPATH) :: filename = ' ' !file name
+  integer                :: UNIT = -1      !associated unit number
+end type
+
+contains
+
+
+!-----------------------------------------------------------------------
+! open_pf3(this, filename, st): open pf3 file
+!-----------------------------------------------------------------------
+! this:     pf3 type containing name a unit number
+! filename: file name
+! st:       status returned in open statement
+!-----------------------------------------------------------------------
+
+subroutine open_pf3(this, filename, st)
+
+  type(pf3), intent(inout) :: this !pf3 object
+  character(len=*), intent(in) :: filename !pf3 file
+  integer :: ios
+  character(len=*), optional, intent(in) :: st
+  character(len=MAXPATH) :: aux
+  ! open file
+    this%filename = filename
+    this%unit = get_unit()
+    aux = 'old'
+    if(present(st)) then
+    aux = trim(st)
+    endif
+
+    open (unit=this%unit, file=this%filename, form='formatted', iostat=ios, &
+    status=trim(aux), position='rewind')
+    if (ios /= 0) call error('pf3/open, #'//trim(string(ios)))
+
+end subroutine
+
+
+!-----------------------------------------------------------------------
+! close_pf3(this): close PF3 file
+!-----------------------------------------------------------------------
+! this: pf3 type containing name a unit number
+!-----------------------------------------------------------------------
+
+subroutine close_pf3(this)
+
+type(pf3), intent(inout) :: this !pf3 object
+integer :: ios
+
+  ! closes PF3 file
+  close(unit=this%unit, iostat=ios)
+  if (ios /= 0) call error('pf3_file/close, #'//trim(string(ios)))
+
+end subroutine
+
+
+!-----------------------------------------------------------------------
+! read_pf3this, pmh, maxdim): read PF3 file
+!-----------------------------------------------------------------------
+! this:   pf3 type containing name a unit number
+! pmh:    PMH structure storing the piecewise mesh
+! maxdim: max dimension of the PMH pieces
+!-----------------------------------------------------------------------
+
+subroutine read_pf3(this, pmh, maxdim)
+
+  type(pf3), intent(inout) :: this ! PF3 object
+  type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
+  integer, intent(inout) :: maxdim ! dimension detected
+  character(len=MAXPATH) :: line
+  integer :: ios, i, j
+  integer :: nel, nelvol, nelsur, neledge, nelpoint
+
+  maxdim = 0
+
+  rewind(unit=this%unit, iostat=ios)
+  if (ios /= 0) call error('pf3/read/rewind, #'//trim(string(ios)))
+
+  ! Reads the pf3 file header and allocates the number of pieces
+  call read_pf3_header(this%unit, pmh, nel, nelvol, nelsur, neledge, nelpoint)
+  do
+    read (unit=this%unit, fmt='(a)', iostat = ios) line
+    if(is_iostat_end(ios)) then; exit;
+    elseif (ios /= 0) then; call error('pf3/read, #'//trim(string(ios)));
+    endif
+
+    if(index(line,'DESCRIPTEUR DE TOPOLOGIE DES ELEMENTS') /= 0) then
+      call read_pf3_elements(this%unit, pmh, nel, nelvol, nelsur, neledge, nelpoint)
+    elseif(index(line,'COORDONNEES DES NOEUDS') /= 0) then
+      call read_pf3_coordinates(this%unit, pmh%pc(1))
+    endif
+   enddo
+
+  call build_vertices(pmh)
+stop
+end subroutine
+
+
+!-----------------------------------------------------------------------
+! write_pf3(this, pmh): write PF3 file
+!-----------------------------------------------------------------------
+! this:   pf3 type containing name a unit number
+! pmh:    PMH structure storing the piecewise mesh
+!-----------------------------------------------------------------------
+
+subroutine write_pf3(this, pmh)
+
+  type(pf3), intent(inout)   :: this !   PF3 object
+  type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
+  integer                       :: i, j, ios, tp, mphlnn
+  logical                       :: all_P1
+  real(real64), allocatable     :: znod(:,:)
+
+
+  rewind(unit=this%unit, iostat=ios)
+  if (ios /= 0) call error('pf3/read/rewind, #'//trim(string(ios)))
+
+  ! Write the pf3 file
+
+end subroutine
+
+end module

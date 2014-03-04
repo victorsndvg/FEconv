@@ -15,7 +15,7 @@ use module_os_dependant, only: maxpath
 use module_report, only: error
 use module_convers, only: adjustlt
 use module_files, only: get_unit
-use module_args, only: get_arg, is_arg, get_post_arg
+use module_args, only: get_arg, is_arg, get_post_arg, lowercase
 use module_transform, only: lagr2l2, lagr2rt, lagr2nd
 use module_cuthill_mckee, only: cuthill_mckee
 use module_ansys, only: load_ansys
@@ -25,6 +25,7 @@ use module_mfm, only: load_mfm, save_mfm
 use module_mum, only: load_mum, save_mum
 use module_vtu, only: save_vtu, type_cell
 use module_mphtxt, only: load_mphtxt,save_mphtxt
+use module_pf3, only: load_pf3,save_pf3
 !use module_tra, only: load_tra,save_tra
 use module_pmh
 implicit none
@@ -75,10 +76,15 @@ case default
   call error('(module_feconv/fe_conv) output file extension not implemented: '//trim(adjustlt(outext)))
 end select
 
+!Change PMh mesh tolerance
+if (is_arg('-t')) then
+  pmh%ztol = dble(get_post_arg('-t'))
+end if    
+
 !read mesh
 if (trim(adjustlt(inext)) /= 'unv' .and. is_arg('-is')) call error('(module_feconv/fe_conv) only UNV input files can '//&
 &'manage -is option.')
-select case (trim(adjustlt(inext)))
+select case (trim(lowercase(adjustlt(inext))))
 case('mfm')
   print '(a)', 'Loading MFM mesh file...'
   call load_mfm( infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
@@ -100,12 +106,12 @@ case('mphtxt')
   if(trim(adjustlt(outext)) /= 'mphtxt') then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   endif
-!case('tra')
-!  print '(a)', 'Loading FLUX mesh file...'
-!  call load_tra(infile, pmh)
-!  if(trim(adjustlt(outext)) /= 'mphtxt') then
-!    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-!  endif
+case('pf3')
+  print '(a)', 'Loading FLUX mesh file...'
+  call load_pf3(infile, pmh)
+  if(trim(adjustlt(outext)) /= 'mphtxt') then
+    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  endif
 case default
   call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
 end select
