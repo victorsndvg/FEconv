@@ -88,30 +88,31 @@ select case (trim(lowercase(adjustlt(inext))))
 case('mfm')
   print '(a)', 'Loading MFM mesh file...'
   call load_mfm( infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  print '(a)', 'Done!'
 case('mum')
   print '(a)', 'Loading MUM mesh file...'
   call load_mum( infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  print '(a)', 'Done!'
 case('msh')
   print '(a)', 'Loading ANSYS mesh file...'
   call load_ansys(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  print '(a)', 'Done!'
 case('unv')
   print '(a)', 'Loading UNV mesh file...'
   call load_unv(infile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, is_arg('-is'))
+  print '(a)', 'Done!'
 case('bdf')
   print '(a)', 'Loading MD Nastran input file...'
   call load_patran(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  print '(a)', 'Done!'
 case('mphtxt')
   print '(a)', 'Loading COMSOL mesh file...'
   call load_mphtxt(infile, pmh)
-  if(trim(adjustlt(outext)) /= 'mphtxt') then
-    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  endif
+  print '(a)', 'Done!'
 case('pf3')
   print '(a)', 'Loading FLUX mesh file...'
   call load_pf3(infile, pmh)
-  if(trim(adjustlt(outext)) /= 'mphtxt') then
-    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  endif
+  print '(a)', 'Done!'
 case default
   call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
 end select
@@ -138,26 +139,27 @@ end if
 select case (trim(adjustlt(outext)))
 case('mfm')
   print '(/a)', 'Saving MFM mesh file...'
-call save_mfm(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  if(allocated(pmh%pc)) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  call save_mfm(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   print '(a)', 'Done!'
 case('mum')
   print '(/a)', 'Saving MUM mesh file...'
+  if(allocated(pmh%pc)) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   call save_mum(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   print '(a)', 'Done!'
 case('vtu')
+  print '(/a)', 'Saving VTU mesh file...'
+  if(allocated(pmh%pc)) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  print '(a)', 'Done!'
 case('mphtxt')
   print '(/a)', 'Saving COMSOL mesh file...'
-  if(.not. allocated(pmh%pc)) then
-    call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  endif
+  if(.not. allocated(pmh%pc)) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   call save_mphtxt(outfile, pmh)
   print '(a)', 'Done!'
 case('unv')
   print '(/a)', 'Saving I-DEAS UNV mesh file...'
-  if(.not. allocated(pmh%pc)) then
-    call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  endif
+  if(.not. allocated(pmh%pc)) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   call save_unv(outfile, get_unit(), pmh)
   print '(a)', 'Done!'
 end select !case default, already checked before reading infile
