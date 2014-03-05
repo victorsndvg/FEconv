@@ -119,7 +119,7 @@ do ipp = 1, size(piece2save,1)
   any_RT_ND = .false.
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(tp => pmh%pc(ip)%el(ig)%type)
-      if (FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne) any_P2 = .true.
+      if (.not. FEDB(tp)%nver_eq_nnod .and. (FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne)) any_P2 = .true.
       if (tp == check_fe(.false.,  3, 3,  3, 0) .or. &
           tp == check_fe(.false.,  6, 4,  6, 4) .or. &
           tp == check_fe(.false.,  4, 4,  6, 4)) any_RT_ND = .true.
