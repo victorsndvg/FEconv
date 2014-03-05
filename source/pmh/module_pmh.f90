@@ -911,7 +911,7 @@ end subroutine
 !-----------------------------------------------------------------------
 ! reorder_nodes_simplex_P2: calculate inew to reorder nn (vertices first)
 !-----------------------------------------------------------------------
-subroutine reorder_nodes_simplex_P2(ip, ig, elg, tp, z,ztol, k, inew)
+subroutine reorder_nodes_simplex_P2(ip, ig, elg, tp, z, ztol, k, inew)
 type(elgroup), intent(in)    :: elg
 integer,       intent(in)    :: ip, ig, tp, k
 real(real64),  intent(in)    :: z(:,:)
@@ -941,6 +941,9 @@ NODES: do i = 1, FEDB(tp)%lnn !nodes
   &'element: piece '//trim(string(ip))//', group '//trim(string(ig))//', element '//trim(string(k))//&
   &'; some edges can be singular or it can be an isoparametric element. Use ''feconv -h'' to see available options')
 end do NODES
+if (nv < FEDB(tp)%lnv)  call error('(module_pmh/reorder_nodes_simplex_P2) too few vertices were found in a Lagrange P2 '//&
+&'element: piece '//trim(string(ip))//', group '//trim(string(ig))//', element '//trim(string(k))//&
+&'; tolerance could be higher than the precision of the mesh. Use ''feconv -h'' to see available options')
 !identify mid-points and save it in PMH order
 do i = 1, FEDB(tp)%lnn !nodes
   if (find_first(newnn == elg%nn(i,k)) > 0) cycle !it is a vertex
