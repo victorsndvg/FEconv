@@ -13,6 +13,7 @@ module module_args
 !   get_arg: get i-th argument
 !   is_arg: returns true when the argument is present
 !   get_post_arg: returns the value after the required argument
+!   lowercase: convert string to lower case
 !
 ! PRIVATE PROCEDURES:
 !   get_args: get command arguments
@@ -107,5 +108,27 @@ do i = 1, nargs
 
 end do
 end subroutine
+
+!-----------------------------------------------------------------------
+! PRIVATE PROCEDURES
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! lowercase: converts strings to lowercase
+!-----------------------------------------------------------------------
+
+function lowercase(input_string) result (output_string)
+  character(*), intent(in) :: input_string
+  character(len(input_string)) :: output_string
+  character(*), parameter :: LOWER_CASE = 'abcdefghijklmnñopqrstuvwxyz'
+  character(*), parameter :: UPPER_CASE = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ' 
+  integer :: i, n
+
+    output_string = input_string
+    do i = 1, len(output_string )
+       n = INDEX( UPPER_CASE, output_string( i:i ) )
+       if ( n /= 0 ) output_string( i:i ) = LOWER_CASE( n:n )
+    enddo
+
+end function
 
 end module
