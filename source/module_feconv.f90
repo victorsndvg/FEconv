@@ -13,9 +13,9 @@ module module_feconv
 use module_compiler_dependant, only: real64
 use module_os_dependant, only: maxpath
 use module_report, only: error
-use module_convers, only: adjustlt
+use module_convers, only: adjustlt, lcase
 use module_files, only: get_unit
-use module_args, only: get_arg, is_arg, get_post_arg, lowercase
+use module_args, only: get_arg, is_arg, get_post_arg
 use module_transform, only: lagr2l2, lagr2rt, lagr2nd
 use module_cuthill_mckee, only: cuthill_mckee
 use module_ansys, only: load_ansys
@@ -84,7 +84,7 @@ end if
 !read mesh
 if (trim(adjustlt(inext)) /= 'unv' .and. is_arg('-is')) call error('(module_feconv/fe_conv) only UNV input files can '//&
 &'manage -is option.')
-select case (trim(lowercase(adjustlt(inext))))
+select case (trim(lcase(adjustlt(inext))))
 case('mfm')
   print '(a)', 'Loading MFM mesh file...'
   call load_mfm( infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)

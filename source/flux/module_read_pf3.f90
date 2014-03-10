@@ -202,8 +202,10 @@ function pf3_assign_element_type(desc1, desc2, desc3) result(res)
   integer, intent(in)  :: desc1, desc2, desc3
   integer              :: res
 
-
-  if(desc1 == 2 .and. desc2 == 2 .and. desc3 == 3) then ! Edge P1  
+  if(desc1 == 1 .and. desc2 == 1 .and. desc3 == 2) then ! Vertex
+    res = check_fe(.true., 1, 1, 0, 0)
+    call info('Element type: Vertex')
+  elseif(desc1 == 2 .and. desc2 == 2 .and. desc3 == 3) then ! Edge P1  
     res = check_fe(.true., 2, 2, 1, 0)
     call info('Element type: Edge Lagrange P1')
   elseif(desc1 == 2 .and. desc2 == 3 .and. desc3 == 4) then ! Edge P2
