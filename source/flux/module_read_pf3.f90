@@ -117,7 +117,6 @@ subroutine read_pf3_elements(iu, pmh, nel, nelvol, nelsur, neledge, nelpoint)
   integer, intent(in)           :: iu  ! Unit number for PF3 file
   type(pmh_mesh), intent(inout) :: pmh
   integer, intent(in)           :: nel, nelvol, nelsur, neledge, nelpoint
-  character(len=MAXPATH)        :: line
   integer                       :: nodnum, lnn, ref, ngroup, ttype, aux
   integer                       :: desc1, desc2, desc3 ! element type descriptors
   integer                       :: i, k, ios
@@ -182,7 +181,6 @@ subroutine read_pf3_coordinates(iu, pc)
 
   integer, intent(in) :: iu   ! Unit number for PF3 file
   type(piece), intent(inout) :: pc
-  character(len=MAXPATH) :: line
   integer :: indx
   integer :: i, j, ios
 
@@ -217,12 +215,24 @@ function pf3_assign_element_type(desc1, desc2, desc3) result(res)
   elseif(desc1 == 3 .and. desc2 == 7 .and. desc3 == 6) then ! Triangle P2
     res = check_fe(.false., 6, 3, 3, 0)
     call info('Element type: Triangle Lagrange P2')
+  elseif(desc1 == 4 .and. desc2 == 202 .and. desc3 == 7) then ! Quadrangle P1
+    res = check_fe(.true., 4, 4, 4, 0)
+    call info('Element type: Triangle Lagrange P1')
+  elseif(desc1 == 4 .and. desc2 == 303 .and. desc3 == 8) then ! Quadrangle P2
+    res = check_fe(.false., 8, 4, 4, 0)
+    call info('Element type: Triangle Lagrange P2')
   elseif(desc1 == 5 .and. desc2 == 4 .and. desc3 == 10) then ! Tetrahedron  P1
     res = check_fe(.true., 4, 4, 6, 4)
     call info('Element type: Tetrahedron Lagrange P1')
   elseif(desc1 == 5 .and. desc2 == 15 .and. desc3 == 11) then ! Tetrahedron  P2
     res = check_fe(.false., 10, 4, 6, 4)
     call info('Element type: Tetrahedron Lagrange P2')
+  elseif(desc1 == 7 .and. desc2 == 2202 .and. desc3 == 15) then ! Hexahedron  P1
+    res = check_fe(.true., 8, 8, 12, 6)
+    call info('Element type: Hexahedron Lagrange P1')
+  elseif(desc1 == 7 .and. desc2 == 3303 .and. desc3 == 16) then ! Hexahedron  P2
+    res = check_fe(.false., 20, 8, 12, 6)
+    call info('Element type: Hexrahedron Lagrange P2')
   else
     call info('Element type: Unknown element type')
     res = 0
