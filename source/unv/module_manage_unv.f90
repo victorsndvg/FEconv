@@ -53,7 +53,7 @@ subroutine read_unv(this, m, maxdim, is_opt)
   type(mfm_mesh),  dimension(:), allocatable, intent(inout) :: m      !mesh
   integer,                                 intent(inout) :: maxdim !dimension detected
   logical,                                 intent(in)    :: is_opt !-is option
-  integer :: ios, n, j
+  integer :: ios, n, j, i, pgroup(6)
   logical :: fit(2)
 
   if(.not. allocated(m)) call error('unv/read, mesh(es) not allocated')
@@ -90,21 +90,22 @@ subroutine read_unv(this, m, maxdim, is_opt)
   endif
   print'(a,a)', 'Detected FE of higher dimension: ',trim(m(n)%FEtype)
 
-! dataset 2467, groups
-  rewind(unit=this%unit, iostat=ios)
-  if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
-  if (search_dataset_type(this,2467) /= 0) then
-    if (search_dataset_type(this,2435) /= 0) then
-      call info('unv/read, dataset 2467 or 2435 (groups) not found')
-      call alloc(m(n)%rv, m(n)%LNV, m(n)%nl)
-      call alloc(m(n)%re, m(n)%LNE, m(n)%nl)
-      call alloc(m(n)%rf, m(n)%LNF, m(n)%nl)
-      call alloc(m(n)%rl, m(n)%nl)
-    else
+! datasets for permanent groups, several numbers (see pgroup)
+  pgroup = [2467, 2477, 2452, 2435, 2432, 2430]
+  do i = 1, size(pgroup,1)
+    rewind(unit=this%unit, iostat=ios)
+    if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
+    if (search_dataset_type(this,pgroup(i)) == 0) then
       call read_2467(this%unit, m, n)
-    end if    
-  else
-    call read_2467(this%unit, m, n)
+      exit
+    end if
+  end do
+  if (i > size(pgroup,1)) then
+    call info('unv/read, none of datasets 2430, 2432, 2435, 2452, 2467 or 2477 (permanent groups) was found')
+    call alloc(m(n)%rv, m(n)%LNV, m(n)%nl)
+    call alloc(m(n)%re, m(n)%LNE, m(n)%nl)
+    call alloc(m(n)%rf, m(n)%LNF, m(n)%nl)
+    call alloc(m(n)%rl, m(n)%nl)
   end if
 
 ! create vertex data
