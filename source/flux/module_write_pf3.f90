@@ -38,7 +38,7 @@ contains
 subroutine write_pf3_header(iu, pmh)
   integer, intent(in)        :: iu  ! Unit number for PF3 file
   type(pmh_mesh), intent(in) :: pmh
-  integer                    :: i, j
+  integer                    :: i, j, ios
   integer                    :: npoints = 0
   integer                    :: nel = 0
   integer                    :: npointel = 0
@@ -82,64 +82,68 @@ subroutine write_pf3_header(iu, pmh)
     enddo
 
     ! Write Flux PF3 header
-    call write_line(iu,                                  'File converted with FEconv')
-    call write_line(iu,trim(string(pmh%pc(1)%dim))//' '//'NOMBRE DE DIMENSIONS DU DECOUPAGE')
-    call write_line(iu,trim(string(nel))          //' '//'NOMBRE  D''ELEMENTS')
-    call write_line(iu,trim(string(nvolel))       //' '//'NOMBRE  D''ELEMENTS VOLUMIQUES')
-    call write_line(iu,trim(string(nsurfel))      //' '//'NOMBRE  D''ELEMENTS SURFACIQUES')
-    call write_line(iu,trim(string(nedgeel))      //' '//'NOMBRE  D''ELEMENTS LINEIQUES')
-    call write_line(iu,trim(string(npointel))     //' '//'NOMBRE  D''ELEMENTS PONCTUELS')
-    call write_line(iu,trim(string(0))            //' '//'NOMBRE DE MACRO-ELEMENTS')
-    call write_line(iu,trim(string(npoints))      //' '//'NOMBRE DE POINTS')
-    call write_line(iu,trim(string(nregs))        //' '//'NOMBRE DE REGIONS')
-    call write_line(iu,trim(string(nvolregs))     //' '//'NOMBRE DE REGIONS VOLUMIQUES')
-    call write_line(iu,trim(string(nsurfregs))    //' '//'NOMBRE DE REGIONS SURFACIQUES')
-    call write_line(iu,trim(string(nedgeregs))    //' '//'NOMBRE DE REGIONS LINEIQUES')
-    call write_line(iu,trim(string(npointregs))   //' '//'NOMBRE DE REGIONS PONCTUELLES')
-    call write_line(iu,trim(string(0))            //' '//'NOMBRE DE REGIONS MACRO-ELEMENTAIRES')
-    call write_line(iu,trim(string(20))           //' '//'NOMBRE DE NOEUDS DANS 1 ELEMENT (MAX)')
-    call write_line(iu,trim(string(20))           //' '//'NOMBRE DE POINTS D''INTEGRATION / ELEMENT (MAX)')
+    call write_header_line(iu,'File converted with FEconv')
+    call write_header_line(iu,'NOMBRE DE DIMENSIONS DU DECOUPAGE',pmh%pc(1)%dim)
+    call write_header_line(iu,'NOMBRE  D''ELEMENTS', nel)
+    call write_header_line(iu,'NOMBRE  D''ELEMENTS VOLUMIQUES', nvolel)
+    call write_header_line(iu,'NOMBRE  D''ELEMENTS SURFACIQUES', nsurfel)
+    call write_header_line(iu,'NOMBRE  D''ELEMENTS LINEIQUES', nedgeel)
+    call write_header_line(iu,'NOMBRE  D''ELEMENTS PONCTUELS', npointel)
+    call write_header_line(iu,'NOMBRE DE MACRO-ELEMENTS', 0)
+    call write_header_line(iu,'NOMBRE DE POINTS', npoints)
+    call write_header_line(iu,'NOMBRE DE REGIONS', nregs)
+    call write_header_line(iu,'NOMBRE DE REGIONS VOLUMIQUES', nvolregs)
+    call write_header_line(iu,'NOMBRE DE REGIONS SURFACIQUES', nsurfregs)
+    call write_header_line(iu,'NOMBRE DE REGIONS LINEIQUES', nedgeregs)
+    call write_header_line(iu,'NOMBRE DE REGIONS PONCTUELLES', npointregs)
+    call write_header_line(iu,'NOMBRE DE REGIONS MACRO-ELEMENTAIRES', 0)
+    call write_header_line(iu,'NOMBRE DE NOEUDS DANS 1 ELEMENT (MAX)', 20)
+    call write_header_line(iu,'NOMBRE DE POINTS D''INTEGRATION / ELEMENT (MAX)', 20)
 
     ! Write Flux PF3 regions
-    call write_line(iu,'NOMS DES REGIONS')
+    call write_header_line(iu,'NOMS DES REGIONS')
 
     ! Write Flux PF3 volume region names
-    if(nvolregs>0) call write_line(iu, 'REGIONS VOLUMIQUES')
+    if(nvolregs>0) call write_header_line(iu, '    REGIONS VOLUMIQUES')
     do i = 1, nvolregs
-      call write_line(iu,'REGIONVOLUME_'//string(i))
+      call write_header_line(iu,'REGIONVOLUME_'//string(i))
     enddo
 
     ! Write Flux PF3 surface region names
-    if(nsurfregs>0) call write_line(iu, 'REGIONS SURFACIQUES')
+    if(nsurfregs>0) call write_header_line(iu, '    REGIONS SURFACIQUES')
     do i = 1, nsurfregs
-      call write_line(iu, 'REGIONFACE_'//string(i))
+      call write_header_line(iu, 'REGIONFACE_'//string(i))
     enddo
 
     ! Write Flux PF3 edge region names
-    if(nedgeregs>0) call write_line(iu, 'REGIONS LINEIQUES')
+    if(nedgeregs>0) call write_header_line(iu, '    REGIONS LINEIQUES')
     do i = 1, nedgeregs
-      call write_line(iu, 'REGIONLINE_'//string(i))
+      call write_header_line(iu, 'REGIONLINE_'//string(i))
     enddo
 
     ! Write Flux PF3 point region names
-    if(npointregs>0) call write_line(iu, 'REGIONS PONCTUELLES')
+    if(npointregs>0) call write_header_line(iu, '    REGIONS PONCTUELLES')
     do i = 1, npointregs
-      call write_line(iu, 'REGIONPOINT_'//string(i))
+      call write_header_line(iu, 'REGIONPOINT_'//string(i))
     enddo
 
 
     ! Write Flux PF3 region descriptors
     do i = 1, nvolregs; 
-      call write_line(iu, trim(string(0))//' '//trim(string(4))//' '//trim(string(5)))
+      write(unit=iu, fmt='(a,3I6)', iostat = ios)  ' ',0,4,5
+      if (ios /= 0) call error('module_utils_pf3/write_header # '//trim(string(ios)))
     enddo
     do i = 1, nsurfregs
-      call write_line(iu, trim(string(0))//' '//trim(string(3))//' '//trim(string(5)))
+      write(unit=iu, fmt='(a,3I6)', iostat = ios)  ' ',0,3,5
+      if (ios /= 0) call error('module_utils_pf3/write_header # '//trim(string(ios)))
     enddo
     do i = 1, nedgeregs
-      call write_line(iu, trim(string(0))//' '//trim(string(2))//' '//trim(string(5)))
+      write(unit=iu, fmt='(a,3I6)', iostat = ios)  ' ',0,2,5
+      if (ios /= 0) call error('module_utils_pf3/write_header # '//trim(string(ios)))
     enddo
     do i = 1, npointregs
-      call write_line(iu, trim(string(0))//' '//trim(string(1))//' '//trim(string(5)))
+      write(unit=iu, fmt='(a,3I6)', iostat = ios)  ' ',0,1,5
+      if (ios /= 0) call error('module_utils_pf3/write_header # '//trim(string(ios)))
     enddo
 
 end subroutine
@@ -156,10 +160,11 @@ subroutine write_pf3_elements(iu, pmh)
   integer, intent(in)        :: iu  ! Unit number for PF3 file
   type(pmh_mesh), intent(inout) :: pmh
   integer                    :: i, j, k, ios, desc1, desc2, desc3, ref, tdim, lnn, prevnnod, prevnel
+  character(len=MAXPATH)     :: fm
 
     ! Write Flux PF3 header
-    write(unit=iu, fmt='(a)', iostat = ios) 'DESCRIPTEUR DE TOPOLOGIE DES ELEMENTS'
-    if (ios /= 0) call error('module_write_pf3/write_elements # write error #'//trim(string(ios)))
+    write(unit=iu, fmt='(a)', iostat = ios) ' DESCRIPTEUR DE TOPOLOGIE DES ELEMENTS'
+    if (ios /= 0) call error('module_utils_pf3/write_elements # write error #'//trim(string(ios)))
 
     prevnnod = 0
     prevnel = 0
@@ -173,14 +178,16 @@ subroutine write_pf3_elements(iu, pmh)
           lnn = FEDB(pmh%pc(i)%el(j)%type)%lnn
         do k = 1, pmh%pc(i)%el(j)%nel
           ref = pmh%pc(i)%el(j)%ref(k)
-          write(unit=iu, fmt='(12I10)', iostat = ios) k+prevnel,desc1,desc2,ref,tdim+1,0,desc3,lnn,0,0,0,0
+          write(unit=iu, fmt='(a,12I9)', iostat = ios) '      ',k+prevnel,desc1,desc2,ref,tdim+1,0,desc3,lnn,0,0,0,0
           if(.not. FEDB(pmh%pc(i)%el(j)%type)%nver_eq_nnod .and. allocated(pmh%pc(i)%el(j)%nn)) then
-            write(unit=iu, fmt='(a)', iostat = ios) &
-              string(pmh2pf3_ordering(pmh%pc(i)%el(j)%nn(:,k), pmh%pc(i)%el(j)%type, prevnnod))
+            write(unit=fm, fmt='(a)', iostat = ios)  '(a,'//trim(string(FEDB(pmh%pc(i)%el(j)%type)%lnn))//'I9)'
+            write(unit=iu, fmt=fm, iostat = ios) '      ', &
+              pmh2pf3_ordering(pmh%pc(i)%el(j)%nn(:,k), pmh%pc(i)%el(j)%type, prevnnod)
             if (ios /= 0) call error('module_write_pf3/write_elements # write error #'//trim(string(ios)))
           elseif(FEDB(pmh%pc(i)%el(j)%type)%nver_eq_nnod .and. allocated(pmh%pc(i)%el(j)%mm)) then
-            write(unit=iu, fmt='(a)', iostat = ios) &
-              string(pmh2pf3_ordering(pmh%pc(i)%el(j)%mm(:,k), pmh%pc(i)%el(j)%type, prevnnod))
+            write(unit=fm, fmt='(a)', iostat = ios)  '(a,'//trim(string(FEDB(pmh%pc(i)%el(j)%type)%lnn))//'I9)'
+            write(unit=iu, fmt=fm, iostat = ios) '      ', &
+              pmh2pf3_ordering(pmh%pc(i)%el(j)%mm(:,k), pmh%pc(i)%el(j)%type, prevnnod)
             if (ios /= 0) call error('module_write_pf3/write_elements # write error #'//trim(string(ios)))
           else
             call error('module_write_pf3/write_elements # connectivity array not allocated')
@@ -220,12 +227,12 @@ subroutine write_pf3_coordinates(iu, pc, all_P1, znod, prevnnod)
 
       if(all_P1) then
         do j = 1, pc%nver
-          write(unit=iu, fmt='(a)', iostat = ios) trim(string(j+prevnnod))//' '//trim(string(pc%z(:,j)))
+          write(unit=iu, fmt='(I8,a)', iostat = ios) j+prevnnod, trim(string(pc%z(:,j)))
           if (ios /= 0) call error('module_write_pf3/write_coordinates # write error #'//trim(string(ios)))
         enddo
       else
         do j = 1, size(znod,2)
-          write(unit=iu, fmt='(a)', iostat = ios) trim(string(j+prevnnod))//' '//trim(string(znod(:,j)))
+          write(unit=iu, fmt='(I8,a)', iostat = ios) j+prevnnod, trim(string(znod(:,j)))
           if (ios /= 0) call error('module_write_pf3/write_coordinates # write error #'//trim(string(ios)))
         enddo
       endif

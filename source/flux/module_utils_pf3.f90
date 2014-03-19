@@ -16,7 +16,7 @@ module module_utils_pf3
 ! pf3_get_element_desc3(tp): returns the third PF3 element descriptor
 ! extend_elgroup(v, d): extends the element groups
 ! linear_search(n, x, u): implements a linear search
-! write_line(iu,line,ch,comm): write a line in the PF3 file
+! write_header_line(iu,line,ch,comm): write a line in the PF3 file
 !-----------------------------------------------------------------------
 
 use module_alloc, only:set_col,insert_col, reduce
@@ -96,7 +96,7 @@ function pf3_assign_element_type(desc1, desc2, desc3) result(res)
     call info('Element type: Pyramid Lagrange P2')
   else
     call info('Element type: Unknown element type # '&
-      //string(desc1)//' 'string(desc2)//' '//string(desc3))
+      //string(desc1)//' '//string(desc2)//' '//string(desc3))
     res = 0
   endif
 
@@ -492,7 +492,7 @@ end function
 
 
 !-----------------------------------------------------------------------
-! write_line(iu,line,ch,comm): write a line in the PF3 file
+! write_header_line(iu,line,ch,comm): write a line in the PF3 file
 !-----------------------------------------------------------------------
 ! iu:   unit number of the PF3 file
 ! line: text included in one line
@@ -500,27 +500,21 @@ end function
 ! comm: commentary (Optional)
 !-----------------------------------------------------------------------
 
-subroutine write_line(iu,line,ch,comm)
+subroutine write_header_line(iu,line,num)
   integer, intent(in) :: iu ! File unit number
   character(len=*), intent(in) :: line ! String
-  character(len=*), optional, intent(in) :: ch ! String: Comment character
-  character(len=*), optional, intent(in) :: comm ! String: Comment
-  character(len=MAXPATH) :: aux
+  integer, optional, intent(in) :: num ! String: Comment character
   integer :: ios
 
-  if(present(comm)) then
-    if(present(ch)) then
-      aux = trim(ch)//' '//trim(comm)
-    else
-      aux = '# '//trim(comm)
-    endif
+  if(present(num)) then
+    write(unit=iu, fmt='(1I8,a)', iostat = ios) num, '           '//trim(line)
+    if (ios /= 0) call error('write_utils_pf3/header_line, #'//trim(string(ios)))
   else
-    aux = ''
+    write(unit=iu, fmt='(a)', iostat = ios)  ' '//trim(line)
+    if (ios /= 0) call error('write_utils_pf3/header_line, #'//trim(string(ios)))
   endif
 
 
-  write(unit=iu, fmt='(a)', iostat = ios) trim(line)//' '//trim(aux)
-  if (ios /= 0) call error('write_pf3/header, #'//trim(string(ios)))
 
 end subroutine
 

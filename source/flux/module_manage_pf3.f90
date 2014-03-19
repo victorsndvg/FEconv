@@ -144,7 +144,7 @@ subroutine write_pf3(this, pmh)
   call write_pf3_header(this%unit, pmh)
   call write_pf3_elements(this%unit, pmh)
   prevnnod = 0
-  write(unit=this%unit, fmt='(a)', iostat = ios) 'COORDONNEES DES NOEUDS'
+  write(unit=this%unit, fmt='(a)', iostat = ios) ' COORDONNEES DES NOEUDS'
   if (ios /= 0) call error('module_write_pf3/write_coordinates # write error #'//trim(string(ios)))
   do i=1, size(pmh%pc,1)
     call build_node_coordinates(pmh%pc(i), i, all_P1, znod)
@@ -155,7 +155,7 @@ subroutine write_pf3(this, pmh)
       prevnnod = prevnnod + pmh%pc(i)%nnod
     endif
   enddo
-  write(unit=this%unit, fmt='(a)', iostat = ios) '==== DECOUPAGE  TERMINE'
+  write(unit=this%unit, fmt='(a)', iostat = ios) ' ==== DECOUPAGE  TERMINE'
   if (ios /= 0) call error('module_write_pf3/write_coordinates # write error #'//trim(string(ios)))
 
 
