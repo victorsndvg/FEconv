@@ -11,6 +11,7 @@ module module_transform
 !   lagr2l2: transforms a Lagrange P1 FE mesh into a Lagrange P2 FE mesh
 !   lagr2rt: transforms a Lagrange P1 FE mesh into a Lagrange Raviart-Thomas (face) FE mesh
 !   lagr2nd: transforms a Lagrange P1 FE mesh into a Whitney (edge) FE mesh
+!   to_l1:   transforms a mesh into a Lagrange P1 FE mesh
 !-----------------------------------------------------------------------
 use module_os_dependant, only: maxpath
 use module_report, only: error
@@ -18,6 +19,7 @@ use module_alloc_int_r1, only: dealloc, alloc, sort
 use module_alloc_int_r2, only: dealloc, alloc, insert_row_sorted, reduce, find_row_sorted
 use module_vtu, only: type_cell, edge_tetra, edge_tria, face_tetra
 use module_cuthill_mckee, only: bandwidth
+use module_pmh
 implicit none
 
 integer :: nparts = 0
@@ -255,6 +257,26 @@ case default
   call error('(module_feconvert/lagr2rt) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
 end select
 call bandwidth(nel, lnn, nn, 'New Maximum bandwidth:     ')
+end subroutine
+
+!-----------------------------------------------------------------------
+! to_l1: transforms a mesh into a Lagrange P1 FE mesh
+!-----------------------------------------------------------------------
+subroutine to_l1(pmh)
+  type(pmh_mesh), intent(inout) :: pmh
+  integer :: i, j, k, tp
+
+  do i=1, size(pmh%pc)
+    do j=1, size(pmh%pc(i)%el)
+      tp = pmh%pc(i)%el(j)%type
+      if(.not. FEDB(tp)%nver_eq_nnod) then
+        pmh%pc(i)%el(j)%type = check_fe(.true.,FEDB(tp)%lnv, FEDB(tp)%lnv,FEDB(tp)%lne,FEDB(tp)%lnf)
+        if(allocated(pmh%pc(i)%el(j)%nn)) deallocate(pmh%pc(i)%el(j)%nn)
+      endif
+    enddo
+    pmh%pc(i)%nnod = pmh%pc(i)%nver
+  enddo
+
 end subroutine
 
 end module

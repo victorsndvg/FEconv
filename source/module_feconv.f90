@@ -16,7 +16,7 @@ use module_report, only: error
 use module_convers, only: adjustlt, lcase
 use module_files, only: get_unit
 use module_args, only: get_arg, is_arg, get_post_arg
-use module_transform, only: lagr2l2, lagr2rt, lagr2nd
+use module_transform, only: lagr2l2, lagr2rt, lagr2nd, to_l1
 use module_cuthill_mckee, only: cuthill_mckee
 use module_ansys, only: load_ansys
 use module_unv, only: load_unv,save_unv
@@ -119,20 +119,27 @@ end select
 !print '(a)', 'FE type of the input mesh: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf))
 
 !transform
-if (is_arg('-l2')) then
-print '(/a)', 'Converting Lagrange P1 mesh into Lagrange P2 mesh...'
+if (is_arg('-l1')) then
+  print '(/a)', 'Converting mesh into Lagrange P1 mesh...'
+  if(.not. allocated(pmh%pc)) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  call to_l1(pmh)
+elseif (is_arg('-l2')) then
+  print '(/a)', 'Converting Lagrange P1 mesh into Lagrange P2 mesh...'
+  if(allocated(pmh%pc)) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   call lagr2l2(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
 elseif (is_arg('-rt')) then
-print '(/a)', 'Converting Lagrange P1 mesh into Raviart-Thomas (face) mesh...'
+  print '(/a)', 'Converting Lagrange P1 mesh into Raviart-Thomas (face) mesh...'
+  if(allocated(pmh%pc)) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   call lagr2rt(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
 elseif (is_arg('-nd')) then
-print '(/a)', 'Converting Lagrange P1 mesh into Whitney (edge) mesh...'
+  print '(/a)', 'Converting Lagrange P1 mesh into Whitney (edge) mesh...'
+  if(allocated(pmh%pc)) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   call lagr2nd(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
 end if
 
 !bandwidth optimization
 if (is_arg('-cm')) then
-call cuthill_mckee(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, z)
+  call cuthill_mckee(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, z)
 end if
 
 !save mesh

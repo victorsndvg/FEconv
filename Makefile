@@ -41,10 +41,10 @@ module_fuerzas.f90 module_MATH.f90 module_cells.f90 module_dataset.f90 \
 module_FE_DB.f90 module_groups.f90 module_patran.f90 module_mesh.f90 \
 module_dataset_2467.f90 module_dataset_2412.f90 module_dataset_2411.f90 \
 module_manage_unv.f90 module_mfm.f90 module_mum.f90 module_vtu.f90 \
-module_cuthill_mckee.f90 module_transform.f90 module_fe_database_pmh.f90 \
-module_pmh.f90 module_utils_mphtxt.f90 module_write_mphtxt.f90 \
-module_read_mphtxt.f90 module_manage_mphtxt.f90 module_mphtxt.f90 \
-module_unv.f90 module_utils_pf3.f90 module_read_pf3.f90 module_write_pf3.f90 \
+module_cuthill_mckee.f90 module_fe_database_pmh.f90 module_pmh.f90 \
+module_utils_mphtxt.f90 module_write_mphtxt.f90 module_read_mphtxt.f90 \
+module_manage_mphtxt.f90 module_mphtxt.f90 module_unv.f90 module_transform.f90 \
+module_utils_pf3.f90 module_read_pf3.f90 module_write_pf3.f90 \
 module_manage_pf3.f90 module_pf3.f90 module_feconv.f90
  
 # MODULE DEPENDENCIES
@@ -109,9 +109,6 @@ module_vtu.o: module_compiler_gfortran.o module_report.o module_convers.o \
 module_alloc_int_r1.o module_set.o module_writevtu.o
 module_cuthill_mckee.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_vtu.o
-module_transform.o: module_os_dependant.o module_report.o \
-module_alloc_int_r1.o module_alloc_int_r2.o module_vtu.o \
-module_cuthill_mckee.o
 module_pmh.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
 module_convers.o module_alloc.o module_args.o module_feed.o \
 module_fe_database_pmh.o
@@ -130,6 +127,9 @@ module_pmh.o module_fe_database_pmh.o
 module_unv.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
 module_convers.o module_alloc.o module_set.o module_args.o module_pmh.o \
 module_fe_database_pmh.o module_manage_unv.o module_mesh.o
+module_transform.o: module_os_dependant.o module_report.o \
+module_alloc_int_r1.o module_alloc_int_r2.o module_vtu.o \
+module_cuthill_mckee.o module_pmh.o
 module_utils_pf3.o: module_alloc.o module_pmh.o
 module_read_pf3.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_convers.o module_alloc.o module_mesh.o module_pmh.o \
