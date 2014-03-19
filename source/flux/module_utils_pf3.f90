@@ -118,7 +118,7 @@ subroutine pf32pmh_ordering(el, tp)
   integer, dimension(:), allocatable :: auxel
 
     if (tp <= 0) then
-      call error('module_read_pf3/node_ordering # Element type not supported')
+      call error('module_utils_pf3/node_ordering # Element type not supported')
     endif
 
     if (tp == check_fe(.true., 1, 1, 0, 0)) then     ! Nodes
@@ -229,7 +229,7 @@ function pf3_get_element_desc1(tp) result(res)
   elseif(tp == check_fe(.true., 5, 5, 8, 5) .or. tp == check_fe(.false., 13, 5, 8, 5)) then ! Pyramid  P1-P2
     res = 8
   else
-    call error('module_write_pf3/pf3_get_element_desc1 # Unknown element type #'//trim(string(tp)))
+    call error('module_utils_pf3/pf3_get_element_desc1 # Unknown element type #'//trim(string(tp)))
   endif
 
 end function
@@ -276,7 +276,7 @@ function pf3_get_element_desc2(tp) result(res)
   elseif(tp == check_fe(.false., 13, 5, 8, 5)) then ! Pyramid  P2
     res = 4203
   else
-    call error('module_write_pf3/pf3_get_element_desc2 # Unknown element type #'//trim(string(tp)))
+    call error('module_utils_pf3/pf3_get_element_desc2 # Unknown element type #'//trim(string(tp)))
   endif
 
 
@@ -326,7 +326,7 @@ function pf3_get_element_desc3(tp) result(res)
   elseif(tp == check_fe(.false., 13, 5, 8, 5)) then ! Pyramid  P2
     res = 8
   else
-    call error('module_write_pf3/pf3_get_element_desc3 # Unknown element type #'//trim(string(tp)))
+    call error('module_utils_pf3/pf3_get_element_desc3 # Unknown element type #'//trim(string(tp)))
   endif
 
 
@@ -350,7 +350,7 @@ function pmh2pf3_ordering(el, tp, prevnnod) result(auxel)
   integer, dimension(:), allocatable :: auxel
 
     if (tp <= 0) then
-      call error('module_read_pf3/node_ordering # Element type not supported')
+      call error('module_utils_pf3/node_ordering # Element type not supported')
     endif
 
     if (allocated(auxel)) deallocate(auxel)
@@ -443,7 +443,7 @@ subroutine extend_elgroup(v, d)
       ns = d
       !ALLOCATION
       allocate(v(ns), stat = res, errmsg = cad)
-      if (res /= 0) call error('(module_alloc_int_r1/extend) unable to allocate variable v: '//trim(cad))
+      if (res /= 0) call error('module_utils_pf3/extend_elgroup # unable to allocate variable v: '//trim(cad))
     else !v is already allocated
       s = size(v,1)
       if (d > s) then !reallocation is mandatory
@@ -451,7 +451,7 @@ subroutine extend_elgroup(v, d)
         ns = d                  
         !REALLOCATION
         allocate(temp(ns), stat = res, errmsg = cad)
-        if (res /= 0) call error('(module_alloc_int_r2/extend) unable to allocate variable temp: '//trim(cad))
+        if (res /= 0) call error('module_utils_pf3/extend_elgroup # unable to allocate variable temp: '//trim(cad))
         temp(1:s)    = v
         call move_alloc(from=temp, to=v)
       end if
