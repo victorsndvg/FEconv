@@ -40,6 +40,15 @@ function pf3_assign_element_type(desc1, desc2, desc3) result(res)
   integer, intent(in)  :: desc1, desc2, desc3
   integer              :: res
 
+! Not supported yet:
+! -----------------
+! line first order shell elements --> (2,202,23)
+! line second order shell elements --> (2,303,24)
+! triangle first order shell elements --> (3,207,19)
+! triangle second order shell elements --> (3,307,20)
+! rectangle first order shell elements --> (4,2202,21)
+! rectangle second order shell elements --> (4,3302,22)
+
   if(desc1 == 1 .and. desc2 == 1 .and. desc3 == 2) then ! Vertex
     res = check_fe(.true., 1, 1, 0, 0)
     call info('Element type: Vertex')
@@ -86,7 +95,8 @@ function pf3_assign_element_type(desc1, desc2, desc3) result(res)
     res = check_fe(.false., 13, 8, 12, 6)
     call info('Element type: Pyramid Lagrange P2')
   else
-    call info('Element type: Unknown element type')
+    call info('Element type: Unknown element type # '&
+      //string(desc1)//' 'string(desc2)//' '//string(desc3))
     res = 0
   endif
 
