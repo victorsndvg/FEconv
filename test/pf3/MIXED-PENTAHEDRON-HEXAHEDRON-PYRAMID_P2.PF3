@@ -1,0 +1,47 @@
+ Fichier cree par F3DXPE 1.0. Date: 03/11/14 12:42:59                            
+       3           NOMBRE DE DIMENSIONS DU DECOUPAGE                           
+    3170           NOMBRE  D'ELEMENTS                                          
+    3049           NOMBRE  D'ELEMENTS VOLUMIQUES                               
+     100           NOMBRE  D'ELEMENTS SURFACIQUES                              
+      20           NOMBRE  D'ELEMENTS LINEIQUES                                
+       1           NOMBRE  D'ELEMENTS PONCTUELS                                
+       0           NOMBRE DE MACRO-ELEMENTS                                    
+   11381           NOMBRE DE POINTS                                            
+       6           NOMBRE DE REGIONS                                           
+       3           NOMBRE DE REGIONS VOLUMIQUES                                
+       1           NOMBRE DE REGIONS SURFACIQUES                               
+       1           NOMBRE DE REGIONS LINEIQUES                                 
+       1           NOMBRE DE REGIONS PONCTUELLES                               
+       0           NOMBRE DE REGIONS MACRO-ELEMENTAIRES                        
+      20           NOMBRE DE NOEUDS DANS 1 ELEMENT (MAX)                       
+      20           NOMBRE DE POINTS D'INTEGRATION / ELEMENT (MAX)              
+ NOMS DES REGIONS                                            
+     REGIONS VOLUMIQUES                                          
+ REGIONVOLUME_1                                                                  
+ REGIONVOLUME_2                                                                  
+ REGIONVOLUME_3                                                                  
+     REGIONS SURFACIQUES                                         
+ REGIONFACE_1                                                                    
+     REGIONS LINEIQUES                                           
+ REGIONLINE_1                                                                    
+     REGIONS PONCTUELLES                                         
+ REGIONPOINT_1                                                                   
+      0     4     5
+      0     4     5
+      0     4     5
+      0     3     5
+      0     2     5
+      0     1     5
+ DESCRIPTEUR DE TOPOLOGIE DES ELEMENTS                       
+           3050        4      303        4        3        0        8        8        0        0        0        0
+              3      121      749      112     5521     5525     5329     5522
+ COORDONNEES DES NOEUDS                                      
+       3    0.000000      0.1000000E-02   0.000000    
+     121   0.1000000E-03  0.1000000E-02   0.000000    
+     749   0.1000000E-03  0.9000000E-03   0.000000    
+     112    0.000000      0.9000000E-03   0.000000    
+    5521   0.5000000E-04  0.1000000E-02   0.000000    
+    5525   0.1000000E-03  0.9500000E-03   0.000000    
+    5329   0.5000000E-04  0.9000000E-03   0.000000    
+    5522    0.000000      0.9500000E-03   0.000000    
+ ==== DECOUPAGE  TERMINE  
