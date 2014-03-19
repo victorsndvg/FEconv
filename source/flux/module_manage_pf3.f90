@@ -133,15 +133,31 @@ subroutine write_pf3(this, pmh)
 
   type(pf3), intent(inout)   :: this !   PF3 object
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
-  integer                       :: i, j, ios, tp, mphlnn
+  integer                       :: i, j, ios, tp, mphlnn, prevnnod
   logical                       :: all_P1
   real(real64), allocatable     :: znod(:,:)
 
+  ! Write the pf3 file
 
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('pf3/read/rewind, #'//trim(string(ios)))
+  call write_pf3_header(this%unit, pmh)
+  call write_pf3_elements(this%unit, pmh)
+  prevnnod = 0
+  write(unit=this%unit, fmt='(a)', iostat = ios) 'COORDONNEES DES NOEUDS'
+  if (ios /= 0) call error('module_write_pf3/write_coordinates # write error #'//trim(string(ios)))
+  do i=1, size(pmh%pc,1)
+    call build_node_coordinates(pmh%pc(i), i, all_P1, znod)
+    call write_pf3_coordinates(this%unit, pmh%pc(i), all_P1, znod, prevnnod)
+    if(all_P1) then
+      prevnnod = prevnnod + pmh%pc(i)%nver
+    else
+      prevnnod = prevnnod + pmh%pc(i)%nnod
+    endif
+  enddo
+  write(unit=this%unit, fmt='(a)', iostat = ios) '==== DECOUPAGE  TERMINE'
+  if (ios /= 0) call error('module_write_pf3/write_coordinates # write error #'//trim(string(ios)))
 
-  ! Write the pf3 file
 
 end subroutine
 

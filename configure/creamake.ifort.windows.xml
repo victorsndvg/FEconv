@@ -21,10 +21,17 @@ source/unv
 source/mfm
 source/mum
 source/vtu
+source/mphtxt
+source/pmh
+source/flux
 </sources>
  
 <compiler>
 ifort
 </compiler>
+
+<fflags>
+-stand:f03 -warn:all
+</fflags>
 
 </content>

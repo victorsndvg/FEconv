@@ -43,7 +43,7 @@ function mphtxt_get_lnn(num) result(res)
     elseif(num == check_fe(.false.,  20, 8,12, 6)) then  ! Hexahedron Lagrange P2
       res = 27                                           ! Hexahedron Lagrange P2 + baricentro + baricentros caras
     elseif(num == check_fe(.false., 15, 6,  9, 5)) then  ! Prism Lagrange P2
-      res = 18                                           ! Prism Lagrange P2 + centroide + baricentros caras
+      res = 18                                           ! Prism Lagrange P2 + baricentros caras quads
     else
       res = FEDB(num)%lnn
 
@@ -81,9 +81,9 @@ function mphtxt_get_type(desc) result(res)
     elseif(trim(desc) == 'tet') then    ! Tetrahedron Lagrange P1
       nnod=4; nver=4; lnn=4; lnv=4; lne=6; lnf=4
       call info('Element type: Tetrahedron lagrange P1')
-    elseif(trim(desc) == 'prism') then  ! Prism Lagrange P1
-      ! Prism FE not supported
-      call error('Wedge lagrange P1 not supported')
+    elseif(trim(desc) == 'prism') then  ! Wedge Lagrange P1
+      nnod=6; nver=6; lnn=6; lnv=6; lne=9; lnf=5
+      call info('Element type: Wedge lagrange P1')
     elseif(trim(desc) == 'hex') then    ! Hexahedron Lagrange P1
       nnod=8; nver=8; lnn=8; lnv=8; lne=12; lnf=6
       call info('Element type: Hexahedron lagrange P1')
@@ -99,9 +99,9 @@ function mphtxt_get_type(desc) result(res)
     elseif(trim(desc) == 'tet2') then   ! Tetrahedron Lagrange P2
       nnod=10; nver=4; lnn=10; lnv=4; lne=6; lnf=4
       call info('Element type: Tetrahedron lagrange P2')
-    elseif(trim(desc) == 'prism2') then ! Prism Lagrange P2
-      ! Quadratic prism FE not supported
-      call error('Wedge lagrange P2 not supported')
+    elseif(trim(desc) == 'prism2') then ! Wedge Lagrange P2
+      nnod=15; nver=6; lnn=15; lnv=6; lne=9; lnf=5
+      call info('Element type: Wedge lagrange P2')
     elseif(trim(desc) == 'hex2') then   ! Hexahedron Lagrange P2
       nnod=20; nver=8; lnn=20; lnv=8; lne=12; lnf=6
       call info('Element type: Hexahedron lagrange P2')
@@ -141,6 +141,12 @@ function mphtxt_get_desc(num) result(res)
     elseif(num == check_fe(.true., 4, 4, 6, 4)) then    ! Tetrahedron Lagrange P1
       res = 'tet'
       call info('Element type: Tetrahedron lagrange P1')
+    elseif(num == check_fe(.true., 6, 6, 9, 5)) then    ! Wedge Lagrange P1
+      res = 'prism'
+      call info('Element type: Prism lagrange P1')
+    elseif(num == check_fe(.true., 15, 6, 9, 5)) then    ! Wedge Lagrange P2
+      res = 'prism'
+      call info('Element type: Prism lagrange P2')
     elseif(num == check_fe(.true., 8, 8, 12, 6)) then   ! Hexahedron Lagrange P1
       res = 'hex'
       call info('Element type: Hexahedron lagrange P1')
@@ -162,7 +168,6 @@ function mphtxt_get_desc(num) result(res)
     else
       call error('Finite element type not supported')
   endif
-
 
 end function
 
@@ -204,6 +209,9 @@ subroutine pmh_node_ordering(el, tp)
 
     elseif (tp == check_fe(.true., 4, 4, 6, 4)) then ! Tetrahedron Lagrange P1
         ! PMH and MPHTXT uses the same node ordering in tetrahedrons lagrange P1
+
+    elseif (tp == check_fe(.true., 6, 6, 9, 5)) then ! Wedge Lagrange P1
+        ! PMH and MPHTXT uses the same node ordering in wedges lagrange P1
 
     elseif (tp == check_fe(.true., 8, 8, 12, 6)) then ! Hexahedron Lagrange P1
         ! PMH and MPHTXT don't have the same node ordering in hexahedrons lagrange P1
@@ -267,6 +275,9 @@ subroutine pmh_node_ordering(el, tp)
         el(25) = auxel(19); el(26) = auxel(21); el(27) = auxel(18)
 
         deallocate(auxel)
+
+    elseif (tp == check_fe(.true., 15, 6, 9, 5)) then ! Wedge Lagrange P2
+        ! PMH and MPHTXT uses the same node ordering in wedges lagrange P2
 
 
     endif
@@ -404,7 +415,7 @@ subroutine build_elements_baricenter(pc, ip, ie, znod)
       if(allocated(nn)) deallocate(nn); allocate(nn(mphlnn,pc%el(ie)%nel)); nn = 0
       nn(1:size(pc%el(ie)%nn,1),:) = pc%el(ie)%nn(:,:)
       call move_alloc(from=nn,  to=pc%el(ie)%nn)
-      deallocate(nn)
+      if(allocated(nn)) deallocate(nn)
     endif
 
     if(allocated(val)) deallocate(val); allocate(val(pc%dim))

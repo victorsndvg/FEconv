@@ -70,7 +70,7 @@ if (len_trim(outfile) == 0) call error('(module_feconv/fe_conv) unable to find o
 if (len_trim(inext) == 0) call error('(module_feconv/fe_conv) unable to find input file extension.')
 if (len_trim(outext) == 0) call error('(module_feconv/fe_conv) unable to find output file extension.')
 select case (trim(adjustlt(outext))) !check outfile extension now (avoid reading infile when outfile is invalid)
-case('mfm', 'mum', 'vtu', 'mphtxt', 'unv')
+case('mfm', 'mum', 'vtu', 'mphtxt', 'unv', 'pf3')
   continue
 case default
   call error('(module_feconv/fe_conv) output file extension not implemented: '//trim(adjustlt(outext)))
@@ -161,6 +161,11 @@ case('unv')
   print '(/a)', 'Saving I-DEAS UNV mesh file...'
   if(.not. allocated(pmh%pc)) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   call save_unv(outfile, get_unit(), pmh)
+  print '(a)', 'Done!'
+case('pf3')
+  print '(/a)', 'Saving FLUX mesh file...'
+  if(.not. allocated(pmh%pc)) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  call save_pf3(outfile, pmh)
   print '(a)', 'Done!'
 end select !case default, already checked before reading infile
 end subroutine

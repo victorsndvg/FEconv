@@ -21,6 +21,9 @@ source/unv
 source/mfm
 source/mum
 source/vtu
+source/mphtxt
+source/pmh
+source/flux
 </sources>
  
 <compiler>

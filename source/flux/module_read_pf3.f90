@@ -5,10 +5,12 @@ module module_read_pf3
 !
 ! Licensing: This code is distributed under the GNU GPL license.
 ! Author: Victor Sande, victor(dot)sande(at)usc(dot)es
-! Last update: 21/02/2014
+! Last update: 19/03/2014
 !
 ! PUBLIC PROCEDURES:
-! read_pf3_header(iu): read PF3 file header
+! read_pf3_header: read PF3 file header
+! read_pf3_elements: read PF3 elements
+! read_pf3_coordinates: read PF3 coordinates
 !-----------------------------------------------------------------------
 
 use module_COMPILER_DEPENDANT, only: real64
@@ -18,6 +20,7 @@ use module_convers
 use module_ALLOC
 use module_mesh
 use module_pmh
+use module_utils_pf3
 
 implicit none
 
@@ -55,16 +58,16 @@ subroutine read_pf3_header(iu, pmh, nel, nelvol, nelsur, neledge, nelpoint)
         read(line,*) pmh%pc(1)%dim
       elseif(index(line,'NOMBRE  D''ELEMENTS VOLUMIQUES') /= 0) then
         read(line,*) nelvol
-        if(nelvol /= 0) ngroups=ngroups+1
+!        if(nelvol /= 0) ngroups=ngroups+1
       elseif(index(line,'NOMBRE  D''ELEMENTS SURFACIQUES') /= 0) then
         read(line,*) nelsur
-        if(nelsur /= 0) ngroups=ngroups+1
+!        if(nelsur /= 0) ngroups=ngroups+1
       elseif(index(line,'NOMBRE  D''ELEMENTS LINEIQUES') /= 0) then
         read(line,*) neledge
-        if(neledge /= 0) ngroups=ngroups+1
+!        if(neledge /= 0) ngroups=ngroups+1
       elseif(index(line,'NOMBRE  D''ELEMENTS PONCTUELS') /= 0) then
         read(line,*) nelpoint
-        if(nelpoint /= 0) ngroups=ngroups+1
+!        if(nelpoint /= 0) ngroups=ngroups+1
       elseif(index(line,'NOMBRE  D''ELEMENTS') /= 0) then
         read(line,*) nel
       elseif(index(line,'NOMBRE DE MACRO-ELEMENTS') /= 0) then
@@ -95,11 +98,15 @@ subroutine read_pf3_header(iu, pmh, nel, nelvol, nelsur, neledge, nelpoint)
 
     enddo
 
-    if(allocated(pmh%pc(1)%el)) deallocate(pmh%pc(1)%el)
-    allocate(pmh%pc(1)%el(ngroups)) ! 1 piece mesh
+!    if(allocated(pmh%pc(1)%el)) deallocate(pmh%pc(1)%el)
+!    allocate(pmh%pc(1)%el(ngroups)) ! 1 piece mesh
 
     if(allocated(pmh%pc(1)%z)) deallocate(pmh%pc(1)%z)
     allocate(pmh%pc(1)%z(pmh%pc(1)%dim,pmh%pc(1)%nnod)) ! 1 piece mesh
+
+    if(pmh%pc(1)%nnod == 0 .or. pmh%pc(1)%dim == 0 .or. nel == 0) then
+      call error('Empty mesh or wrong file format.')
+    endif
 
 
 end subroutine
@@ -117,61 +124,78 @@ subroutine read_pf3_elements(iu, pmh, nel, nelvol, nelsur, neledge, nelpoint)
   integer, intent(in)           :: iu  ! Unit number for PF3 file
   type(pmh_mesh), intent(inout) :: pmh
   integer, intent(in)           :: nel, nelvol, nelsur, neledge, nelpoint
-  integer                       :: nodnum, lnn, ref, ngroup, ttype, aux
+  integer                       :: nodnum, lnn, ref, minngroup, ttype, aux
   integer                       :: desc1, desc2, desc3 ! element type descriptors
-  integer                       :: i, k, ios
-  integer,dimension(4,2)        :: tgroup = 0 ! 4:3D(vol),3:2D(sur),2:1D(edge),0:0D(point)
+  integer                       :: i, k, ios, pos
+  integer,dimension(15)         :: tel = -1 ! 4:3D(vol),3:2D(sur),2:1D(edge),0:0D(point)
 
 
-    ! Associates each group to an element type
-    ngroup = 0
+!    ! Associates each group to an element type
+    minngroup = 0
     if(nelvol /= 0) then
-      ngroup = ngroup + 1
-      pmh%pc(1)%el(ngroup)%nel = nelvol
-      tgroup(4,1) = ngroup
+      minngroup = minngroup + 1
     endif
     if(nelsur /= 0) then
-      ngroup = ngroup + 1
-      pmh%pc(1)%el(ngroup)%nel = nelsur
-      tgroup(3,1) = ngroup
+      minngroup = minngroup + 1
     endif
     if(neledge /= 0) then
-      ngroup = ngroup + 1
-      pmh%pc(1)%el(ngroup)%nel = neledge
-      tgroup(2,1) = ngroup
+      minngroup = minngroup + 1
     endif
     if(nelpoint /= 0) then
-      ngroup = ngroup + 1
-      pmh%pc(1)%el(ngroup)%nel = nelpoint
-      tgroup(1,1) = ngroup
+      minngroup = minngroup + 1
     endif
+
+    ! Allocate pmh%pc(1)%el to the number of different topology dimensions
+    if(.not. allocated(pmh%pc(1)%el)) allocate(pmh%pc(1)%el(minngroup))
 
     do i = 1, nel
       ! Read element description
       read (unit=iu, fmt=*, iostat = ios) nodnum,desc1,desc2,ref,ttype,aux,desc3,lnn
       if (ios /= 0) call error('pf3/read/elements, #'//trim(string(ios)))
 
-      if(.not. allocated(pmh%pc(1)%el(tgroup(ttype,1))%nn)) then
-        allocate(pmh%pc(1)%el(tgroup(ttype,1))%nn(lnn,pmh%pc(1)%el(tgroup(ttype,1))%nel))
-        allocate(pmh%pc(1)%el(tgroup(ttype,1))%ref(pmh%pc(1)%el(tgroup(ttype,1))%nel))
-        pmh%pc(1)%el(tgroup(ttype,1))%type = pf3_assign_element_type(desc1, desc2, desc3)
+      ! Search the position in pmh%pc(1)%el for each type of element
+      pos = linear_search(size(tel,1), tel, desc3)
+
+      ! If necessary, allocates pmh%pc(1)%el
+      if(pos <= 0) then
+        tel(abs(pos)) = desc3
+        if(size(pmh%pc(1)%el,1) < abs(pos)) then
+          call extend_elgroup(pmh%pc(1)%el, abs(pos))
+        endif
       endif
-      ! Counts number of elements readed for each element group
-      tgroup(ttype,2) = tgroup(ttype,2) + 1
+
+      if(.not. allocated(pmh%pc(1)%el(abs(pos))%nn)) then
+        allocate(pmh%pc(1)%el(abs(pos))%nn(lnn,nel))
+        if(.not. allocated(pmh%pc(1)%el(abs(pos))%ref)) allocate(pmh%pc(1)%el(abs(pos))%ref(nel))
+        pmh%pc(1)%el(abs(pos))%type = pf3_assign_element_type(desc1, desc2, desc3)
+      endif 
+
+      ! Counts the number of element of each type
+      pmh%pc(1)%el(abs(pos))%nel = pmh%pc(1)%el(abs(pos))%nel + 1
 
       ! Assign reference number
-      pmh%pc(1)%el(tgroup(ttype,1))%ref(tgroup(ttype,2)) = ref
+      pmh%pc(1)%el(abs(pos))%ref(pmh%pc(1)%el(abs(pos))%nel) = ref
 
       ! Read list of nodes
-      read (unit=iu, fmt=*, iostat = ios) (pmh%pc(1)%el(tgroup(ttype,1))%nn(k,tgroup(ttype,2)), k=1,lnn)
+      read (unit=iu, fmt=*, iostat = ios) (pmh%pc(1)%el(abs(pos))%nn(k,pmh%pc(1)%el(abs(pos))%nel), k=1,lnn)
+      ! Reorder pf3 nodes to pmh
+      call pf32pmh_ordering(pmh%pc(1)%el(abs(pos))%nn(:,pmh%pc(1)%el(abs(pos))%nel), pmh%pc(1)%el(abs(pos))%type)
       if (ios /= 0) call error('pf3/read/elements, #'//trim(string(ios)))
 
+    enddo
+
+    do i = 1, size(pmh%pc(1)%el,1)
+      if(.not. allocated(pmh%pc(1)%el(i)%nn) .or. .not. allocated(pmh%pc(1)%el(i)%ref)) then
+        call error('Element group without nodes or references.')
+      endif
+      call reduce(pmh%pc(1)%el(i)%nn,size(pmh%pc(1)%el(i)%nn,1), pmh%pc(1)%el(i)%nel)
+      call reduce(pmh%pc(1)%el(i)%ref, pmh%pc(1)%el(i)%nel)
     enddo
 
 end subroutine
 
 !-----------------------------------------------------------------------
-! read_pf3_coordinates(iu, nnodk, dim): read PF3 elements
+! read_pf3_coordinates(iu, nnodk, dim): read PF3 coordinates
 !-----------------------------------------------------------------------
 ! iu:  unit number of the PF3 file
 ! pc:  piece
@@ -192,52 +216,9 @@ subroutine read_pf3_coordinates(iu, pc)
     if (ios /= 0) call error('pf3/read/coordinates, #'//trim(string(ios)))
   enddo
 
+  if(.not. allocated(pc%z)) call error('Piece without coordinates.')
+
 end subroutine
 
-
-
-function pf3_assign_element_type(desc1, desc2, desc3) result(res)
-  integer, intent(in)  :: desc1, desc2, desc3
-  integer              :: res
-
-  if(desc1 == 1 .and. desc2 == 1 .and. desc3 == 2) then ! Vertex
-    res = check_fe(.true., 1, 1, 0, 0)
-    call info('Element type: Vertex')
-  elseif(desc1 == 2 .and. desc2 == 2 .and. desc3 == 3) then ! Edge P1  
-    res = check_fe(.true., 2, 2, 1, 0)
-    call info('Element type: Edge Lagrange P1')
-  elseif(desc1 == 2 .and. desc2 == 3 .and. desc3 == 4) then ! Edge P2
-    res = check_fe(.false., 3, 2, 1, 0)
-    call info('Element type: Edge Lagrange P2')
-  elseif(desc1 == 3 .and. desc2 == 7 .and. desc3 == 5) then ! Triangle P1
-    res = check_fe(.true., 3, 3, 3, 0)
-    call info('Element type: Triangle Lagrange P1')
-  elseif(desc1 == 3 .and. desc2 == 7 .and. desc3 == 6) then ! Triangle P2
-    res = check_fe(.false., 6, 3, 3, 0)
-    call info('Element type: Triangle Lagrange P2')
-  elseif(desc1 == 4 .and. desc2 == 202 .and. desc3 == 7) then ! Quadrangle P1
-    res = check_fe(.true., 4, 4, 4, 0)
-    call info('Element type: Triangle Lagrange P1')
-  elseif(desc1 == 4 .and. desc2 == 303 .and. desc3 == 8) then ! Quadrangle P2
-    res = check_fe(.false., 8, 4, 4, 0)
-    call info('Element type: Triangle Lagrange P2')
-  elseif(desc1 == 5 .and. desc2 == 4 .and. desc3 == 10) then ! Tetrahedron  P1
-    res = check_fe(.true., 4, 4, 6, 4)
-    call info('Element type: Tetrahedron Lagrange P1')
-  elseif(desc1 == 5 .and. desc2 == 15 .and. desc3 == 11) then ! Tetrahedron  P2
-    res = check_fe(.false., 10, 4, 6, 4)
-    call info('Element type: Tetrahedron Lagrange P2')
-  elseif(desc1 == 7 .and. desc2 == 2202 .and. desc3 == 15) then ! Hexahedron  P1
-    res = check_fe(.true., 8, 8, 12, 6)
-    call info('Element type: Hexahedron Lagrange P1')
-  elseif(desc1 == 7 .and. desc2 == 3303 .and. desc3 == 16) then ! Hexahedron  P2
-    res = check_fe(.false., 20, 8, 12, 6)
-    call info('Element type: Hexrahedron Lagrange P2')
-  else
-    call info('Element type: Unknown element type')
-    res = 0
-  endif
-
-end function
 
 end module
