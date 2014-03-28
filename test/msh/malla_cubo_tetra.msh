@@ -1,0 +1,64 @@
+(0 grid written by ANSYS Meshing
+   nodes:       (10 (id start end type) (x y z ...))
+              faces:       (13 (id start end type elemType)
+                (v-0 v-1 .. v-n right-cell left-cell ...))
+   cells:       (12 (id start end type elemtype))
+   parent-face: (59 (start end parent child) (nchilds child0 child1 ...))
+)
+(2 3)
+(10 (0 1 9 0))
+(13 (0 1 1e 0))
+(12 (0 1 c 0))
+(10 (4 1 1 1 3)(
+0.5000015091150999 0.5 0.4999999999999999
+))
+(10 (5 2 9 1 3)(
+1 0 1
+0 0 1
+1 1 1
+0 1 1
+1 0 0
+0 0 0
+0 1 0
+1 1 0
+))
+(13 (1 1 c 3 3)(
+2 3 4 3 0 
+2 6 3 1 0 
+3 5 4 7 0 
+3 7 5 8 0 
+3 6 7 4 0 
+2 4 9 6 0 
+4 5 8 b 0 
+2 9 6 2 0 
+5 7 8 c 0 
+6 8 7 9 0 
+4 8 9 a 0 
+6 9 8 5 0 
+
+))
+(13 (2 d 1e 2 3)(
+2 3 1 1 3 
+2 4 1 3 6 
+3 1 4 3 7 
+2 1 6 1 2 
+3 1 5 7 8 
+6 1 3 1 4 
+1 4 5 7 b 
+3 7 1 4 8 
+2 1 9 2 6 
+1 5 7 8 c 
+4 1 8 a b 
+6 1 7 4 9 
+9 4 1 6 a 
+5 1 8 b c 
+6 8 1 5 9 
+1 6 9 2 5 
+8 1 7 9 c 
+8 9 1 5 a 
+
+))
+(12 (3 1 c 1 2))
+(45 (1 wall wall-solid)())
+(45 (2 interior interior-solid)())
+(45 (3 fluid solid)())
