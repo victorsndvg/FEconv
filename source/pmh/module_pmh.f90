@@ -53,7 +53,7 @@ end type
 
 type pmh_mesh
   type(piece), allocatable :: pc(:) !pieces that compose the mesh
-  real(real64)             :: ztol = epsilon(0.0d0) !mesh tolerance
+  real(real64)             :: ztol = epsilon(0._real64) !mesh tolerance
 end type  
 
 !Constants
@@ -66,7 +66,7 @@ integer, parameter, private :: Pc(32,4) = reshape([ &
 1, 2, 4, 5,  2, 3, 1, 6,  3, 4, 2, 7,  4, 1, 3, 8,  5, 8, 6, 1,  6, 5, 7, 2,  7, 6, 8, 3,  8, 7, 5, 4], [32, 4], order=[2,1])
 
 !Private procedures
-private :: swap, reorder_nodes_simplex_P2, QJ_pos, detDFT_pos, reorder_nodes_P2, positive_jacobian
+private :: swap, reorder_nodes_element_P2, QJ_pos, detDFT_pos, reorder_nodes_P2, positive_jacobian
 
 contains
 
@@ -853,51 +853,63 @@ do ip = 1, size(pmh%pc,1)
             elg%nn([1,3,2],k) = elg%nn(:,k)
           end do
         end select
-      elseif (tp == check_fe(.false.,  6, 3,  3, 0)) then
-        !************************************* Triangle, Lagrange P2 ****************************
-        if (.not.allocated(elg%nn)) call error('(module_pmh/reorder_nodes) nn not allocated for an Lagrange P2 tria mesh: piece '//&
+      elseif (tp == check_fe(.false.,  6, 3, 3, 0) .or. tp == check_fe(.false.,  8, 4, 4, 0)) then
+        !************************************* Triangle and quadrangle, Lagrange P2 ****************************
+        if (.not.allocated(elg%nn)) &
+          & call error('(module_pmh/reorder_nodes) nn not allocated for an Lagrange P2 surface mesh: piece '//&
         &trim(string(ip))//', group '//trim(string(ig)))
         select case(reorder_type)
         case('hard') !check every element
           !check whether mid-points appear at the end of nn
           call alloc(inew, FEDB(tp)%lnn)
           do k = 1, elg%nel
-            call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, pmh%ztol, k, inew)
+            call reorder_nodes_element_P2(ip, ig, elg, tp, z, pmh%ztol, k, inew)
             elg%nn(:,k) = elg%nn(inew(:),k)
           end do
         case('soft') !check the first element, asume the rest have the same behavior
           !check whether mid-points appear at the end of nn
           call alloc(inew, FEDB(tp)%lnn)
-          call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, pmh%ztol, 1, inew)
+          call reorder_nodes_element_P2(ip, ig, elg, tp, z, pmh%ztol, 1, inew)
           do k = 1, elg%nel
             elg%nn(:,k) = elg%nn(inew(:),k)
           end do
         case('salome') !node order is the one prescribed by Salome for isoparam. P2 triangles: vert. and mid-points sandwiched
           do k = 1, elg%nel
-            elg%nn([1,4,2,5,3,6],k) = elg%nn(:,k)
+            if(tp == check_fe(.false.,  6, 3, 3, 0)) then
+              elg%nn([1,4,2,5,3,6],k) = elg%nn(:,k)                !Tria P2
+            elseif(tp == check_fe(.false.,  8, 4, 4, 0)) then
+              elg%nn([1,5,2,6,3,7,4,8],k) = elg%nn(:,k)            !Quad P2
+            endif
           end do
         end select
-      elseif (tp == check_fe(.false., 10, 4,  6, 4)) then
-        !************************************* Tetrahedron, Lagrange P2 *************************
-        if (.not.allocated(elg%nn)) call error('(module_pmh/reorder_nodes) nn not allocated for an Lagrange P2 tet mesh: piece '//&
+      elseif (tp == check_fe(.false., 10, 4,  6, 4) .or. tp == check_fe(.false., 20, 8,  12, 6)) then
+        !************************************* Tetrahedron and hexahedron, Lagrange P2 *************************
+        if (.not.allocated(elg%nn)) &
+          & call error('(module_pmh/reorder_nodes) nn not allocated for an Lagrange P2 volumic mesh: piece '//&
         &trim(string(ip))//', group '//trim(string(ig)))
         select case(reorder_type)
         case('hard') !check every element
           !check whether mid-points appear at the end of nn
           call alloc(inew, FEDB(tp)%lnn)
           do k = 1, elg%nel
-            call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, pmh%ztol, k, inew)
+            call reorder_nodes_element_P2(ip, ig, elg, tp, z, pmh%ztol, k, inew)
             elg%nn(:,k) = elg%nn(inew(:),k)
           end do
         case('soft') !check the first element, asume the rest have the same behavior
           !check whether mid-points appear at the end of nn
           call alloc(inew, FEDB(tp)%lnn)
-          call reorder_nodes_simplex_P2(ip, ig, elg, tp, z, pmh%ztol, 1, inew)
+          call reorder_nodes_element_P2(ip, ig, elg, tp, z, pmh%ztol, 1, inew)
           do k = 1, elg%nel
             elg%nn(:,k) = elg%nn(inew(:),k)
           end do
         case('salome') !node order is the one prescribed by Salome for isoparam. P2 triangles: vert. and mid-points sandwiched
-          call info('(module_pmh/reorder_nodes) option ''-r salome'' not implemented for tetrahedra Lagrange P2')
+          do k = 1, elg%nel
+            if(tp == check_fe(.false., 10, 4,  6, 4)) then
+              elg%nn([1,5,2,6,3,7,8,9,10,4],k) = elg%nn(:,k)                                ! Tetra  P2
+            elseif(tp == check_fe(.false., 20, 8,  12, 6)) then
+              elg%nn([1,9,2,10,3,11,4,12,13,14,15,16,5,17,6,18,7,19,8,20],k) = elg%nn(:,k)  ! Hexa P2
+            endif
+          enddo
         end select
       else
         call info('(module_pmh/reorder_nodes) reordering of element type '//trim(string(FEDB(pmh%pc(ip)%el(ig)%type)%desc))//&
@@ -909,9 +921,9 @@ end do
 end subroutine
 
 !-----------------------------------------------------------------------
-! reorder_nodes_simplex_P2: calculate inew to reorder nn (vertices first)
+! reorder_nodes_element_P2: calculate inew to reorder nn (vertices first)
 !-----------------------------------------------------------------------
-subroutine reorder_nodes_simplex_P2(ip, ig, elg, tp, z, ztol, k, inew)
+subroutine reorder_nodes_element_P2(ip, ig, elg, tp, z, ztol, k, inew)
 type(elgroup), intent(in)    :: elg
 integer,       intent(in)    :: ip, ig, tp, k
 real(real64),  intent(in)    :: z(:,:)
@@ -937,11 +949,11 @@ NODES: do i = 1, FEDB(tp)%lnn !nodes
   nv = nv + 1    
   newnn(nv) = elg%nn(i,k)
   inew (nv) = i
-  if (nv > FEDB(tp)%lnv)  call error('(module_pmh/reorder_nodes_simplex_P2) too many vertices were found in a Lagrange P2 '//&
+  if (nv > FEDB(tp)%lnv)  call error('(module_pmh/reorder_nodes_element_P2) too many vertices were found in a Lagrange P2 '//&
   &'element: piece '//trim(string(ip))//', group '//trim(string(ig))//', element '//trim(string(k))//&
   &'; some edges can be singular or it can be an isoparametric element. Use ''feconv -h'' to see available options')
 end do NODES
-if (nv < FEDB(tp)%lnv)  call error('(module_pmh/reorder_nodes_simplex_P2) too few vertices were found in a Lagrange P2 '//&
+if (nv < FEDB(tp)%lnv)  call error('(module_pmh/reorder_nodes_element_P2) too few vertices were found in a Lagrange P2 '//&
 &'element: piece '//trim(string(ip))//', group '//trim(string(ig))//', element '//trim(string(k))//&
 &'; tolerance could be higher than the precision of the mesh. Use ''feconv -h'' to see available options')
 !identify mid-points and save it in PMH order

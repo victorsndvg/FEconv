@@ -31,7 +31,7 @@ gfortran
 </compiler>
 
 <fflags>
--ffree-line-length-0 -ffixed-line-length-0
+-Wall -ggdb -fcheck=all -fbacktrace -fall-intrinsics 
 </fflags>
 
 </content>
