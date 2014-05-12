@@ -28,10 +28,11 @@ use module_compiler_dependant, only: real64
 use module_os_dependant, only: maxpath
 use module_report, only: error, info
 use module_convers, only: string, int, dble
-use module_alloc, only: alloc, dealloc, reduce, sfind, find_first, find_row_sorted, sort, insert, insert_row_sorted, bsearch
+use module_alloc, only: alloc, dealloc, set, reduce, sfind, find_first, find_row_sorted, sort, insert, insert_row_sorted, bsearch
 use module_args, only: is_arg, get_post_arg
 use module_feed, only: feed, empty
-use module_fe_database_pmh, only : FEDB, check_fe
+use module_fe_database_pmh, only : FEDB, check_fe, VF_WEDG
+use module_set, only: unique
 implicit none
 
 !Types
@@ -403,7 +404,6 @@ if (max_tdim > 2) then
   end do
 end if
 
-
 !z: save vertex coordinates
 call alloc(z, dim, nver)
 do ipp = 1, size(piece2save,1)
@@ -411,6 +411,8 @@ do ipp = 1, size(piece2save,1)
   deallocate(pmh%pc(ipp)%z)
 end do
 end subroutine
+
+
 
 !-----------------------------------------------------------------------
 ! mfm2pmh: convert a MFM mesh into a PMH structure
@@ -709,7 +711,7 @@ end subroutine
 ! build_node_coordinates: build node coordinates from vertex information
 !
 ! this procedure must be called for each piece of a well-constructed PMH
-! when all grous are Lagrange P1, variable all_P1 is .true. and znod is not created
+! When all grous are Lagrange P1, variable all_P1 is .true. and znod is not created
 ! thus, the way of calling this procedure is:
 !   do ip = 1, size(pmh%pc, 1)
 !     call build_node_coordinates(pmh%pc(ip), ip, all_P1, znod)
@@ -977,111 +979,146 @@ subroutine positive_jacobian(pmh)
 type(pmh_mesh), intent(inout) :: pmh
 integer :: ip, ig, i, k, max_tdim
 integer, allocatable :: pos(:) 
-logical :: QJac(4) 
-character(len=MAXPATH) :: jacobian_opt
+real(real64) ::  s, t
+logical :: QJac(4) ,check
 
-
-!check the application of possitive jacobian
+!check whether the application of possitive jacobian (by default, positive jacobian is run)
 if (is_arg('-j')) then
   select case(get_post_arg('-j'))
-  case('yes', 'no') !recognized options
-    jacobian_opt = get_post_arg('-j')
+  case('yes')
+    continue
+  case('no')
+    call info('(module_pmh/positive_jacobian) detected option -j no: jacobian is not checked')
+    return
   case default
     call error('(module_pmh/positive_jacobian) option -j not recognized: '//trim(get_post_arg('-j'))//&
     &'; use ''feconv -h'' to see available options')
   end select
-else
-  jacobian_opt = 'yes'
-end if    
+end if
 
-if(trim(jacobian_opt) == 'yes') then
-
-  max_tdim = 0 !maximal topological dimension
-  do ip = 1, size(pmh%pc,1)
-    do ig = 1, size(pmh%pc(ip)%el, 1)
-        if (max_tdim < FEDB(pmh%pc(ip)%el(ig)%type)%tdim) max_tdim = FEDB(pmh%pc(ip)%el(ig)%type)%tdim
-    end do
+max_tdim = 0 !maximal topological dimension
+do ip = 1, size(pmh%pc,1)
+  do ig = 1, size(pmh%pc(ip)%el, 1)
+      if (max_tdim < FEDB(pmh%pc(ip)%el(ig)%type)%tdim) max_tdim = FEDB(pmh%pc(ip)%el(ig)%type)%tdim
   end do
+end do
 
-  do ip = 1, size(pmh%pc,1)
-    do ig = 1, size(pmh%pc(ip)%el,1)
-      associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type, z => pmh%pc(ip)%z)
-        if (FEDB(tp)%tdim < max_tdim) cycle !only for groups with maximal topological dimension
-        if (tp == check_fe(.true.,   1, 1,  0, 0) .or. tp == check_fe(.true.,   2, 2,  1, 0) .or. &
-            tp == check_fe(.false.,  3, 2,  1, 0)) cycle !Node, Edge Lagrange P1 or P2, do nothing
-        if (tp == check_fe(.true.,   3, 3,  3, 0)) then
-          !************************************* Triangle, Lagrange P1 ****************************
-          do k = 1, elg%nel
-            if ( (z(1,elg%mm(2,k)) - z(1,elg%mm(1,k))) * (z(2,elg%mm(3,k)) - z(2,elg%mm(1,k))) & !only x and y coordinates are used
-               - (z(2,elg%mm(2,k)) - z(2,elg%mm(1,k))) * (z(1,elg%mm(3,k)) - z(1,elg%mm(1,k))) < 0 ) &
+do ip = 1, size(pmh%pc,1)
+  do ig = 1, size(pmh%pc(ip)%el,1)
+    associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type, z => pmh%pc(ip)%z)
+      if (FEDB(tp)%tdim < max_tdim) cycle !only for groups with maximal topological dimension
+      if (tp == check_fe(.true.,   1, 1,  0, 0) .or. tp == check_fe(.true.,   2, 2,  1, 0) .or. &
+          tp == check_fe(.false.,  3, 2,  1, 0)) cycle !Node, Edge Lagrange P1 or P2, do nothing
+      if (tp == check_fe(.true.,   3, 3,  3, 0)) then
+        !************************************* Triangle, Lagrange P1 ****************************
+        do k = 1, elg%nel
+          if ( (z(1,elg%mm(2,k)) - z(1,elg%mm(1,k))) * (z(2,elg%mm(3,k)) - z(2,elg%mm(1,k))) & !only x and y coordinates are used
+             - (z(2,elg%mm(2,k)) - z(2,elg%mm(1,k))) * (z(1,elg%mm(3,k)) - z(1,elg%mm(1,k))) < 0 ) &
+          call swap(elg%mm(2,k), elg%mm(3,k))
+        end do
+      elseif (tp == check_fe(.false.,  6, 3,  3, 0)) then
+        !************************************* Triangle, Lagrange P2 ****************************
+        do k = 1, elg%nel
+          if ( (z(1,elg%mm(2,k)) - z(1,elg%mm(1,k))) * (z(2,elg%mm(3,k)) - z(2,elg%mm(1,k))) & !only x and y coordinates are used
+             - (z(2,elg%mm(2,k)) - z(2,elg%mm(1,k))) * (z(1,elg%mm(3,k)) - z(1,elg%mm(1,k))) < 0 ) then
             call swap(elg%mm(2,k), elg%mm(3,k))
-          end do
-        elseif (tp == check_fe(.false.,  6, 3,  3, 0)) then
-          !************************************* Triangle, Lagrange P2 ****************************
-          do k = 1, elg%nel
-            if ( (z(1,elg%mm(2,k)) - z(1,elg%mm(1,k))) * (z(2,elg%mm(3,k)) - z(2,elg%mm(1,k))) & !only x and y coordinates are used
-               - (z(2,elg%mm(2,k)) - z(2,elg%mm(1,k))) * (z(1,elg%mm(3,k)) - z(1,elg%mm(1,k))) < 0 ) then
-              call swap(elg%mm(2,k), elg%mm(3,k))
-            end if
-            if ( (z(1,elg%nn(2,k)) - z(1,elg%nn(1,k))) * (z(2,elg%nn(3,k)) - z(2,elg%nn(1,k))) & !only x and y coordinates are used
-               - (z(2,elg%nn(2,k)) - z(2,elg%nn(1,k))) * (z(1,elg%nn(3,k)) - z(1,elg%nn(1,k))) < 0 ) then
-              call swap(elg%nn(2,k), elg%nn(3,k))
-              call swap(elg%nn(4,k), elg%nn(6,k))
-            end if
-          end do
-        elseif (tp == check_fe(.true.,   4, 4,  4, 0)) then
-          !************************************* Quadrangle, Lagrange P1 **************************
-          !check 4-node quadrilateral jacobian (see http://mms2.ensmp.fr/ef_paris/technologie/transparents/e_Pathology.pdf)
-          do k = 1, elg%nel
-            QJac = [QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1, -1), &
-                    QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1, -1), &
-                    QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1,  1), &
-                    QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1,  1)]
-            call sfind(QJac, .false., pos)
-            if     (size(pos,1) == 4) then
-              call swap(elg%mm(1,k), elg%mm(2,k))
-              call swap(elg%mm(3,k), elg%mm(4,k))
-            elseif (size(pos,1) == 2) then
-              call swap(elg%mm(pos(1),k), elg%mm(pos(2),k))
-            end if
-          end do
-        elseif (tp == check_fe(.true.,   4, 4,  6, 4)) then
-          !************************************* Tetrahedron, Lagrange P1 *************************
-          do k = 1, elg%nel
-            if (.not. detDFT_pos(z(:,elg%mm(1,k)), z(:,elg%mm(2,k)), z(:,elg%mm(3,k)), z(:,elg%mm(4,k)))) &
-            call swap(elg%mm(2,k), elg%mm(3,k))
-          end do
-        elseif (tp == check_fe(.false., 10, 4,  6, 4)) then
-          !************************************* Tetrahedron, Lagrange P2 *************************
-          do k = 1, elg%nel
-            if (.not. detDFT_pos(z(:,elg%mm(1,k)), z(:,elg%mm(2,k)), z(:,elg%mm(3,k)), z(:,elg%mm(4,k)))) &
-              call swap(elg%mm(2,k), elg%mm( 3,k))
-            if (.not. detDFT_pos(z(:,elg%nn(1,k)), z(:,elg%nn(2,k)), z(:,elg%nn(3,k)), z(:,elg%nn(4,k)))) then
-              call swap(elg%nn(2,k), elg%nn( 3,k))
-              call swap(elg%nn(5,k), elg%nn( 7,k))
-              call swap(elg%nn(9,k), elg%nn(10,k))
-            end if
-          end do
-        elseif (tp == check_fe(.true.,   8, 8, 12, 6)) then
-          !************************************* Hexahedron, Lagrange P1 **************************
-          !sufficient condition to ensure positive Jacobian for an hexahedron
-          !(see http://www.math.udel.edu/~szhang/research/p/subtettest.pdf)
-          do k = 1, elg%nel
-            do i = 1, size(Pc, 1)
-            if (.not. detDFT_pos(z(:,elg%mm(Pc(i,1),k)), z(:,elg%mm(Pc(i,2),k)), z(:,elg%mm(Pc(i,3),k)), z(:,elg%mm(Pc(i,4),k)))) &
-            call info('(module_pmh/reorder_nodes) hexahedron '//trim(string(k))//' does not fulfill sufficient condition to '//&
-            &' ensure positive Jacobian: piece '//trim(string(ip))//', group '//trim(string(ig))//'; node order remains unchanged')
-            end do
-          end do
-        else
-          call info('(module_pmh/reorder_nodes) reordering of element type '//trim(string(FEDB(pmh%pc(ip)%el(ig)%type)%desc))//&
-          &' is not implemented: piece '//trim(string(ip))//', group '//trim(string(ig))//'; node order remains unchanged')
+          end if
+          if ( (z(1,elg%nn(2,k)) - z(1,elg%nn(1,k))) * (z(2,elg%nn(3,k)) - z(2,elg%nn(1,k))) & !only x and y coordinates are used
+             - (z(2,elg%nn(2,k)) - z(2,elg%nn(1,k))) * (z(1,elg%nn(3,k)) - z(1,elg%nn(1,k))) < 0 ) then
+            call swap(elg%nn(2,k), elg%nn(3,k))
+            call swap(elg%nn(4,k), elg%nn(6,k))
+          end if
+        end do
+      elseif (tp == check_fe(.true.,   4, 4,  4, 0)) then
+!--------->
+        if (.false.) then !implementacion original de jacobiano positivo (eliminar tras testar el nuevo codigo)
+!--------->
+        !************************************* Quadrangle, Lagrange P1 **************************
+        !check 4-node quadrilateral jacobian (see http://mms2.ensmp.fr/ef_paris/technologie/transparents/e_Pathology.pdf)
+        do k = 1, elg%nel
+          QJac = [QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1, -1), &
+                  QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1, -1), &
+                  QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1,  1), &
+                  QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1,  1)]
+          call sfind(QJac, .false., pos)
+          if     (size(pos,1) == 4) then
+            call swap(elg%mm(1,k), elg%mm(2,k))
+            call swap(elg%mm(3,k), elg%mm(4,k))
+          elseif (size(pos,1) == 2) then
+            call swap(elg%mm(pos(1),k), elg%mm(pos(2),k))
+          end if
+        end do
+!--------->
+        else !implementacion del jacobiano positivo en el plano (s,t) + comprobacion del vector normal
+!--------->
+        !************************************* Quadrangle, Lagrange P1 **************************
+        !check 4-node quadrilateral jacobian (see http://mms2.ensmp.fr/ef_paris/technologie/transparents/e_Pathology.pdf)
+        do k = 1, elg%nel
+          s = dot_product(z(:,elg%mm(3,k))-z(:,elg%mm(1,k)), z(:,elg%mm(2,k))-z(:,elg%mm(1,k))) !projection of a3-a1 in <{a2-a1}>
+          t = dot_product(z(:,elg%mm(3,k))-z(:,elg%mm(1,k)), z(:,elg%mm(4,k))-z(:,elg%mm(1,k))) !projection of a3-a1 in <{a4-a1}>
+          QJac = [QJ_pos([0._real64, 0._real64], [1._real64, 0._real64], [s, t], [0._real64, 1._real64], -1, -1), &
+                  QJ_pos([0._real64, 0._real64], [1._real64, 0._real64], [s, t], [0._real64, 1._real64],  1, -1), &
+                  QJ_pos([0._real64, 0._real64], [1._real64, 0._real64], [s, t], [0._real64, 1._real64],  1,  1), &
+                  QJ_pos([0._real64, 0._real64], [1._real64, 0._real64], [s, t], [0._real64, 1._real64], -1,  1)]
+          call sfind(QJac, .false., pos) !check whether vertices in (s,t)-plane are well oriented
+          if     (size(pos,1) == 2) then
+            call swap(elg%mm(pos(1),k), elg%mm(pos(2),k))
+          elseif (size(pos,1) == 4) then !in theory, never achieved; it remains for security reasons
+            call swap(elg%mm(1,k), elg%mm(2,k))
+            call swap(elg%mm(3,k), elg%mm(4,k))
+          end if
+          !counterclockwise orientation is not ensured by a positive jacobian in the (s,t)-plane: instead, check if 3rd component 
+          !of the normal vector is positive
+          if ((z(1,elg%mm(2,k))-z(1,elg%mm(1,k)))*(z(2,elg%mm(4,k))-z(2,elg%mm(1,k))) - &
+              (z(2,elg%mm(2,k))-z(2,elg%mm(1,k)))*(z(1,elg%mm(4,k))-z(1,elg%mm(1,k))) < 0._real64) then
+            call swap(elg%mm(1,k), elg%mm(2,k))
+            call swap(elg%mm(3,k), elg%mm(4,k))
+          end if
+        end do
+!--------->
         end if
-      end associate
-    end do
-  end do
-
+!--------->
+      elseif (tp == check_fe(.true.,   4, 4,  6, 4)) then
+        !************************************* Tetrahedron, Lagrange P1 *************************
+        do k = 1, elg%nel
+          if (.not. detDFT_pos(z(:,elg%mm(1,k)), z(:,elg%mm(2,k)), z(:,elg%mm(3,k)), z(:,elg%mm(4,k)))) &
+          call swap(elg%mm(2,k), elg%mm(3,k))
+        end do
+      elseif (tp == check_fe(.false., 10, 4,  6, 4)) then
+        !************************************* Tetrahedron, Lagrange P2 *************************
+        do k = 1, elg%nel
+          if (.not. detDFT_pos(z(:,elg%mm(1,k)), z(:,elg%mm(2,k)), z(:,elg%mm(3,k)), z(:,elg%mm(4,k)))) &
+            call swap(elg%mm(2,k), elg%mm( 3,k))
+          if (.not. detDFT_pos(z(:,elg%nn(1,k)), z(:,elg%nn(2,k)), z(:,elg%nn(3,k)), z(:,elg%nn(4,k)))) then
+            call swap(elg%nn(2,k), elg%nn( 3,k))
+            call swap(elg%nn(5,k), elg%nn( 7,k))
+            call swap(elg%nn(9,k), elg%nn(10,k))
+          end if
+        end do
+      elseif (tp == check_fe(.true.,   8, 8, 12, 6)) then
+        !************************************* Hexahedron, Lagrange P1 **************************
+        !sufficient condition to ensure positive Jacobian for an hexahedron
+        !(see http://www.math.udel.edu/~szhang/research/p/subtettest.pdf)
+        do k = 1, elg%nel
+          check = .true.
+          do i = 1, size(Pc, 1)
+          if (.not. detDFT_pos(z(:,elg%mm(Pc(i,1),k)), z(:,elg%mm(Pc(i,2),k)), z(:,elg%mm(Pc(i,3),k)), z(:,elg%mm(Pc(i,4),k)))) &
+            check = .false.
+          end do
+          if(.not. check) then
+          call info('(module_pmh/reorder_nodes) hexahedron '//trim(string(k))//' does not fulfill sufficient condition to '//&
+          &' ensure positive Jacobian: piece '//trim(string(ip))//', group '//trim(string(ig))//'; node order remains unchanged')
+if(k==1) print*, elg%mm(:,k)
 endif
+
+        end do
+      else
+        call info('(module_pmh/reorder_nodes) reordering of element type '//trim(string(FEDB(pmh%pc(ip)%el(ig)%type)%desc))//&
+        &' is not implemented: piece '//trim(string(ip))//', group '//trim(string(ig))//'; node order remains unchanged')
+      end if
+    end associate
+  end do
+end do
 
 end subroutine
 
