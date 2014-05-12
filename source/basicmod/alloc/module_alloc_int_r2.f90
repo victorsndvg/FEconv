@@ -315,16 +315,18 @@ end subroutine
 !-----------------------------------------------------------------------
 ! insert_row_sorted: insert a row in a row-sorted array
 !-----------------------------------------------------------------------
-subroutine insert_row_sorted_prv(v, val, used, fit)
+subroutine insert_row_sorted_prv(v, val, used, fit, pos)
 integer, allocatable             :: v(:,:)
 integer,           intent(in)    :: val(:)
 integer, optional, intent(inout) :: used
 logical, optional, intent(in)    :: fit(2)
-integer :: n, pos, a, b, anew, bnew, i, j
+integer, optional, intent(out)   :: pos
+integer :: n, a, b, anew, bnew, i, j
 
 !v not allocated
 if (.not. allocated(v)) then
-  call set_row(v, val, 1, fit)
+  pos = -1
+  call set_row(v, val, -pos, fit)
   if (present(used)) used = 1
   return
 end if
@@ -357,9 +359,9 @@ do j = 2, size(val,1)
   a = anew; b = bnew
   pos = bsearch(v(a:b,j), val(j), b-a+1)
   if (pos < 0) then
-    pos = -pos + a-1
+    pos = pos - a+1
 !   insert and return
-    call insert_row(v, val, pos, maxrow=n, fit=fit)
+    call insert_row(v, val, -pos, maxrow=n, fit=fit)
     if (present(used)) used = n+1
     return
   else
