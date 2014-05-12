@@ -18,7 +18,7 @@ use module_files, only: get_unit
 use module_args, only: get_arg, is_arg, get_post_arg
 use module_transform, only: lagr2l2, lagr2rt, lagr2nd, to_l1
 use module_cuthill_mckee, only: cuthill_mckee
-use module_ansys, only: load_ansys
+use module_msh, only: load_msh,save_msh
 use module_unv, only: load_unv,save_unv
 use module_patran, only: load_patran
 use module_mfm, only: load_mfm, save_mfm
@@ -70,7 +70,7 @@ if (len_trim(outfile) == 0) call error('(module_feconv/fe_conv) unable to find o
 if (len_trim(inext) == 0) call error('(module_feconv/fe_conv) unable to find input file extension.')
 if (len_trim(outext) == 0) call error('(module_feconv/fe_conv) unable to find output file extension.')
 select case (trim(adjustlt(outext))) !check outfile extension now (avoid reading infile when outfile is invalid)
-case('mfm', 'mum', 'vtu', 'mphtxt', 'unv', 'pf3')
+case('mfm', 'mum', 'vtu', 'mphtxt', 'unv', 'pf3', 'msh')
   continue
 case default
   call error('(module_feconv/fe_conv) output file extension not implemented: '//trim(adjustlt(outext)))
@@ -95,7 +95,7 @@ case('mum')
   print '(a)', 'Done!'
 case('msh')
   print '(a)', 'Loading ANSYS mesh file...'
-  call load_ansys(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  call load_msh( infile, pmh)
   print '(a)', 'Done!'
 case('unv')
   print '(a)', 'Loading UNV mesh file...'
@@ -173,6 +173,11 @@ case('pf3')
   print '(/a)', 'Saving FLUX mesh file...'
   if(.not. allocated(pmh%pc)) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   call save_pf3(outfile, pmh)
+  print '(a)', 'Done!'
+case('msh')
+  print '(/a)', 'Saving ANSYS mesh file...'
+  if(.not. allocated(pmh%pc)) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  call save_msh(outfile, pmh)
   print '(a)', 'Done!'
 end select !case default, already checked before reading infile
 end subroutine
