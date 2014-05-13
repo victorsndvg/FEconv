@@ -321,13 +321,14 @@ integer,           intent(in)    :: val(:)
 integer, optional, intent(inout) :: used
 logical, optional, intent(in)    :: fit(2)
 integer, optional, intent(out)   :: pos
-integer :: n, a, b, anew, bnew, i, j
+integer :: n, a, b, anew, bnew, i, j,indx
 
 !v not allocated
 if (.not. allocated(v)) then
-  pos = -1
-  call set_row(v, val, -pos, fit)
+  indx = -1
+  call set_row(v, val, -indx, fit)
   if (present(used)) used = 1
+  if (present(pos)) pos = indx
   return
 end if
 !number of existing rows
@@ -335,39 +336,42 @@ if (present(used)) then; n = used
 else;                    n = size(v,1)
 end if
 !search among the first vertices
-pos = bsearch(v(1:n,1), val(1), n)
-if (pos < 0) then
+indx = bsearch(v(1:n,1), val(1), n)
+if (indx < 0) then
 ! insert and return
-  call insert_row(v, val, -pos, maxrow=n, fit=fit)
+  call insert_row(v, val, -indx, maxrow=n, fit=fit)
   if (present(used)) used = n+1
+  if (present(pos)) pos = indx
   return
 end if
 a=1; b = n
 do j = 2, size(val,1)
 ! determine the left extreme of the interval where to search the j-th vertex
-  anew = pos
-  do i = pos-1, a, -1
-    if (v(i,j-1) /= v(pos,j-1)) exit
+  anew = indx
+  do i = indx-1, a, -1
+    if (v(i,j-1) /= v(indx,j-1)) exit
     anew = i
   end do
 ! determine the right extreme of the interval where to search the j-th vertex
-  bnew = pos
-  do i = pos+1, b
-    if (v(i,j-1) /= v(pos,j-1)) exit
+  bnew = indx
+  do i = indx+1, b
+    if (v(i,j-1) /= v(indx,j-1)) exit
     bnew = i
   end do
   a = anew; b = bnew
-  pos = bsearch(v(a:b,j), val(j), b-a+1)
-  if (pos < 0) then
-    pos = pos - a+1
+  indx = bsearch(v(a:b,j), val(j), b-a+1)
+  if (indx < 0) then
+    indx = indx - a+1
 !   insert and return
-    call insert_row(v, val, -pos, maxrow=n, fit=fit)
+    call insert_row(v, val, -indx, maxrow=n, fit=fit)
     if (present(used)) used = n+1
+    if (present(pos)) pos = indx
     return
   else
-    pos = pos + a-1
+    indx = indx + a-1
   end if
 end do
+if (present(pos)) pos = indx
 end subroutine
 
 !-----------------------------------------------------------------------
