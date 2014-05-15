@@ -10,7 +10,7 @@ module module_feed
 !   set_string_length: sets the maximum length of the internal string
 !   set_ending: sets the ending for the internal string
 !   feed: saves the argument in a internal string until it is filled; then
-!   it is emptied in a file
+!     it is emptied in a file
 !   empty: sends the content of the internal string to a file
 !-----------------------------------------------------------------------
 use module_convers
