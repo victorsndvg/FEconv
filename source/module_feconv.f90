@@ -50,7 +50,7 @@ integer, allocatable, dimension(:,:) :: nrc !face reference array
 real(real64), allocatable, dimension(:,:) :: z !vertices coordinates array
 integer, allocatable, dimension(:) :: nsd !subdomain index array
 
-logical: is_pmh = .false. !true if the working mesh is PMH, false if is MFM
+logical :: is_pmh = .false. !true if the working mesh is PMH, false if is MFM
 
 contains
 
@@ -80,6 +80,10 @@ end select
 !check isoparametric option, for UNV only
 if (trim(adjustlt(inext)) /= 'unv' .and. is_arg('-is')) call error('(module_feconv/fe_conv) only UNV input files can '//&
 &'manage -is option.')
+!options for mesh transformation (-l1, -l2, -rt, -nd and -cm) are incompatible with fields (-if, -of)
+if ( (is_arg('-l1') .or. is_arg('-l2') .or. is_arg('-rt') .or. is_arg('-nd') .or. is_arg('-cm')) .and. &
+     (is_arg('-if') .or. is_arg('-of')) ) call error('(module_feconv/fe_conv) options for mesh transformation (-l1, -l2, '//&
+     &'-rt, -nd and -cm) are incompatible with fields (-if, -of).')
 !set PMH mesh tolerance (all load procedures must consider intent(inout) for PMH argument)
 if (is_arg('-t')) then 
   pmh%ztol = dble(get_post_arg('-t'))
