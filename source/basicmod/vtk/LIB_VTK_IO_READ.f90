@@ -199,18 +199,24 @@ case(f_out_binary)
   case('NODE')
     call get_int('NumberOfPoints', NC_NN)
     E_IO = search(inside='PointData', to_find='DataArray', with_attribute='Name', of_value=varname)
-    call get_int('NumberOfComponents', NCOMP)
-    allocate(var(NC_NN*NCOMP), stat=E_IO)
+    if(E_IO == 0) then
+      call get_int('NumberOfComponents', NCOMP)
+      allocate(var(NC_NN*NCOMP), stat=E_IO)
+    endif
   case('CELL')
     call get_int('NumberOfCells', NC_NN)
     E_IO = search(inside='CellData', to_find='DataArray', with_attribute='Name', of_value=varname)
-    call get_int('NumberOfComponents', NCOMP)
-    allocate(var(NC_NN*NCOMP), stat=E_IO)
+    if(E_IO == 0) then
+      call get_int('NumberOfComponents', NCOMP)
+      allocate(var(NC_NN*NCOMP), stat=E_IO)
+    endif
   end select
-  call get_int('offset', offs)
-  call get_char('format', fmt)
-  if (trim(adjustlt(Upper_Case(fmt)))/='APPENDED') stop 'Format not implemented'
-  read(unit=Unit_VTK, iostat=E_IO, pos = append_offset+offs) N_Byte, var
+  if(E_IO == 0) then
+    call get_int('offset', offs)
+    call get_char('format', fmt)
+    if (trim(adjustlt(Upper_Case(fmt)))/='APPENDED') stop 'Format not implemented'
+    read(unit=Unit_VTK, iostat=E_IO, pos = append_offset+offs) N_Byte, var
+  endif
 endselect
 end function
 
@@ -239,18 +245,24 @@ case(f_out_binary)
   case('NODE')
     call get_int('NumberOfPoints', NC_NN)
     E_IO = search(inside='PointData', to_find='DataArray', with_attribute='Name', of_value=varname)
-    call get_int('NumberOfComponents', NCOMP)
-    allocate(var(NC_NN*NCOMP), stat=E_IO)
+    if(E_IO == 0) then
+      call get_int('NumberOfComponents', NCOMP)
+      allocate(var(NC_NN*NCOMP), stat=E_IO)
+    endif
   case('CELL')
     call get_int('NumberOfCells', NC_NN)
     E_IO = search(inside='CellData', to_find='DataArray', with_attribute='Name', of_value=varname)
-    call get_int('NumberOfComponents', NCOMP)
-    allocate(var(NC_NN*NCOMP), stat=E_IO)
+    if(E_IO == 0) then
+      call get_int('NumberOfComponents', NCOMP)
+      allocate(var(NC_NN*NCOMP), stat=E_IO)
+    endif
   end select
-  call get_int('offset', offs)
-  call get_char('format', fmt)
-  if (trim(adjustlt(Upper_Case(fmt)))/='APPENDED') stop 'Format not implemented'
-  read(unit=Unit_VTK, iostat=E_IO, pos = append_offset+offs) N_Byte, var
+  if(E_IO == 0) then
+    call get_int('offset', offs)
+    call get_char('format', fmt)
+    if (trim(adjustlt(Upper_Case(fmt)))/='APPENDED') stop 'Format not implemented'
+    read(unit=Unit_VTK, iostat=E_IO, pos = append_offset+offs) N_Byte, var
+  endif
 endselect
 end function
 
@@ -382,7 +394,10 @@ enddo
 do !search 'repeat' times the mark 'to_find'
   E_IO = read_record(buffer)
   buffer = trim(adjustlt(Upper_Case(buffer)))
-  if (index(buffer, '</'//trim(adjustlt(Upper_Case(inside)))) > 0) stop 'Mark not found or attribute does not match'
+  if (index(buffer, '</'//trim(adjustlt(Upper_Case(inside)))) > 0) then
+    E_IO = 1 ! Not found
+    return
+  endif
   if (index(buffer, '<'//trim(adjustlt(Upper_Case(to_find)))) > 0) then
     if (len_trim(of_value) == 0) exit !there is no attribute value to seach
     call get_char(with_attribute, str)

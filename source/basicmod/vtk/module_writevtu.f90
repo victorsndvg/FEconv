@@ -233,12 +233,16 @@ end subroutine
 !-----------------------------------------------------------------------
 ! VTU_close: closes a vtu file
 !-----------------------------------------------------------------------
-subroutine VTU_close()
+subroutine VTU_close(geo)
+  logical,optional ::geo
 
-if (vtk_geo_xml()/=0) stop
+if(present(geo)) then
+  if(geo) then; if (vtk_geo_xml()/=0) stop; endif
+else
+  if (vtk_geo_xml()/=0) stop
+endif
 print'(a)', 'Saving appended data...'
 if (vtk_end_xml()/=0) stop
-print'(a)', 'Done!'
 
 end subroutine
 

@@ -23,7 +23,7 @@ use module_unv, only: load_unv,save_unv
 use module_patran, only: load_patran
 use module_mfm, only: load_mfm, save_mfm
 use module_mum, only: load_mum, save_mum
-use module_vtu, only: save_vtu, type_cell
+use module_vtu, only: save_vtu2, load_vtu, type_cell
 use module_mphtxt, only: load_mphtxt,save_mphtxt
 use module_pf3, only: load_pf3,save_pf3
 !use module_tra, only: load_tra,save_tra
@@ -113,6 +113,10 @@ case('pf3')
   print '(a)', 'Loading FLUX mesh file...'
   call load_pf3(infile, pmh)
   print '(a)', 'Done!'
+case('vtu')
+  print '(a)', 'Loading MFM mesh file...'
+  call load_vtu( infile, pmh)
+  print '(a)', 'Done!'
 case default
   call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
 end select
@@ -154,10 +158,15 @@ case('mum')
   if(allocated(pmh%pc)) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   call save_mum(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   print '(a)', 'Done!'
+!case('vtu')
+!  print '(/a)', 'Saving VTU mesh file...'
+!  if(allocated(pmh%pc)) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+!  call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+!  print '(a)', 'Done!'
 case('vtu')
   print '(/a)', 'Saving VTU mesh file...'
-  if(allocated(pmh%pc)) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  if(.not. allocated(pmh%pc)) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  call save_vtu2(outfile, pmh)
   print '(a)', 'Done!'
 case('mphtxt')
   print '(/a)', 'Saving COMSOL mesh file...'
