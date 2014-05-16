@@ -1,8 +1,8 @@
-module module_MATH
+module module_math
 !-----------------------------------------------------------------------
 ! Module for mathematical operations
-! Last update: 30/07/2009
-! Programmer: fran.pena@usc.es
+! Last update: 10/04/2012
+! Programmer: fran(dot)pena(at)usc(dot)es
 !
 ! PUBLIC PROCEDURES:
 ! - det: find the determinant of a square matrix 
@@ -22,9 +22,9 @@ contains
 !-----------------------------------------------------------------------
 function det(muser) result(res)
 
-  real(DOUBLE), dimension(:,:), intent(in) :: muser
-  real(DOUBLE), dimension(size(muser,1),size(muser,2)) :: m
-  real(DOUBLE) :: res
+  real(real64), dimension(:,:), intent(in) :: muser
+  real(real64), dimension(size(muser,1),size(muser,2)) :: m
+  real(real64) :: res
   integer :: sgn, n, k, j
   integer, dimension(2) :: p 
 
@@ -52,8 +52,8 @@ end function
 !--------------------------------------------------------------------
 subroutine swap(u, v)
 
-  real(DOUBLE), dimension(:), intent(inout) :: u, v
-  real(DOUBLE), dimension(size(u)) :: tmp
+  real(real64), dimension(:), intent(inout) :: u, v
+  real(real64), dimension(size(u)) :: tmp
   
   tmp = u; u = v; v = tmp
   
