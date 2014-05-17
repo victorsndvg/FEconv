@@ -11,6 +11,7 @@ module module_args
 !
 ! PUBLIC PROCEDURES:
 !   set_args: manually set arguments in args (see also set_args_from_command)
+!   args_count: get the number of arguments
 !   get_arg: get i-th argument
 !   is_arg: returns true when the argument is present
 !   get_post_arg: returns the value after the required argument
@@ -78,6 +79,19 @@ do i = 1, nargs
   args(i) = str(i)
 end do
 end subroutine
+
+!-----------------------------------------------------------------------
+! args_count: get the number of arguments
+!-----------------------------------------------------------------------
+function args_count() result(res)
+integer :: res
+
+if (.not. allocated(args)) then
+  res = 0
+  return
+end if
+res = size(args, 1)
+end function
 
 !-----------------------------------------------------------------------
 ! get_arg: get i-th argument

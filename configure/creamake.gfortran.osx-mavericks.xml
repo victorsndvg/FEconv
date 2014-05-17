@@ -19,6 +19,7 @@ source/mum
 source/vtu
 source/mphtxt
 source/pmh
+source/flux
 </sources>
  
 <compiler>

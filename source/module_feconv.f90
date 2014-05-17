@@ -15,7 +15,8 @@ use module_os_dependant, only: maxpath
 use module_report, only: error
 use module_convers, only: adjustlt, lcase
 use module_files, only: get_unit
-use module_args, only: get_arg, is_arg, get_post_arg
+use module_alloc, only: set
+use module_args, only: get_arg, is_arg, get_post_arg, args_count
 use module_transform, only: lagr2l2, lagr2rt, lagr2nd, to_l1
 use module_cuthill_mckee, only: cuthill_mckee
 use module_msh, only: load_msh,save_msh
@@ -27,6 +28,7 @@ use module_vtu, only: save_vtu2, load_vtu, type_cell
 use module_mphtxt, only: load_mphtxt,save_mphtxt
 use module_pf3, only: load_pf3,save_pf3
 !use module_tra, only: load_tra,save_tra
+use module_field_database, only: FLDB, id_mesh_ext
 use module_pmh
 implicit none
 
@@ -34,16 +36,16 @@ implicit none
 type(pmh_mesh) :: pmh
 
 !Variables for MFM format
-integer :: nel = 0 !global number of elements
+integer :: nel  = 0 !global number of elements
 integer :: nnod = 0 !global number of nodes
 integer :: nver = 0 !global number of vertices
-integer :: dim = 0 !space dimension
-integer :: lnn = 0 !local number of nodes
-integer :: lnv = 0 !local number of vertices
-integer :: lne = 0 !local number of edges
-integer :: lnf = 0 !local number of faces
-integer, allocatable, dimension(:,:) :: nn !nodes index array
-integer, allocatable, dimension(:,:) :: mm !vertices index array
+integer :: dim  = 0 !space dimension
+integer :: lnn  = 0 !local number of nodes
+integer :: lnv  = 0 !local number of vertices
+integer :: lne  = 0 !local number of edges
+integer :: lnf  = 0 !local number of faces
+integer, allocatable, dimension(:,:) :: nn  !nodes index array
+integer, allocatable, dimension(:,:) :: mm  !vertices index array
 integer, allocatable, dimension(:,:) :: nrv !vertices reference array
 integer, allocatable, dimension(:,:) :: nra !edge reference array
 integer, allocatable, dimension(:,:) :: nrc !face reference array
@@ -58,13 +60,15 @@ contains
 ! convert: converts between several mesh and FE field formats
 !-----------------------------------------------------------------------
 subroutine convert()
-character(maxpath) :: infile = ' ', inext = ' ', outfile = ' ', outext = ' '
+character(maxpath) :: infile=' ', inmesh=' ', inext=' ', outfile=' ', outmesh=' ', outext=' '
+character(maxpath), allocatable :: infield(:), outfield(:)
 integer :: p, nargs
+logical :: there_is_field
 
-!find infile and out file among arguments
-nargs = command_argument_count()
-infile  = get_arg(nargs-1); p = index( infile, '.', back = .true.);  inext =  infile(p+1:len_trim( infile))
-outfile = get_arg(nargs);   p = index(outfile, '.', back = .true.); outext = outfile(p+1:len_trim(outfile))
+!find infile and outfile at the end of the arguments
+nargs = args_count()
+ infile = get_arg(nargs-1); p = index( infile, '.', back=.true.);  inmesh =  infile(1:p-1);  inext =  infile(p+1:len_trim( infile))
+outfile = get_arg(nargs);   p = index(outfile, '.', back=.true.); outmesh = outfile(1:p-1); outext = outfile(p+1:len_trim(outfile))
 
 !check mesh names and extensions
 if (len_trim(infile)  == 0) call error('(module_feconv/fe_conv) unable to find input file.')
@@ -88,6 +92,87 @@ if ( (is_arg('-l1') .or. is_arg('-l2') .or. is_arg('-rt') .or. is_arg('-nd') .or
 if (is_arg('-t')) then 
   pmh%ztol = dble(get_post_arg('-t'))
 end if    
+
+!field selection
+there_is_field = .true.
+if (FLDB(id_mesh_ext(inext))%is_field_outside) then
+  if (FLDB(id_mesh_ext(outext))%is_field_outside) then
+    !infield and outfield are both mesh external
+    if (is_arg('-if') .and. is_arg('-of')) then
+      !there is -if, there is -of
+      call set( infield, get_post_arg('-if'), 1, fit=.true.)
+      call set(outfield, get_post_arg('-of'), 1, fit=.true.)
+    elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
+      !there is not -if, there is not -of
+      there_is_field = .false.
+    elseif (.not. is_arg('-of')) then
+      !there is -if, there is not -of
+      call set( infield, get_post_arg('-if'), 1, fit=.true.)
+      p = index(infield(1), '.', back=.true.)
+      call set(outfield, trim(outmesh)//'__'//trim(infield(1)(1:p-1))//'.'//trim(FLDB(id_mesh_ext(outext))%field_ext), 1, &
+      &fit=.true.)
+    else
+      !there is not -if, there is -of
+      call error('(module_feconv/fe_conv) option -fi is mandatory to read external fields')
+    end if
+  else
+    !infield is mesh external, outfield is mesh internal
+    if (is_arg('-if') .and. is_arg('-of')) then
+      !there is -if, there is -of
+      call set( infield, get_post_arg('-if'), 1, fit=.true.)
+      call set(outfield, get_post_arg('-of'), 1, fit=.true.)
+    elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
+      !there is not -if, there is not -of
+      there_is_field = .false.
+    elseif (.not. is_arg('-of')) then
+      !there is -if, there is not -of
+      call set( infield, get_post_arg('-if'), 1, fit=.true.)
+      p = index(infield(1), '.', back=.true.); call set(outfield, trim(infield(1)(1:p-1)), 1, fit=.true.)
+    else
+      !there is not -if, there is -of
+      call error('(module_feconv/fe_conv) option -if is mandatory to read external fields')
+    end if
+  end if
+elseif (FLDB(id_mesh_ext(outext))%is_field_outside) then
+  !infield is mesh internal, outfield is mesh external
+  if (is_arg('-if') .and. is_arg('-of')) then
+    !there is -if, there is -of
+    call set( infield, get_post_arg('-if'), 1, fit=.true.)
+    call set(outfield, get_post_arg('-of'), 1, fit=.true.)
+  elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
+    !there is not -if, there is not -of
+    there_is_field = .false.
+  elseif (.not. is_arg('-of')) then
+    !there is -if, there is not -of
+    call set( infield, get_post_arg('-if'), 1, fit=.true.)
+    call set(outfield, trim(outmesh)//'__'//trim(infield(1))//'.'//trim(FLDB(id_mesh_ext(outext))%field_ext), 1, fit=.true.)
+  else
+    !there is not -if, there is -of
+    call set(infield, '*', 1, fit=.true.)
+    call set(outfield, get_post_arg('-of'), 1, fit=.true.)
+  end if
+else
+  !infield and outfield are both mesh internal
+  if (is_arg('-if') .and. is_arg('-of')) then
+    !there is -if, there is -of
+    call set( infield, get_post_arg('-if'), 1, fit=.true.)
+    call set(outfield, get_post_arg('-of'), 1, fit=.true.)
+  elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
+    !there is not -if, there is not -of
+    call set( infield, '*', 1, fit=.true.)
+    call set(outfield, '*', 1, fit=.true.)
+  elseif (.not. is_arg('-of')) then
+    !there is -if, there is not -of
+    call set( infield, get_post_arg('-if'), 1, fit=.true.)
+    call set(outfield, trim(infield(1)), 1, fit=.true.)
+  else
+    !there is not -if, there is -of
+    call error('(module_feconv/fe_conv) option -fi is mandatory to read a specific field.')
+  end if
+end if
+  
+!si es oM, load aparte; si es iM, se engorda load
+!escritura, lo mismo
 
 !read mesh
 select case (trim(lcase(adjustlt(inext))))
