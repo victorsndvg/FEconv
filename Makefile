@@ -23,22 +23,22 @@ dir_objetos = object
 condir_principal = source/main.f90
  
 # EXECUTABLE NAME 
-ejecutable = feconv
+ejecutable = feconv.exe
  
 # NEEDED TO convert ejecutable THE DEFAULT RULE: 
 $(ejecutable): $(condir_principal) 
  
 # MODULES
-modulos = module_compiler_gfortran.f90 module_os_dependant.f90 \
-module_report.f90 module_set.f90 module_math.f90 module_convers.f90 \
-module_files.f90 module_feed.f90 module_args.f90 module_alloc_char_r1.f90 \
-module_alloc_int_r1.f90 module_alloc_int_r2.f90 module_alloc_log_r1.f90 \
-module_alloc_real64_r1.f90 module_alloc_real64_r2.f90 module_alloc.f90 \
-module_system.f90 IR_Precision.f90 Lib_VTK_IO.f90 LIB_VTK_IO_READ.f90 \
-module_writevtu.f90 module_ALLOC_int_alloc_r2.f90 module_ALLOC_log_r2.f90 \
-module_ALLOC_real_r2.f90 module_desplazamientos.f90 module_fuerzas.f90 \
-module_cells.f90 module_dataset.f90 module_FE_DB.f90 module_groups.f90 \
-module_patran.f90 module_mesh.f90 module_dataset_2467.f90 \
+modulos = module_field_database.f90 module_compiler_gfortran.f90 \
+module_os_dependant.f90 module_report.f90 module_set.f90 module_math.f90 \
+module_convers.f90 module_files.f90 module_feed.f90 module_args.f90 \
+module_alloc_char_r1.f90 module_alloc_int_r1.f90 module_alloc_int_r2.f90 \
+module_alloc_log_r1.f90 module_alloc_real64_r1.f90 module_alloc_real64_r2.f90 \
+module_alloc.f90 module_system.f90 IR_Precision.f90 Lib_VTK_IO.f90 \
+LIB_VTK_IO_READ.f90 module_writevtu.f90 module_ALLOC_int_alloc_r2.f90 \
+module_ALLOC_log_r2.f90 module_ALLOC_real_r2.f90 module_desplazamientos.f90 \
+module_fuerzas.f90 module_cells.f90 module_dataset.f90 module_FE_DB.f90 \
+module_groups.f90 module_patran.f90 module_mesh.f90 module_dataset_2467.f90 \
 module_dataset_2412.f90 module_dataset_2411.f90 module_manage_unv.f90 \
 module_mfm.f90 module_mum.f90 module_fe_database_pmh.f90 module_pmh.f90 \
 module_utils_mphtxt.f90 module_write_mphtxt.f90 module_read_mphtxt.f90 \
@@ -155,10 +155,10 @@ module_pf3.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
 module_convers.o module_manage_pf3.o module_mesh.o module_pmh.o \
 module_fe_database_pmh.o
 module_feconv.o: module_compiler_gfortran.o module_os_dependant.o \
-module_report.o module_convers.o module_files.o module_args.o \
+module_report.o module_convers.o module_files.o module_alloc.o module_args.o \
 module_transform.o module_cuthill_mckee.o module_msh.o module_unv.o \
 module_patran.o module_mfm.o module_mum.o module_vtu.o module_mphtxt.o \
-module_pf3.o module_pmh.o
+module_pf3.o module_field_database.o module_pmh.o
  
 # INCLUDES
 includes = 

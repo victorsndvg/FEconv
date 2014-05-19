@@ -362,6 +362,13 @@ subroutine save_vtu2(filename, pmh)
     tnvpc = 0 ! Total number of vertex per cell
     maxtopdim = 0
     call build_node_coordinates(pmh%pc(i), i, all_P1, znod)
+    if(allocated(v_ref)) deallocate(v_ref)
+    if(.not. all_P1)then
+      allocate(v_ref(size(znod,2)))
+    else
+      allocate(v_ref(pmh%pc(i)%nver))
+    endif
+    v_ref = 0
     ! Calc max topological dimension
     do j=1,size(pmh%pc(i)%el,1)
       maxtopdim = max(maxtopdim,FEDB(pmh%pc(i)%el(j)%type)%tdim)
@@ -406,8 +413,12 @@ subroutine save_vtu2(filename, pmh)
           &(/(k,k=nel+1,nel+1+pmh%pc(i)%el(j)%nel)/), fit=.false.)
       elseif(FEDB(tp)%tdim == 0) then
         ! 'Building vertex references array ... '
-        call set(v_ref, (/(pmh%pc(i)%el(j)%ref(k), k=1,pmh%pc(i)%el(j)%nel)/) , &
-          &(/(k,k=nel+1,nel+1+pmh%pc(i)%el(j)%nel)/), fit=.false.)
+        do k=1,pmh%pc(i)%el(j)%nel
+          v_ref(pmh%pc(i)%el(j)%mm(:,k)) = pmh%pc(i)%el(j)%ref(k)
+        enddo
+        ! Vertex as celldata
+!        call set(v_ref, (/(pmh%pc(i)%el(j)%ref(k), k=1,pmh%pc(i)%el(j)%nel)/) , &
+!          &(/(k,k=nel+1,nel+1+pmh%pc(i)%el(j)%nel)/), fit=.false.)
       endif
       nel = nel + pmh%pc(i)%el(j)%nel
     enddo
@@ -420,6 +431,7 @@ subroutine save_vtu2(filename, pmh)
         if (vtk_geo_xml(nnod, nel, pack(znod(1,:),.true.), pack(znod(2,:),.true.), (/(0._real64,l=1,nnod)/)) /= 0) &
         &  stop 'writeVTU: vtk_geo_xml error 1'
       else
+        nnod = pmh%pc(i)%nver
         if (vtk_geo_xml(pmh%pc(i)%nver, nel, &
         &  pack(pmh%pc(i)%z(1,:),.true.), pack(pmh%pc(i)%z(2,:),.true.), (/(0._real64,l=1,pmh%pc(i)%nver)/)) /= 0) &
         &  stop 'writeVTU: vtk_geo_xml error 1'
@@ -430,32 +442,36 @@ subroutine save_vtu2(filename, pmh)
         if (vtk_geo_xml(nnod, nel, pack(znod(1,:),.true.), pack(znod(2,:),.true.), pack(znod(3,:),.true.)) /= 0) &
         &  stop 'writeVTU: vtk_geo_xml error 1'
       else
+        nnod = pmh%pc(i)%nver
         if (vtk_geo_xml(pmh%pc(i)%nver, nel, &
         &  pack(pmh%pc(i)%z(1,:),.true.), pack(pmh%pc(i)%z(2,:),.true.), pack(pmh%pc(i)%z(3,:),.true.)) /= 0) &
         &  stop 'writeVTU: vtk_geo_xml error 1'
       endif
     endif
     if(vtk_con_xml(nel,connect,offset,int(celltypes,I1P)) /= 0) stop 'writeVTU: vtk_con_xml error 1'
+
+    call VTU_begin_pointdata()
+    if(allocated(v_ref) .and. size(pack(v_ref,v_ref/=0))>0) then
+      Print*, '  Vertex references found!'
+      call reduce(v_ref, nnod)
+      if(vtk_var_xml(nnod, 'vertex_ref', v_ref) /= 0) stop 
+    endif
+    call VTU_end_pointdata()
     call VTU_begin_celldata()
-    if(allocated(el_ref)) then
-      Print*, '  Subdomain references founded!'
+    if(allocated(el_ref) .and. size(pack(el_ref,el_ref/=0))>0) then
+      Print*, '  Subdomain references found!'
       call reduce(el_ref, nel)
       if(vtk_var_xml(nel, 'element_ref', el_ref) /= 0) stop 
     endif
     if(allocated(f_ref)) then
-      Print*, '  Face references founded!'
+      Print*, '  Face references found!'
       call reduce(f_ref, nel)
       if(vtk_var_xml(nel, 'face_ref', f_ref) /= 0) stop 
     endif
     if(allocated(e_ref)) then
-      Print*, '  Edge references founded!'
+      Print*, '  Edge references found!'
       call reduce(e_ref, nel)
       if(vtk_var_xml(nel, 'edge_ref', e_ref) /= 0) stop 
-    endif
-    if(allocated(v_ref)) then
-      Print*, '  Vertex references founded!'
-      call reduce(v_ref, nel)
-      if(vtk_var_xml(nel, 'vertex_ref', v_ref) /= 0) stop 
     endif
     call VTU_end_celldata()
     if(vtk_geo_xml() /= 0) stop 'writeVTU: vtk_geo_xml_closep error 1'
@@ -661,7 +677,7 @@ subroutine read_vtu(filename, pmh)
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
   integer(I4P)              :: np, nn, nc, nco, nnref, ncref, ncomp
   real(R8P), allocatable    :: X(:), Y(:), Z(:)
-  real(R8P), allocatable    :: v_ref(:), aux_ref(:), c_refs(:)
+  integer, allocatable      :: v_ref(:), aux_ref(:), c_refs(:)
   integer(I4P), allocatable :: connect(:), offset(:)
   integer(I1P), allocatable :: cell_type(:),uct(:)
   integer                   :: i,j,k, lnn, ini, fin
@@ -735,11 +751,11 @@ subroutine read_vtu(filename, pmh)
 
     uct = uniqueI1P(cell_type)
     if(allocated(pmh%pc(i)%el)) deallocate(pmh%pc(i)%el)
-    if(allocated(v_ref)) then 
-      allocate(pmh%pc(i)%el(size(uct,1)+1))
-    else
+!    if(allocated(v_ref)) then 
+!      allocate(pmh%pc(i)%el(size(uct,1)+1))
+!    else
       allocate(pmh%pc(i)%el(size(uct,1)))
-    endif
+!    endif
     do j=1, size(uct,1)
       pmh%pc(i)%el(j)%type = vtk2pmhcelltype(int(uct(j)))
       lnn = FEDB(pmh%pc(i)%el(j)%type)%lnn
@@ -749,19 +765,25 @@ subroutine read_vtu(filename, pmh)
         if(uct(j) == cell_type(k)) then
           pmh%pc(i)%el(j)%nel = pmh%pc(i)%el(j)%nel + 1
           call set_col(pmh%pc(i)%el(j)%nn, connect(offset(k)-lnn+1:offset(k))+1, pmh%pc(i)%el(j)%nel, fit=[.true.,.false.])
-          if(pmh%pc(i)%el(j)%type /= check_fe(.true.,1,1,0,0)) &
-            & call set(pmh%pc(i)%el(j)%ref, int(c_refs(k)), pmh%pc(i)%el(j)%nel, fit=.true.)
+          if(pmh%pc(i)%el(j)%type /= check_fe(.true.,1,1,0,0)) then
+            call set(pmh%pc(i)%el(j)%ref, int(c_refs(k)), pmh%pc(i)%el(j)%nel, fit=.true.)
+          elseif(allocated(v_ref)) then
+            call set(pmh%pc(i)%el(j)%ref, v_ref(connect(offset(k))+1), pmh%pc(i)%el(j)%nel, fit=.true.)
+          endif
         endif
       enddo
       call reduce(pmh%pc(i)%el(j)%nn,FEDB(pmh%pc(i)%el(j)%type)%lnn,pmh%pc(i)%el(j)%nel)
       call reduce(pmh%pc(i)%el(j)%ref,pmh%pc(i)%el(j)%nel)
     enddo
-    if(allocated(v_ref)) then 
-      j = size(uct,1) + 1
-      pmh%pc(i)%el(j)%type = check_fe(.true.,1,1,0,0)
-      call set_row(pmh%pc(i)%el(j)%nn, (/(j,j=1,nn)/), 1, fit=[.true.,.true.])
-      call set(pmh%pc(i)%el(j)%ref, int(v_ref), (/(j,j=1,nn)/), fit=.true.)
-    endif
+
+!    if(allocated(v_ref)) then 
+!      j = size(uct,1) + 1
+!      pmh%pc(i)%el(j)%type = check_fe(.true.,1,1,0,0)
+!      call set_row(pmh%pc(i)%el(j)%nn, (/(j,j=1,nn)/), 1, fit=[.true.,.true.])
+!print*, 'nn',trim(string(pack(pmh%pc(i)%el(j)%nn,.true.)))
+!      call set(pmh%pc(i)%el(j)%ref, int(v_ref), (/(j,j=1,nn)/), fit=.true.)
+!print*, 'ref',trim(string(pmh%pc(i)%el(j)%ref))
+!    endif
 
   enddo
 

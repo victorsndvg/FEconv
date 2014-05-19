@@ -19,6 +19,7 @@ end interface
 interface VTK_VAR_XML_READ
   module procedure VTK_VAR_XML_R8_READ !, & ! real(R8P)    scalar/vectorial
   module procedure VTK_VAR_XML_R4_READ !, & ! real(R4P)    scalar/vectorial
+  module procedure VTK_VAR_XML_I4_READ !, & ! real(R4P)    scalar/vectorial
 end interface
 
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -266,6 +267,54 @@ case(f_out_binary)
 endselect
 end function
 
+
+!-----------------------------------------------------------------------------------------------------------------------------------
+function VTK_VAR_XML_I4_READ(var_location,NC_NN,NCOMP,varname,var,npiece) result(E_IO)
+implicit none
+character(*), intent(IN) :: var_location ! location of variables: CELL for cell-centered, NODE for node-centered
+integer(I4P), intent(OUT):: NC_NN        ! number of cells or nodes
+integer(I4P), intent(OUT):: NCOMP        ! number of components
+character(*), intent(IN) :: varname      ! variable name
+integer(I4P), intent(OUT), allocatable :: var(:) ! variable to be saved
+integer(I4P), intent(IN), optional :: npiece ! Number of the piece to read (by default: 1)
+integer(I4P)::              E_IO         ! Input/Output inquiring flag: $0$ if IO is done, $> 0$ if IO is not done
+character(len=maxlen) :: fmt
+integer :: np, offs
+integer(I4P) :: N_Byte
+
+np = 1; if (present(npiece)) np = npiece
+select case(f_out)
+case(f_out_ascii)
+  stop 'Not implemented'
+case(f_out_binary)
+  rewind(unit=Unit_VTK, iostat=E_IO)
+  E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
+  select case(trim(Upper_case(var_location)))
+  case('NODE')
+    call get_int('NumberOfPoints', NC_NN)
+    E_IO = search(inside='PointData', to_find='DataArray', with_attribute='Name', of_value=varname)
+    if(E_IO == 0) then
+      call get_int('NumberOfComponents', NCOMP)
+      allocate(var(NC_NN*NCOMP), stat=E_IO)
+    endif
+  case('CELL')
+    call get_int('NumberOfCells', NC_NN)
+    E_IO = search(inside='CellData', to_find='DataArray', with_attribute='Name', of_value=varname)
+    if(E_IO == 0) then
+      call get_int('NumberOfComponents', NCOMP)
+      allocate(var(NC_NN*NCOMP), stat=E_IO)
+    endif
+  end select
+  if(E_IO == 0) then
+    call get_int('offset', offs)
+    call get_char('format', fmt)
+    if (trim(adjustlt(Upper_Case(fmt)))/='APPENDED') stop 'Format not implemented'
+    read(unit=Unit_VTK, iostat=E_IO, pos = append_offset+offs) N_Byte, var
+  endif
+endselect
+end function
+
+
 !-----------------------------------------------------------------------------------------------------------------------------------
 function VTK_END_XML_READ() result(E_IO)
 integer(I4P):: E_IO 
@@ -390,6 +439,7 @@ do !search the beginnig of the mark 'inside' from position 'pos'
   buffer = trim(adjustlt(Upper_Case(buffer)))
   if (index(buffer, '<'//trim(adjustlt(Upper_Case(inside)))) > 0) exit !Mark 'inside' founded once
   E_IO = read_record(buffer)
+  if(E_IO /= 0) return
 enddo
 do !search 'repeat' times the mark 'to_find'
   E_IO = read_record(buffer)
