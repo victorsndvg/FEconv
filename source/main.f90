@@ -94,7 +94,7 @@ elseif (is_arg('-h')) then
   print '(a)', '    Modulef Formatted Mesh (.mfm), Modulef Unformatted Mesh (.mum).'
   print '(a)', ' '
   print '(a)', '    The current available output formats are: VTK-XML Unstructured Grid (.vtu), Modulef Formatted Mesh (.mfm),'
-  print '(a)', '    Modulef Unformatted Mesh (.mum).'
+  print '(a)', '    Modulef Unformatted Mesh (.mum), FreFem++ Tetrahedral Mesh (.mesh).'
   print '(a)', ' '
   print '(a)', '    For more details, please visit doc/index.xhtml'
   print '(a)', ' '
