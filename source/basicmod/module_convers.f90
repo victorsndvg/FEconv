@@ -274,13 +274,20 @@ integer :: res, p
 res = 0
 tmp = adjustlt(str)
 do 
+  if (len_trim(tmp) == 0) return !empty string
   if(present(sep)) then
-    p = index(tmp, sep)  
+    p = index(trim(tmp), sep)  
   else
-    p = index(tmp, ' ')  
+    p = index(trim(tmp), ' ')  
   endif
-
-  if (len_trim(tmp(1:p-1)) == 0) return
+  if (p == 0) then !separator not found
+    if (len_trim(tmp) > 0) res = res + 1
+    return
+  end if
+  if (len_trim(tmp(1:p-1)) == 0) then !there is nothing before separator
+    tmp = adjustlt(tmp(p+1:len_trim(tmp)))
+    cycle
+  end if
   res = res + 1 
   tmp = adjustlt(tmp(p+1:len_trim(tmp)))
 end do

@@ -13,7 +13,7 @@ module module_feconv
 use module_compiler_dependant, only: real64
 use module_os_dependant, only: maxpath
 use module_report, only: error
-use module_convers, only: adjustlt, lcase
+use module_convers, only: adjustlt, lcase, word_count
 use module_files, only: get_unit
 use module_alloc, only: set
 use module_args, only: get_arg, is_arg, get_post_arg, args_count
@@ -63,8 +63,10 @@ contains
 subroutine convert()
 character(maxpath) :: infile=' ', inmesh=' ', inext=' ', outfile=' ', outmesh=' ', outext=' '
 character(maxpath), allocatable :: infield(:), outfield(:)
-integer :: p, nargs
-logical :: there_is_field
+character(maxpath) :: str
+integer :: p, nargs, q
+integer, allocatable :: nsd0(:)
+logical :: there_is_field, is_extraction
 
 !find infile and outfile at the end of the arguments
 nargs = args_count()
@@ -239,6 +241,27 @@ if (is_arg('-cm')) then
   call cuthill_mckee(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, z); is_pmh = .false.
 end if
 
+!extract
+is_extraction = .false.
+
+if (is_arg('-es')) then
+  str = get_post_arg('-es')
+  p = index(str, '[')
+  if (p == 0) then !a single subdomain ref.
+    call set(nsd0, int(str), 1, fit=.true.)
+  else
+    q = index(str, ']', back=.true.)
+    print*,'-',trim(str),'-'
+    print*, p,q
+    print*, word_count(str(p+1:q-1),',')
+    call alloc(nsd0, word_count(str(p+1:q-1),','))
+    read(str(p+1:q-1),*) nsd0
+  end if
+  is_extraction = .true.
+  print*, nsd0
+  stop
+end if
+  
 !save mesh
 select case (trim(adjustlt(outext)))
 case('mfm')
