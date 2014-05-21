@@ -22,7 +22,7 @@ type(field_db), parameter :: FLDB(5) = [       &
 field_db('mfm       ', 'mff       ', .true.),  &
 field_db('mum       ', 'muf       ', .true.),  &
 field_db('vtu       ', 'vtu       ', .false.), &
-field_db('mesh      ', 'mesh      ', .false.), &
+field_db('msh       ', '          ', .false.), & !FreeFem++
 field_db('unv       ', 'unv       ', .false.)]
 contains
 

@@ -77,7 +77,7 @@ if (len_trim(outfile) == 0) call error('(module_feconv/fe_conv) unable to find o
 if (len_trim(inext)   == 0) call error('(module_feconv/fe_conv) unable to find input file extension.')
 if (len_trim(outext)  == 0) call error('(module_feconv/fe_conv) unable to find output file extension.')
 select case (trim(adjustlt(outext))) !check outfile extension now (avoid reading infile when outfile is invalid)
-case('mfm', 'mum', 'vtu', 'mphtxt', 'unv', 'pf3', 'msh', 'mesh')
+case('mfm', 'mum', 'vtu', 'mphtxt', 'unv', 'pf3', 'msh')
   continue
 case default
   call error('(module_feconv/fe_conv) output file extension not implemented: '//trim(adjustlt(outext)))
@@ -277,14 +277,15 @@ case('pf3')
   call save_pf3(outfile, pmh)
   print '(a)', 'Done!'
 case('msh')
-  print '(/a)', 'Saving ANSYS mesh file...'
-  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_msh(outfile, pmh)
-  print '(a)', 'Done!'
-case('mesh')
-  print '(/a)', 'Saving FreFem++ mesh file...'
-  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_freefem(outfile, get_unit(), pmh)
+  if (is_arg('-ff')) then !FreeFem++
+    print '(/a)', 'Saving FreFem++ mesh file...'
+    if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+    call save_freefem(outfile, get_unit(), pmh)
+  else !ANSYS
+    print '(/a)', 'Saving ANSYS mesh file...'
+    if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+    call save_msh(outfile, pmh)
+  end if
   print '(a)', 'Done!'
 end select !case default, already checked before reading infile
 end subroutine

@@ -131,17 +131,22 @@ open (unit=iu, file=outfile, form='formatted', position='rewind', iostat=ios)
 if (ios /= 0) call error('save/open, #'//trim(string(ios)))
 call feed(iu, string(nver)); call feed(iu, string(nel)); call feed(iu, string(ntri));  call empty(iu)
 
-!store vertex coordinates
+!write(iu, '(a/)') 'MeshVersionFormatted 1')
+!write(iu, '(a)')  'Vertices'
+!write(iu, '(a)')  trim(string(nver))
+
+!store vertex coordinates and reference 0
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   do j = 1, pmh%pc(ip)%nver
     do i = 1, pmh%pc(ip)%dim; call feed(iu, string(pmh%pc(ip)%z(i,j))); end do
-    do i = 1, 3-dim;          call feed(iu, string(0.));                 end do
+    do i = 1, 3-dim;          call feed(iu, string(0.));                end do
+    call feed(iu, string(0))
     call empty(iu)
   end do
 end do
 
-!store tet conectivities
+!store tet conectivities and references
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   do ig = 1, size(pmh%pc(ip)%el, 1)
@@ -157,7 +162,7 @@ do ipp = 1, size(piece2save,1)
   end do
 end do
 
-!store tri conectivities
+!store tri conectivities and references
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   do ig = 1, size(pmh%pc(ip)%el, 1)
