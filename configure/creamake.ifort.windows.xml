@@ -24,6 +24,7 @@ source/vtu
 source/mphtxt
 source/pmh
 source/flux
+source/fem_extract
 </sources>
  
 <compiler>

@@ -14,7 +14,8 @@
 dir_fuentes = source source/basicmod source/basicmod/gfortran \
 source/basicmod/args source/basicmod/alloc source/basicmod/vtk \
 source/cuthill_mckee source/ansys source/patran source/unv source/mfm \
-source/mum source/vtu source/mphtxt source/pmh source/flux source/freefem
+source/mum source/vtu source/mphtxt source/pmh source/flux source/freefem \
+source/fem_extract
  
 # OBJECT AND .MOD FOLDER
 dir_objetos = object
@@ -46,7 +47,9 @@ module_manage_mphtxt.f90 module_mphtxt.f90 module_vtu.f90 module_unv.f90 \
 module_utils_msh.f90 module_read_msh.f90 module_cuthill_mckee.f90 \
 module_transform.f90 module_write_msh.f90 module_manage_msh.f90 module_msh.f90 \
 module_utils_pf3.f90 module_read_pf3.f90 module_write_pf3.f90 \
-module_manage_pf3.f90 module_pf3.f90 module_freefem.f90 module_feconv.f90
+module_manage_pf3.f90 module_pf3.f90 module_freefem.f90 \
+module_fem_extract_complex.f90 module_fem_extract_real.f90 \
+module_fem_extract.f90 module_feconv.f90
  
 # MODULE DEPENDENCIES
 # if pru1 depends on pru2... pru1.o: pru2.o
@@ -155,12 +158,15 @@ module_pf3.o: module_compiler_gfortran.o module_os_dependant.o module_report.o \
 module_convers.o module_manage_pf3.o module_mesh.o module_pmh.o \
 module_fe_database_pmh.o
 module_freefem.o: module_os_dependant.o module_report.o module_convers.o \
-module_alloc.o module_args.o module_feed.o module_fe_database_pmh.o
+module_alloc.o module_args.o module_feed.o module_fe_database_pmh.o \
+module_pmh.o
+module_fem_extract.o: module_fem_extract_real.o module_fem_extract_complex.o
 module_feconv.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_convers.o module_files.o module_alloc.o module_args.o \
 module_transform.o module_cuthill_mckee.o module_msh.o module_unv.o \
 module_patran.o module_mfm.o module_mum.o module_vtu.o module_mphtxt.o \
-module_pf3.o module_field_database.o module_freefem.o module_pmh.o
+module_pf3.o module_field_database.o module_freefem.o module_pmh.o \
+module_fem_extract.o
  
 # INCLUDES
 includes = 

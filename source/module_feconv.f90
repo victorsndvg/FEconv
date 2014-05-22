@@ -31,6 +31,7 @@ use module_pf3, only: load_pf3,save_pf3
 use module_field_database, only: FLDB, id_mesh_ext
 use module_freefem, only: save_freefem_msh, save_freefem_mesh
 use module_pmh
+use module_fem_extract, only: extract_mesh, extract_ref
 implicit none
 
 !PMH structure
@@ -66,7 +67,10 @@ character(maxpath), allocatable :: infield(:), outfield(:)
 character(maxpath) :: str
 integer :: p, nargs, q
 integer, allocatable :: nsd0(:)
-logical :: there_is_field, is_extraction
+logical :: there_is_field
+!Variables for extratction
+integer,      allocatable :: submm(:,:), subnrv(:,:), subnra(:,:), subnrc(:,:), subnsd(:), globv(:), globel(:)
+real(real64), allocatable :: subz(:,:)
 
 !find infile and outfile at the end of the arguments
 nargs = args_count()
@@ -216,23 +220,67 @@ case default
   call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
 end select
 
+!extract (only for Lagrange P1 meshes)
+if (is_arg('-es')) then
+  str = get_post_arg('-es')
+  print '(/a)', 'Extracting subdomain(s) '//trim(str)//'...'
+  p = index(str, '[')
+  if (p == 0) then !a single subdomain ref.
+    call set(nsd0, int(str), 1, fit=.true.)
+  else !several subdomain refs. enclosed in [] and separated by ,
+    q = index(str, ']', back=.true.)
+    call alloc(nsd0, word_count(str(p+1:q-1),','))
+    read(str(p+1:q-1),*) nsd0
+  end if
+  if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd); is_pmh = .false.
+  if (nver /= nnod) call error('(module_feconv/fe_conv) extraction is only available for Lagrange P1 meshes.')
+  call extract_mesh(nver, mm, z, nsd, nsd0, submm, subz, globv, globel)
+  call extract_ref(nrv, nra, nrc, nsd, subnrv, subnra, subnrc, subnsd, globel)
+  nel  = size(submm, 2)
+  nver = size(subz,  2)
+  nnod = nver
+  call move_alloc(from=submm,  to=mm)
+  call move_alloc(from=subnrv, to=nrv)
+  call move_alloc(from=subnra, to=nra)
+  call move_alloc(from=subnrc, to=nrc)
+  call move_alloc(from=subz,   to=z)
+  call move_alloc(from=subnsd, to=nsd)
+  print '(a)', 'Done!'
+end if
+
 !transform
 if (is_arg('-l1')) then
   print '(/a)', 'Converting mesh into Lagrange P1 mesh...'
-  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call to_l1(pmh); is_pmh = .true.
+  if (.not. is_pmh) then
+    call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+    is_pmh = .true.
+  end if
+  call to_l1(pmh)
+  print '(a)', 'Done!'
 elseif (is_arg('-l2')) then
   print '(/a)', 'Converting Lagrange P1 mesh into Lagrange P2 mesh...'
-  if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  call lagr2l2(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm); is_pmh = .false.
+  if (is_pmh) then
+    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    is_pmh = .false.
+  end if
+  call lagr2l2(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
+  print '(a)', 'Done!'
 elseif (is_arg('-rt')) then
   print '(/a)', 'Converting Lagrange P1 mesh into Raviart-Thomas (face) mesh...'
-  if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  call lagr2rt(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm); is_pmh = .false.
+  if (is_pmh) then
+    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    is_pmh = .false.
+  end if
+  call lagr2rt(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
+  print '(a)', 'Done!'
 elseif (is_arg('-nd')) then
   print '(/a)', 'Converting Lagrange P1 mesh into Whitney (edge) mesh...'
-  if(is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  call lagr2nd(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm); is_pmh = .false.
+  if (is_pmh) then
+    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    is_pmh = .false.
+  end if
+  call lagr2nd(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
+  print '(a)', 'Done!'
 end if
 
 !bandwidth optimization
@@ -241,27 +289,6 @@ if (is_arg('-cm')) then
   call cuthill_mckee(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, z); is_pmh = .false.
 end if
 
-!extract
-is_extraction = .false.
-
-if (is_arg('-es')) then
-  str = get_post_arg('-es')
-  p = index(str, '[')
-  if (p == 0) then !a single subdomain ref.
-    call set(nsd0, int(str), 1, fit=.true.)
-  else
-    q = index(str, ']', back=.true.)
-    print*,'-',trim(str),'-'
-    print*, p,q
-    print*, word_count(str(p+1:q-1),',')
-    call alloc(nsd0, word_count(str(p+1:q-1),','))
-    read(str(p+1:q-1),*) nsd0
-  end if
-  is_extraction = .true.
-  print*, nsd0
-  stop
-end if
-  
 !save mesh
 select case (trim(adjustlt(outext)))
 case('mfm')
