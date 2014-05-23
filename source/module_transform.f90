@@ -110,9 +110,9 @@ case('tetra')
   call dealloc(part)
 
 case ('line2', 'triangle2', 'tetra2')
-  call info('(module_feconvert/lagr2p2) Mesh is already Lagrange P2; conversion not done.')
+  call info('(module_transform/lagr2p2) Mesh is already Lagrange P2; conversion not done.')
 case default
-  call error('(module_feconvert/lagr2p2) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
+  call error('(module_transform/lagr2p2) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
 end select
 call bandwidth(nel, lnn, nn, 'New Maximum bandwidth:     ')
 
@@ -194,9 +194,9 @@ case('tetra', 'tetra2')
   call dealloc(tmp)
   call dealloc(part)
 case('tria-edge', 'tetra-face')
-  call info('(module_feconvert/lagr2rt) Mesh is already Raviart-Thomas (face); conversion not done.')
+  call info('(module_transform/lagr2rt) Mesh is already Raviart-Thomas (face); conversion not done.')
 case default
-  call error('(module_feconvert/lagr2rt) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
+  call error('(module_transform/lagr2rt) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
 end select
 call bandwidth(nel, lnn, nn, 'New Maximum bandwidth:     ')
 end subroutine
@@ -253,9 +253,9 @@ case('tetra', 'tetra2')
   call dealloc(part)
   call bandwidth(nel, lnn, nn, 'New Maximum bandwidth:     ')
 case('tria-edge', 'tetra-edge')
-  call info('(module_feconvert/lagr2nd) Mesh is already Whitney (edge); conversion not done.')
+  call info('(module_transform/lagr2nd) Mesh is already Whitney (edge); conversion not done.')
 case default
-  call error('(module_feconvert/lagr2nd) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
+  call error('(module_transform/lagr2nd) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
 end select
 end subroutine
 
