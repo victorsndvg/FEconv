@@ -266,7 +266,7 @@ elseif (is_arg('-l2')) then
   call lagr2l2(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
   print '(a)', 'Done!'
 elseif (is_arg('-rt')) then
-  print '(/a)', 'Converting Lagrange P1 mesh into Raviart-Thomas (face) mesh...'
+  print '(/a)', 'Converting Lagrange mesh into Raviart-Thomas (face) mesh...'
   if (is_pmh) then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     is_pmh = .false.
@@ -274,7 +274,7 @@ elseif (is_arg('-rt')) then
   call lagr2rt(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
   print '(a)', 'Done!'
 elseif (is_arg('-nd')) then
-  print '(/a)', 'Converting Lagrange P1 mesh into Whitney (edge) mesh...'
+  print '(/a)', 'Converting Lagrange mesh into Whitney (edge) mesh...'
   if (is_pmh) then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     is_pmh = .false.

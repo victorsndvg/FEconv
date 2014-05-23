@@ -1,6 +1,6 @@
 module module_transform
 !-----------------------------------------------------------------------
-! Module to transform Lagrange P1 FE meshes to Lagrange P2, Raviart-Thomas 
+! Module to transform Lagrange FE meshes to Lagrange P2, Raviart-Thomas 
 ! and Whitney FE meshes
 !
 ! Licensing: This code is distributed under the GNU GPL license.
@@ -8,13 +8,13 @@ module module_transform
 ! Last update: 22/05/2013
 !
 ! PUBLIC PROCEDURES:
-!   lagr2l2: transforms a Lagrange P1 FE mesh into a Lagrange P2 FE mesh
-!   lagr2rt: transforms a Lagrange P1 FE mesh into a Lagrange Raviart-Thomas (face) FE mesh
-!   lagr2nd: transforms a Lagrange P1 FE mesh into a Whitney (edge) FE mesh
+!   lagr2l2: transforms a Lagrange FE mesh into a Lagrange P2 FE mesh
+!   lagr2rt: transforms a Lagrange FE mesh into a Lagrange Raviart-Thomas (face) FE mesh
+!   lagr2nd: transforms a Lagrange FE mesh into a Whitney (edge) FE mesh
 !   to_l1:   transforms a mesh into a Lagrange P1 FE mesh
 !-----------------------------------------------------------------------
 use module_os_dependant, only: maxpath
-use module_report, only: error
+use module_report, only: error, info
 use module_alloc_int_r1, only: dealloc, alloc, sort
 use module_alloc_int_r2, only: dealloc, alloc, insert_row_sorted, reduce, find_row_sorted
 use module_vtu, only: type_cell, edge_tetra, edge_tria, face_tetra
@@ -110,7 +110,7 @@ case('tetra')
   call dealloc(part)
 
 case ('line2', 'triangle2', 'tetra2')
-  print'(a)', 'Mesh is already Lagrange P2; conversion not done.'
+  call info('(module_feconvert/lagr2p2) Mesh is already Lagrange P2; conversion not done.')
 case default
   call error('(module_feconvert/lagr2p2) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
 end select
@@ -119,7 +119,7 @@ call bandwidth(nel, lnn, nn, 'New Maximum bandwidth:     ')
 end subroutine
 
 !-----------------------------------------------------------------------
-! lagr2rt: transforms a Lagrange P1 FE mesh into a Lagrange Raviart-Thomas (face) FE mesh
+! lagr2rt: transforms a Lagrange FE mesh into a Lagrange Raviart-Thomas (face) FE mesh
 !-----------------------------------------------------------------------
 subroutine lagr2rt(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
 integer, intent(in)    :: nel        !global number of elements
@@ -136,7 +136,7 @@ integer :: k, j, pos
 integer, allocatable :: tmp(:)
 
 select case(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf))
-case('triangle')
+case('triangle', 'triangle2')
   !insert a DOF per edge
   nparts = 0
   call alloc(tmp, size(edge_tria,1))
@@ -165,7 +165,7 @@ case('triangle')
   call dealloc(tmp)
   call dealloc(part)
 
-case('tetra')
+case('tetra', 'tetra2')
   !insert a DOF per face
   nparts = 0
   call alloc(tmp, size(face_tetra,1))
@@ -194,7 +194,7 @@ case('tetra')
   call dealloc(tmp)
   call dealloc(part)
 case('tria-edge', 'tetra-face')
-  print'(a)', 'Mesh is already Raviart-Thomas (face); conversion not done.'
+  call info('(module_feconvert/lagr2rt) Mesh is already Raviart-Thomas (face); conversion not done.')
 case default
   call error('(module_feconvert/lagr2rt) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
 end select
@@ -202,7 +202,7 @@ call bandwidth(nel, lnn, nn, 'New Maximum bandwidth:     ')
 end subroutine
 
 !-----------------------------------------------------------------------
-! lagr2nd: transforms a Lagrange P1 FE mesh into a Whitney (edge) FE mesh
+! lagr2nd: transforms a Lagrange FE mesh into a Whitney (edge) FE mesh
 !-----------------------------------------------------------------------
 subroutine lagr2nd(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
 integer, intent(in)    :: nel        !global number of elements
@@ -219,11 +219,11 @@ integer :: k, j, pos
 integer, allocatable :: tmp(:)
 
 select case(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf))
-case('triangle')
+case('triangle', 'triangle2')
   !same than Raviart-Thomas
   call lagr2rt(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
 
-case('tetra')
+case('tetra', 'tetra2')
   !insert a DOF per edge
   nparts = 0
   call alloc(tmp, size(edge_tetra,1))
@@ -251,12 +251,12 @@ case('tetra')
   print'(a,i9)','New global number of nodes:', nnod
   call dealloc(tmp)
   call dealloc(part)
+  call bandwidth(nel, lnn, nn, 'New Maximum bandwidth:     ')
 case('tria-edge', 'tetra-edge')
-  print'(a)', 'Mesh is already Raviart-Thomas (edge); conversion not done.'
+  call info('(module_feconvert/lagr2nd) Mesh is already Whitney (edge); conversion not done.')
 case default
-  call error('(module_feconvert/lagr2rt) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
+  call error('(module_feconvert/lagr2nd) FE type not implemented: '//trim(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf)))
 end select
-call bandwidth(nel, lnn, nn, 'New Maximum bandwidth:     ')
 end subroutine
 
 !-----------------------------------------------------------------------
