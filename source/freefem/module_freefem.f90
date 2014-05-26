@@ -7,20 +7,96 @@ module module_freefem
 ! Last update: 20/05/2014
 !
 ! PUBLIC PROCEDURES:
+! load_freefem_msh: load a MDH file into a PMH structure
 ! save_freefem_msh:  save a PMH structure into a MSH  (FreeFem++) file
 ! save_freefem_mesh: save a PMH structure into a MESH (FreeFem++) file
 !-----------------------------------------------------------------------
 use module_os_dependant, only: maxpath
 use module_report, only: error, info
-use module_convers, only: string, int
+use module_convers, only: string, int, word_count
 use module_alloc, only: alloc, dealloc 
 use module_args, only: is_arg, get_post_arg
 use module_feed, only: feed, empty
 use module_fe_database_pmh, only: FEDB, check_fe
-use module_pmh, only: pmh_mesh
+use module_pmh, only: pmh_mesh, build_vertices
 implicit none
 
 contains
+
+!-----------------------------------------------------------------------
+! load_freefem_msh: load a MDH file into a PMH structure
+!-----------------------------------------------------------------------
+subroutine load_freefem_msh(filename, iu, pmh)
+character(*), intent(in) :: filename
+integer,      intent(in) :: iu      
+type(pmh_mesh), intent(inout) :: pmh
+integer :: res, i, j, k, ios
+character(maxpath) :: cad, str
+
+!allocation
+if (allocated(pmh%pc)) then
+  deallocate(pmh%pc, stat = res, errmsg = cad)
+  if (res /= 0) call error('(module_freefem/load_freefem_msh) Unable to deallocate piece: '//trim(cad))
+  allocate(pmh%pc(1), stat = res, errmsg = cad)
+  if (res /= 0) call error('(module_freefem/load_freefem_msh) Unable to allocate piece: '//trim(cad))
+else
+  allocate(pmh%pc(1), stat = res, errmsg = cad)
+  if (res /= 0) call error('(module_freefem/load_freefem_msh) Unable to allocate piece: '//trim(cad))
+end if  
+allocate(pmh%pc(1)%el(3), stat = res, errmsg = cad)
+if (res /= 0) call error('(module_freefem/load_freefem_msh) Unable to allocate groups: '//trim(cad))
+
+!open file
+open (unit=iu, file=filename, form='formatted', status='old', position='rewind', iostat=ios)
+if (ios /= 0) call error('load/open, #'//trim(string(ios)))
+
+associate (m => pmh%pc(1)) !m: current mesh
+  !read nver, nel, nel(boundary)
+  read (unit=iu, fmt=*, iostat=ios) m%nver, m%el(1)%nel, m%el(2)%nel
+  if (ios /= 0) call error('read (str), #'//trim(string(ios)))
+  !determine dim (and therefore, max_tdim) reading the first vertex coordinates 
+  read (unit=iu, fmt='(a)', iostat=ios) str
+  if (ios /= 0) call error('read (str), #'//trim(string(ios)))
+  if (word_count(str) == 3+1) then
+    m%dim = 3
+    m%el(1)%type = check_fe(.true., 4, 4, 6, 4) !tetrahedra 
+    m%el(2)%type = check_fe(.true., 3, 3, 3, 0) !triangles
+  elseif (word_count(str) == 2+1) then
+    m%dim = 2
+    m%el(1)%type = check_fe(.true., 3, 3, 3, 0) !triangles
+    m%el(2)%type = check_fe(.true., 2, 2, 1, 0) !edges
+  else
+    call error('(module_freefem/load_freefem_msh) such dimension cannot be saved in a FreeFem++ mesh: '//&
+    &trim(string(word_count(str)-1)))
+  end if
+  !piece
+  m%nnod = m%n  ver
+  call alloc(m%z, m%dim, m%nver)
+  !element group
+  call alloc(m%el(1)%mm, FEDB(m%el(1)%type)%lnv, m%el(1)%nel)
+  call alloc(m%el(1)%ref,                        m%el(1)%nel)
+  !boundary group
+  call alloc(m%el(2)%mm, FEDB(m%el(2)%type)%lnv, m%el(2)%nel)
+  call alloc(m%el(2)%ref,                        m%el(2)%nel)
+  !node group
+  m%el(3)%nel  = m%nver
+  m%el(3)%type = check_fe(.true., 1, 1, 0, 0)
+  call alloc(m%el(3)%mm, 1, m%el(3)%nel)
+  call alloc(m%el(3)%ref,   m%el(3)%nel)
+  do j = 1, m%nver; m%el(3)%mm(1,j) = j; end do
+  !read z
+  backspace(iu)
+  read (unit=iu, fmt=*, iostat=ios) ((m%z(i,j),  i = 1,m%dim), m%el(3)%ref(j), j=1,m%nver)
+  if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read z: #'//trim(string(ios)))
+  !read el(1)%mm
+  read (unit=iu, fmt=*, iostat=ios) ((m%el(1)%mm(i,k),  i = 1,FEDB(m%el(1)%type)%lnv), m%el(1)%ref(k), k=1,m%el(1)%nel)
+  if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read el(1)%mm: #'//trim(string(ios)))
+  !read el(2)%mm
+  read (unit=iu, fmt=*, iostat=ios) ((m%el(2)%mm(i,k),  i = 1,FEDB(m%el(2)%type)%lnv), m%el(2)%ref(k), k=1,m%el(2)%nel)
+  if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read el(2)%mm: #'//trim(string(ios)))
+end associate
+call build_vertices(pmh)
+end subroutine
 
 !-----------------------------------------------------------------------
 ! save_freefem: save a PMH structure into a MSH (FreeFem++) file
@@ -95,7 +171,6 @@ do ipp = 1, size(piece2save,1)
     &string(pmh%pc(ip)%dim)//', '//string(dim)//'; unable to convert to FreeFem++')
   end if
 end do
-!print*, 'max', max_tdim
 if (max_tdim == 3) then !tetrahedra
   el_type  = check_fe(.true., 4, 4, 6, 4)
   bnd_type = check_fe(.true., 3, 3, 3, 0)
@@ -118,7 +193,6 @@ if (allocated(nver_piece)) deallocate(nver_piece); !nver_piece(ipp): global numb
 allocate(nver_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
 if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable nver_piece: '//trim(cad))
 el_piece(0) = 0; bnd_piece(0) = 0; nver_piece(0) = 0
-!print*, 'piece2save ', piece2save
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   nver_piece(ipp) = nver_piece(ipp-1) + pmh%pc(ipp)%nver
@@ -126,10 +200,8 @@ do ipp = 1, size(piece2save,1)
   bnd_piece(ipp)  =  bnd_piece(ipp-1) 
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(elg => pmh%pc(ip)%el(ig)) !elg: current group
-!      print*, 'elg%type, el_type ', elg%type, el_type
       if (elg%type == el_type) then
          el_piece(ipp)  =   el_piece(ipp) + elg%nel
-!         print*, 'ipp ', ipp, 'el_piece(ipp) ', el_piece(ipp)
       elseif (elg%type == bnd_type) then
          bnd_piece(ipp) =  bnd_piece(ipp) + elg%nel
       end if
@@ -137,9 +209,7 @@ do ipp = 1, size(piece2save,1)
   end do
 end do
 
-!print*, 'el_piece ', el_piece
 nel  =   el_piece(size(piece2save,1))
-!print*,'nel ', nel, ' + ', el_piece
 ntri =  bnd_piece(size(piece2save,1))
 nver = nver_piece(size(piece2save,1))
 !store variables nver, nel, ntri for selected pieces
