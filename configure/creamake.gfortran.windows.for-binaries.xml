@@ -33,7 +33,7 @@ gfortran
 </compiler>
 
 <ldflags>
--static -ffree-line-length-0 -ffixed-line-length-0
+-static
 </ldflags>
 
 </content>

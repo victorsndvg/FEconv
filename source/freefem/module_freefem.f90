@@ -32,8 +32,8 @@ character(*),   intent(in)    :: outfile
 integer,        intent(in)    :: iu
 type(pmh_mesh), intent(inout) :: pmh
 
-integer :: i, ipp, ip, ig, k, j, type_by_tdim(0:3), prev_max_tdim, res, max_tdim, ios, nel, ntri, nver, dim
-integer, allocatable :: piece2save(:), tet_piece(:), tri_piece(:), nver_piece(:)
+integer :: i, ipp, ip, ig, k, j, type_by_tdim(0:3), prev_max_tdim, res, max_tdim, ios, nel, ntri, nver, dim, el_type, bnd_type
+integer, allocatable :: piece2save(:), el_piece(:), bnd_piece(:), nver_piece(:)
 character(maxpath) :: str, cad
 
 !check piece(s) to be saved
@@ -58,7 +58,7 @@ do ipp = 1, size(piece2save,1)
   &' does not exist in the mesh')
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(tp => pmh%pc(ip)%el(ig)%type)
-      if (tp /= check_fe(.true., 4, 4, 6, 4) .and. tp /= check_fe(.true., 3, 3, 3, 0)) then
+      if (tp /= check_fe(.true., 4, 4, 6, 4) .and. tp /= check_fe(.true., 3, 3, 3, 0) .and. tp /= check_fe(.true., 2, 2, 1, 0)) then
         call info('(module_freefem/save_freefem) element type '//trim(FEDB(tp)%desc)//' found; those elements cannot be saved'//&
         &' in FreeFem++ format and they will be discarded')
         cycle
@@ -83,7 +83,6 @@ do ipp = 1, size(piece2save,1)
     &'to FreeFem++')
   end if
 end do
-if (max_tdim < 3) call error('(module_freefem/save_freefem) only the conversion to a thetrahedral FreeFem++ mesh is implemented.')
 !testing and calculation of dim
 dim = -1
 do ipp = 1, size(piece2save,1)
@@ -93,64 +92,84 @@ do ipp = 1, size(piece2save,1)
     dim = pmh%pc(ip)%dim
   elseif (pmh%pc(ip)%dim /= dim) then
     call error('(module_freefem/save_freefem) different coordinates dimensions in different pieces: '//&
-    &string(pmh%pc(ip)%dim)//', '//string(dim)//'; unable to convert to MFM')
+    &string(pmh%pc(ip)%dim)//', '//string(dim)//'; unable to convert to FreeFem++')
   end if
 end do
+!print*, 'max', max_tdim
+if (max_tdim == 3) then !tetrahedra
+  el_type  = check_fe(.true., 4, 4, 6, 4)
+  bnd_type = check_fe(.true., 3, 3, 3, 0)
+elseif (max_tdim == 2) then !triangles
+  el_type  = check_fe(.true., 3, 3, 3, 0)
+  bnd_type = check_fe(.true., 2, 2, 1, 0)
+else
+  call error('(module_freefem/save_freefem) such topological dimension cannot be saved in a FreeFem++ mesh: '//&
+  &trim(string(max_tdim)))
+end if
 
 !store variables nnod, nver, nel for selected pieces
-if (allocated(tet_piece)) deallocate(tet_piece); !nel_piece(ipp):  global numbering for the last element of piece #ipp
-allocate(tet_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
-if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable tet_piece: '//trim(cad))
-if (allocated(tri_piece)) deallocate(tri_piece); !nel_piece(ipp):  global numbering for the last element of piece #ipp
-allocate(tri_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
-if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable tri_piece: '//trim(cad))
+if (allocated(el_piece)) deallocate(el_piece); !nel_piece(ipp):  global numbering for the last element of piece #ipp
+allocate(el_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
+if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable el_piece: '//trim(cad))
+if (allocated(bnd_piece)) deallocate(bnd_piece); !nel_piece(ipp):  global numbering for the last element of piece #ipp
+allocate(bnd_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
+if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable bnd_piece: '//trim(cad))
 if (allocated(nver_piece)) deallocate(nver_piece); !nver_piece(ipp): global numbering for the last vertex of piece #ipp
 allocate(nver_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
 if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable nver_piece: '//trim(cad))
-tet_piece(0) = 0; tri_piece(0) = 0; nver_piece(0) = 0
+el_piece(0) = 0; bnd_piece(0) = 0; nver_piece(0) = 0
+!print*, 'piece2save ', piece2save
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   nver_piece(ipp) = nver_piece(ipp-1) + pmh%pc(ipp)%nver
-  tet_piece(ipp)  =  tet_piece(ipp-1) 
-  tri_piece(ipp)  =  tri_piece(ipp-1) 
+  el_piece(ipp)   =   el_piece(ipp-1) 
+  bnd_piece(ipp)  =  bnd_piece(ipp-1) 
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(elg => pmh%pc(ip)%el(ig)) !elg: current group
-      if (elg%type == check_fe(.true., 4, 4, 6, 4)) then
-         tet_piece(ipp) =  tet_piece(ipp) + elg%nel
-      elseif (elg%type == check_fe(.true., 3, 3, 3, 0)) then
-         tri_piece(ipp) =  tri_piece(ipp) + elg%nel
+!      print*, 'elg%type, el_type ', elg%type, el_type
+      if (elg%type == el_type) then
+         el_piece(ipp)  =   el_piece(ipp) + elg%nel
+!         print*, 'ipp ', ipp, 'el_piece(ipp) ', el_piece(ipp)
+      elseif (elg%type == bnd_type) then
+         bnd_piece(ipp) =  bnd_piece(ipp) + elg%nel
       end if
     end associate
   end do
 end do
-nel  =  tet_piece(size(piece2save,1))
-ntri =  tri_piece(size(piece2save,1))
-nver = nver_piece(size(piece2save,1))
 
+!print*, 'el_piece ', el_piece
+nel  =   el_piece(size(piece2save,1))
+!print*,'nel ', nel, ' + ', el_piece
+ntri =  bnd_piece(size(piece2save,1))
+nver = nver_piece(size(piece2save,1))
 !store variables nver, nel, ntri for selected pieces
 open (unit=iu, file=outfile, form='formatted', position='rewind', iostat=ios)
 if (ios /= 0) call error('save/open, #'//trim(string(ios)))
 call feed(iu, string(nver)); call feed(iu, string(nel)); call feed(iu, string(ntri));  call empty(iu)
-
 !store vertex coordinates and reference 0
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   do j = 1, pmh%pc(ip)%nver
-    do i = 1, pmh%pc(ip)%dim; call feed(iu, string(pmh%pc(ip)%z(i,j))); end do
-    do i = 1, 3-dim;          call feed(iu, string(0.));                end do
+    if (pmh%pc(ip)%dim == max_tdim) then
+      do i = 1, pmh%pc(ip)%dim;   call feed(iu, string(pmh%pc(ip)%z(i,j))); end do
+    elseif (max_tdim == 3 .and. pmh%pc(ip)%dim < max_tdim) then
+      do i = 1, pmh%pc(ip)%dim;   call feed(iu, string(pmh%pc(ip)%z(i,j))); end do
+      do i = 1, 3-pmh%pc(ip)%dim; call feed(iu, string(0.));                end do
+    elseif (max_tdim == 2 .and. pmh%pc(ip)%dim > max_tdim) then
+      do i = 1, max_tdim;         call feed(iu, string(pmh%pc(ip)%z(i,j))); end do
+    end if
     call feed(iu, string(0))
     call empty(iu)
   end do
 end do
-
-!store tet conectivities and references
+!store element conectivities and references
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(elg => pmh%pc(ip)%el(ig)) !elg: current group
-      if (elg%type == check_fe(.true., 4, 4, 6, 4)) then
+      if (elg%type == el_type) then
         do k = 1, elg%nel
-          do i = 1, 4; call feed(iu, string(nver_piece(ipp-1)+elg%mm(i,k))); end do
+          do i = 1, FEDB(el_type)%lnv; call feed(iu, string(nver_piece(ipp-1)+elg%mm(i,k))); end do
           call feed(iu, string(elg%ref(k)))
           call empty(iu)
         end do
@@ -158,15 +177,14 @@ do ipp = 1, size(piece2save,1)
     end associate
   end do
 end do
-
-!store tri conectivities and references
+!store boundary conectivities and references
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(elg => pmh%pc(ip)%el(ig)) !elg: current group
-      if (elg%type == check_fe(.true., 3, 3, 3, 0)) then
+      if (elg%type == bnd_type) then
         do k = 1, elg%nel
-          do i = 1, 3; call feed(iu, string(nver_piece(ipp-1)+elg%mm(i,k))); end do
+          do i = 1, FEDB(bnd_type)%lnv; call feed(iu, string(nver_piece(ipp-1)+elg%mm(i,k))); end do
           call feed(iu, string(elg%ref(k)))
           call empty(iu)
         end do
@@ -174,7 +192,6 @@ do ipp = 1, size(piece2save,1)
     end associate
   end do
 end do
-
 close(iu)
 end subroutine
 
@@ -189,7 +206,7 @@ integer,        intent(in)    :: iu
 type(pmh_mesh), intent(inout) :: pmh
 
 integer :: i, ipp, ip, ig, k, j, type_by_tdim(0:3), prev_max_tdim, res, max_tdim, ios, nel, ntri, nver, dim
-integer, allocatable :: piece2save(:), tet_piece(:), tri_piece(:), nver_piece(:)
+integer, allocatable :: piece2save(:), el_piece(:), bnd_piece(:), nver_piece(:)
 character(maxpath) :: str, cad
 
 !check piece(s) to be saved
@@ -249,39 +266,38 @@ do ipp = 1, size(piece2save,1)
     dim = pmh%pc(ip)%dim
   elseif (pmh%pc(ip)%dim /= dim) then
     call error('(module_freefem/save_freefem) different coordinates dimensions in different pieces: '//&
-
-    &string(pmh%pc(ip)%dim)//', '//string(dim)//'; unable to convert to MFM')
+    &string(pmh%pc(ip)%dim)//', '//string(dim)//'; unable to convert to FreeFem++')
   end if
 end do
 
 !store variables nnod, nver, nel for selected pieces
-if (allocated(tet_piece)) deallocate(tet_piece); !nel_piece(ipp):  global numbering for the last element of piece #ipp
-allocate(tet_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
-if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable tet_piece: '//trim(cad))
-if (allocated(tri_piece)) deallocate(tri_piece); !nel_piece(ipp):  global numbering for the last element of piece #ipp
-allocate(tri_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
-if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable tri_piece: '//trim(cad))
+if (allocated(el_piece)) deallocate(el_piece); !nel_piece(ipp):  global numbering for the last element of piece #ipp
+allocate(el_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
+if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable el_piece: '//trim(cad))
+if (allocated(bnd_piece)) deallocate(bnd_piece); !nel_piece(ipp):  global numbering for the last element of piece #ipp
+allocate(bnd_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
+if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable bnd_piece: '//trim(cad))
 if (allocated(nver_piece)) deallocate(nver_piece); !nver_piece(ipp): global numbering for the last vertex of piece #ipp
 allocate(nver_piece(0:size(piece2save,1)), stat = res, errmsg = cad)
 if (res /= 0) call error('(module_freefem/save_freefem) Unable to allocate variable nver_piece: '//trim(cad))
-tet_piece(0) = 0; tri_piece(0) = 0; nver_piece(0) = 0
+el_piece(0) = 0; bnd_piece(0) = 0; nver_piece(0) = 0
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   nver_piece(ipp) = nver_piece(ipp-1) + pmh%pc(ipp)%nver
-  tet_piece(ipp)  =  tet_piece(ipp-1) 
-  tri_piece(ipp)  =  tri_piece(ipp-1) 
+  el_piece(ipp)  =  el_piece(ipp-1) 
+  bnd_piece(ipp)  =  bnd_piece(ipp-1) 
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(elg => pmh%pc(ip)%el(ig)) !elg: current group
       if (elg%type == check_fe(.true., 4, 4, 6, 4)) then
-         tet_piece(ipp) =  tet_piece(ipp) + elg%nel
+         el_piece(ipp) =  el_piece(ipp) + elg%nel
       elseif (elg%type == check_fe(.true., 3, 3, 3, 0)) then
-         tri_piece(ipp) =  tri_piece(ipp) + elg%nel
+         bnd_piece(ipp) =  bnd_piece(ipp) + elg%nel
       end if
     end associate
   end do
 end do
-nel  =  tet_piece(size(piece2save,1))
-ntri =  tri_piece(size(piece2save,1))
+nel  =  el_piece(size(piece2save,1))
+ntri =  bnd_piece(size(piece2save,1))
 nver = nver_piece(size(piece2save,1))
 
 !store variables nver, nel, ntri for selected pieces
