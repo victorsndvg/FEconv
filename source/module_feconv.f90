@@ -29,7 +29,7 @@ use module_mphtxt, only: load_mphtxt,save_mphtxt
 use module_pf3, only: load_pf3,save_pf3
 !use module_tra, only: load_tra,save_tra
 use module_field_database, only: FLDB, id_mesh_ext
-use module_freefem, only: save_freefem_msh, save_freefem_mesh, load_freefem_msh
+use module_freefem, only: save_freefem_msh, save_freefem_mesh, load_freefem_msh, load_freefem_mesh
 use module_pmh
 use module_fem_extract, only: extract_mesh, extract_ref
 implicit none
@@ -220,6 +220,10 @@ case('pf3')
 case('vtu')
   print '(a)', 'Loading MFM mesh file...'
   call load_vtu( infile, pmh); is_pmh = .true.
+  print '(a)', 'Done!'
+case('mesh')
+  print '(a)', 'Loading FreFem++ (Tetrahedral Lagrange P1) MESH file...'
+  call load_freefem_mesh(infile, get_unit(), pmh); is_pmh = .true.
   print '(a)', 'Done!'
 case default
   call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))

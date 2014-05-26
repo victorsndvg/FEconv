@@ -7,13 +7,15 @@ module module_freefem
 ! Last update: 20/05/2014
 !
 ! PUBLIC PROCEDURES:
-! load_freefem_msh: load a MDH file into a PMH structure
+! load_freefem_msh:  load a MSH  file into a PMH structure
+! load_freefem_mesh: load a MESH file into a PMH structure
 ! save_freefem_msh:  save a PMH structure into a MSH  (FreeFem++) file
 ! save_freefem_mesh: save a PMH structure into a MESH (FreeFem++) file
 !-----------------------------------------------------------------------
+use module_compiler_dependant, only: iostat_end
 use module_os_dependant, only: maxpath
 use module_report, only: error, info
-use module_convers, only: string, int, word_count
+use module_convers, only: string, int, word_count, lcase, adjustlt
 use module_alloc, only: alloc, dealloc 
 use module_args, only: is_arg, get_post_arg
 use module_feed, only: feed, empty
@@ -21,10 +23,13 @@ use module_fe_database_pmh, only: FEDB, check_fe
 use module_pmh, only: pmh_mesh, build_vertices
 implicit none
 
+!Private procedures
+private :: search_mark
+
 contains
 
 !-----------------------------------------------------------------------
-! load_freefem_msh: load a MDH file into a PMH structure
+! load_freefem_msh: load a MSH file into a PMH structure
 !-----------------------------------------------------------------------
 subroutine load_freefem_msh(filename, iu, pmh)
 character(*), intent(in) :: filename
@@ -70,7 +75,7 @@ associate (m => pmh%pc(1)) !m: current mesh
     &trim(string(word_count(str)-1)))
   end if
   !piece
-  m%nnod = m%n  ver
+  m%nnod = m%nver
   call alloc(m%z, m%dim, m%nver)
   !element group
   call alloc(m%el(1)%mm, FEDB(m%el(1)%type)%lnv, m%el(1)%nel)
@@ -86,14 +91,86 @@ associate (m => pmh%pc(1)) !m: current mesh
   do j = 1, m%nver; m%el(3)%mm(1,j) = j; end do
   !read z
   backspace(iu)
-  read (unit=iu, fmt=*, iostat=ios) ((m%z(i,j),  i = 1,m%dim), m%el(3)%ref(j), j=1,m%nver)
+  read (unit=iu, fmt=*, iostat=ios) ((m%z(i,j),  i=1,m%dim), m%el(3)%ref(j), j=1,m%nver)
   if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read z: #'//trim(string(ios)))
   !read el(1)%mm
-  read (unit=iu, fmt=*, iostat=ios) ((m%el(1)%mm(i,k),  i = 1,FEDB(m%el(1)%type)%lnv), m%el(1)%ref(k), k=1,m%el(1)%nel)
+  read (unit=iu, fmt=*, iostat=ios) ((m%el(1)%mm(i,k),  i=1,FEDB(m%el(1)%type)%lnv), m%el(1)%ref(k), k=1,m%el(1)%nel)
   if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read el(1)%mm: #'//trim(string(ios)))
   !read el(2)%mm
-  read (unit=iu, fmt=*, iostat=ios) ((m%el(2)%mm(i,k),  i = 1,FEDB(m%el(2)%type)%lnv), m%el(2)%ref(k), k=1,m%el(2)%nel)
+  read (unit=iu, fmt=*, iostat=ios) ((m%el(2)%mm(i,k),  i=1,FEDB(m%el(2)%type)%lnv), m%el(2)%ref(k), k=1,m%el(2)%nel)
   if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read el(2)%mm: #'//trim(string(ios)))
+end associate
+call build_vertices(pmh)
+end subroutine
+
+!-----------------------------------------------------------------------
+! load_freefem_mesh: load a MESH file into a PMH structure
+!-----------------------------------------------------------------------
+subroutine load_freefem_mesh(filename, iu, pmh)
+character(*), intent(in) :: filename
+integer,      intent(in) :: iu      
+type(pmh_mesh), intent(inout) :: pmh
+integer :: res, i, j, k, ios
+character(maxpath) :: cad
+
+!allocation
+if (allocated(pmh%pc)) then
+  deallocate(pmh%pc, stat = res, errmsg = cad)
+  if (res /= 0) call error('(module_freefem/load_freefem_mesh) Unable to deallocate piece: '//trim(cad))
+  allocate(pmh%pc(1), stat = res, errmsg = cad)
+  if (res /= 0) call error('(module_freefem/load_freefem_mesh) Unable to allocate piece: '//trim(cad))
+else
+  allocate(pmh%pc(1), stat = res, errmsg = cad)
+  if (res /= 0) call error('(module_freefem/load_freefem_mesh) Unable to allocate piece: '//trim(cad))
+end if  
+allocate(pmh%pc(1)%el(3), stat = res, errmsg = cad)
+if (res /= 0) call error('(module_freefem/load_freefem_mesh) Unable to allocate groups: '//trim(cad))
+!open file
+open (unit=iu, file=filename, form='formatted', status='old', position='rewind', iostat=ios)
+if (ios /= 0) call error('load/open, #'//trim(string(ios)))
+!check if there are tetrahedra
+res = search_mark(iu, 'Tetrahedra')
+if (res /= 0) call error('(module_freefem/load_freefem_mesh) Unable to find mark Tetrahedra: #'//trim(string(res)))
+rewind(iu)
+
+associate (m => pmh%pc(1)) !m: current mesh
+  m%dim = 3
+  m%el(1)%type = check_fe(.true., 4, 4, 6, 4) !tetrahedra 
+  m%el(2)%type = check_fe(.true., 3, 3, 3, 0) !triangles
+  !read nver and z
+  res = search_mark(iu, 'Vertices')
+  if (res /= 0) call error('(module_freefem/load_freefem_mesh) Unable to find mark Vertices: #'//trim(string(res)))
+  read (unit=iu, fmt=*, iostat=ios) m%nver
+  if (ios /= 0) call error('read (str), #'//trim(string(ios)))
+  m%nnod = m%nver
+  call alloc(m%z, m%dim, m%nver)
+  m%el(3)%nel  = m%nver !node group
+  m%el(3)%type = check_fe(.true., 1, 1, 0, 0)
+  call alloc(m%el(3)%mm, 1, m%el(3)%nel)
+  call alloc(m%el(3)%ref,   m%el(3)%nel)
+  do j = 1, m%nver; m%el(3)%mm(1,j) = j; end do
+  read (unit=iu, fmt=*, iostat=ios) ((m%z(i,j),  i=1,m%dim), m%el(3)%ref(j), j=1,m%nver)
+  if (ios /= 0) call error('(module_freefem/load_freefem_mesh) unable to read z: #'//trim(string(ios)))
+  !read el(1)
+  rewind(iu)
+  res = search_mark(iu, 'Tetrahedra')
+  if (res /= 0) call error('(module_freefem/load_freefem_mesh) Unable to find mark Tetrahedra: #'//trim(string(res)))
+  read (unit=iu, fmt=*, iostat=ios) m%el(1)%nel
+  if (ios /= 0) call error('read (str), #'//trim(string(ios)))
+  call alloc(m%el(1)%mm, FEDB(m%el(1)%type)%lnv, m%el(1)%nel)
+  call alloc(m%el(1)%ref,                        m%el(1)%nel)
+  read (unit=iu, fmt=*, iostat=ios) ((m%el(1)%mm(i,k),  i=1,FEDB(m%el(1)%type)%lnv), m%el(1)%ref(k), k=1,m%el(1)%nel)
+  if (ios /= 0) call error('(module_freefem/load_freefem_mesh) unable to read el(1): #'//trim(string(ios)))
+  !read el(2)
+  rewind(iu)
+  res = search_mark(iu, 'Triangles')
+  if (res /= 0) call error('(module_freefem/load_freefem_mesh) Unable to find mark Triangles: #'//trim(string(res)))
+  read (unit=iu, fmt=*, iostat=ios) m%el(2)%nel
+  if (ios /= 0) call error('read (str), #'//trim(string(ios)))
+  call alloc(m%el(2)%mm, FEDB(m%el(2)%type)%lnv, m%el(2)%nel)
+  call alloc(m%el(2)%ref,                        m%el(2)%nel)
+  read (unit=iu, fmt=*, iostat=ios) ((m%el(2)%mm(i,k),  i=1,FEDB(m%el(2)%type)%lnv), m%el(2)%ref(k), k=1,m%el(2)%nel)
+  if (ios /= 0) call error('(module_freefem/load_freefem_mesh) unable to read el(2): #'//trim(string(ios)))
 end associate
 call build_vertices(pmh)
 end subroutine
@@ -373,7 +450,7 @@ nver = nver_piece(size(piece2save,1))
 !store variables nver, nel, ntri for selected pieces
 open (unit=iu, file=outfile, form='formatted', position='rewind', iostat=ios)
 if (ios /= 0) call error('save/open, #'//trim(string(ios)))
-call feed(iu, string(nver)); call feed(iu, string(nel)); call feed(iu, string(ntri));  call empty(iu)
+!call feed(iu, string(nver)); call feed(iu, string(nel)); call feed(iu, string(ntri));  call empty(iu)
 
 write(iu, '(a/)') 'MeshVersionFormatted 1'
 write(iu, '(a)')  'Vertices'
@@ -429,5 +506,27 @@ end do
 write(iu, '(/a)') 'End'
 close(iu)
 end subroutine
+
+!-----------------------------------------------------------------------
+! PRIVATE PROCEDURES
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! search_mark: searches for a mark
+! RETURN: 0 if the mark is found; iostat_end if end-of-file is found; 
+! non-zero otherwise
+!-----------------------------------------------------------------------
+function search_mark(id, mark) result(res)
+integer,      intent(in) :: id
+character(*), intent(in) :: mark
+character(maxpath) :: str
+integer :: res
+
+do
+  read (id, '(a)', iostat=res) str
+  if (res == iostat_end) return !end-of-file found
+  if (res /= 0) call error('(module_freefem/search/read) error while reading mark "'//trim(mark)//'", #'//trim(string(res)))
+  if (adjustlt(lcase(str)) == lcase(mark)) return
+end do
+end function
 
 end module

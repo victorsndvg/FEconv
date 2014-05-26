@@ -101,7 +101,7 @@ elseif (is_arg('-h')) then
   print '(a)', 'FORMATS'
   print '(a)', '    The current available input formats are: ANSYS (.msh), I-Deas Universal (.unv), MD Nastran input file (.bdf),'
   print '(a)', '    Modulef Formatted Mesh (.mfm), Modulef Unformatted Mesh (.mum), FreFem++ Tetrahedral and/or Triangular '
-  print '(a)', '    Lagrange P1 Mesh (.msh)'
+  print '(a)', '    Lagrange P1 Mesh (.msh), FreFem++ Tetrahedral Lagrange P1 Mesh (.mesh).'
   print '(a)', ' '
   print '(a)', '    The current available output formats are: VTK-XML Unstructured Grid (.vtu), Modulef Formatted Mesh (.mfm),'
   print '(a)', '    Modulef Unformatted Mesh (.mum), FreFem++ Tetrahedral and/or Triangular Lagrange P1 Mesh (.msh), '
