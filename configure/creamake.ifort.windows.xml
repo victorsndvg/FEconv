@@ -25,6 +25,7 @@ source/mphtxt
 source/pmh
 source/flux
 source/fem_extract
+source/gmsh
 </sources>
  
 <compiler>

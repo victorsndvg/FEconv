@@ -26,6 +26,7 @@ source/pmh
 source/flux
 source/freefem
 source/fem_extract
+source/gmsh
 </sources>
  
 <compiler>

@@ -26,30 +26,38 @@ ejecutable = test_alloc_int_r1
 $(ejecutable): $(condir_principal) 
  
 # MODULES
-modulos = module_alloc_char_r1.f90 module_alloc.f90 module_alloc_int_r1.f90 \
-module_alloc_int_r2.f90 module_alloc_log_r1.f90 module_alloc_real64_r1.f90 \
-module_system.f90 module_convers.f90 module_feed.f90 module_files.f90 \
-module_os_dependant.f90 module_report.f90 module_compiler_gfortran.f90
+modulos = module_compiler_gfortran.f90 module_os_dependant.f90 \
+module_report.f90 module_set.f90 module_math.f90 module_convers.f90 \
+module_files.f90 module_feed.f90 module_alloc_int_r1.f90 \
+module_alloc_real64_r1.f90 module_alloc_real64_r2.f90 module_alloc_log_r1.f90 \
+module_alloc_int_r2.f90 module_alloc_char_r1.f90 module_system.f90 \
+module_alloc.f90
  
 # MODULE DEPENDENCIES
 # if pru1 depends on pru2... pru1.o: pru2.o
-module_alloc_char_r1.o: module_os_dependant.o module_report.o
-module_alloc.o: module_alloc_int_r1.o module_alloc_int_r2.o \
-module_alloc_real64_r1.o module_alloc_char_r1.o module_alloc_log_r1.o
-module_alloc_int_r1.o: module_os_dependant.o module_report.o
-module_alloc_int_r2.o: module_os_dependant.o module_report.o
-module_alloc_log_r1.o: module_os_dependant.o module_report.o \
-module_alloc_int_r1.o
-module_alloc_real64_r1.o: module_compiler_gfortran.o module_os_dependant.o \
-module_report.o
-module_system.o: module_compiler_gfortran.o module_os_dependant.o \
-module_report.o module_convers.o module_alloc_char_r1.o module_files.o
-module_convers.o: module_compiler_gfortran.o module_os_dependant.o \
-module_report.o
-module_feed.o: module_convers.o
-module_files.o: module_os_dependant.o module_report.o module_convers.o
 module_os_dependant.o: module_compiler_gfortran.o
 module_report.o: module_compiler_gfortran.o module_os_dependant.o
+module_set.o: module_os_dependant.o module_report.o
+module_math.o: module_compiler_gfortran.o
+module_convers.o: module_compiler_gfortran.o module_os_dependant.o \
+module_report.o
+module_files.o: module_os_dependant.o module_report.o module_convers.o
+module_feed.o: module_convers.o
+module_alloc_int_r1.o: module_os_dependant.o module_report.o
+module_alloc_real64_r1.o: module_compiler_gfortran.o module_os_dependant.o \
+module_report.o module_alloc_int_r1.o
+module_alloc_real64_r2.o: module_compiler_gfortran.o module_os_dependant.o \
+module_report.o module_alloc_real64_r1.o
+module_alloc_log_r1.o: module_os_dependant.o module_report.o \
+module_alloc_int_r1.o
+module_alloc_int_r2.o: module_os_dependant.o module_report.o \
+module_alloc_int_r1.o
+module_alloc_char_r1.o: module_os_dependant.o module_report.o
+module_system.o: module_compiler_gfortran.o module_os_dependant.o \
+module_report.o module_convers.o module_alloc_char_r1.o module_files.o
+module_alloc.o: module_alloc_int_r1.o module_alloc_int_r2.o \
+module_alloc_real64_r1.o module_alloc_real64_r2.o module_alloc_char_r1.o \
+module_alloc_log_r1.o
  
 # INCLUDES
 includes = 

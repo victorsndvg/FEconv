@@ -32,6 +32,7 @@ use module_field_database, only: FLDB, id_mesh_ext
 use module_freefem, only: save_freefem_msh, save_freefem_mesh, load_freefem_msh, load_freefem_mesh
 use module_pmh
 use module_fem_extract, only: extract_mesh, extract_ref
+use module_gmsh, only: load_gmsh
 implicit none
 
 !PMH structure
@@ -196,6 +197,9 @@ case('msh')
   if (is_arg('-ff')) then !FreeFem++
     print '(a)', 'Loading FreFem++ (.msh) mesh file...'
     call load_freefem_msh(infile, get_unit(), pmh); is_pmh = .true.
+  elseif (is_arg('-gm')) then !Gmsh
+    print '(a)', 'Loading Gmsh (.msh) mesh file...'
+    call load_gmsh(infile, get_unit(), pmh); is_pmh = .true.
   else !ANSYS
     print '(a)', 'Loading ANSYS mesh file...'
     call load_msh(infile, pmh); is_pmh = .true.

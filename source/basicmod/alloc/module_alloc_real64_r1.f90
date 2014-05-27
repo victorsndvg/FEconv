@@ -290,15 +290,16 @@ end function
 ! insert_sorted: insert a value 'val' in a sorted vector 'v'
 !-----------------------------------------------------------------------
 subroutine insert_sorted_prv(v, val, used, fit)
-real(real64), allocatable          :: v(:) ! vector
-real(real64),           intent(in) :: val  ! value to insert
-integer, optional, intent(in) :: used ! total number of elements
-logical, optional, intent(in) :: fit  ! whether to fit or not
+real(real64), allocatable             :: v(:) ! vector
+real(real64),           intent(in)    :: val  ! value to insert
+integer, optional,      intent(inout) :: used ! total number of elements
+logical, optional,      intent(in)    :: fit  ! whether to fit or not
 integer :: pos, n
 
-! not allocated
+!not allocated
 if (.not. allocated(v)) then
   call set(v, val, 1, fit)
+  if (present(used)) used = 1
   return
 end if
 
@@ -307,8 +308,12 @@ if (present(used)) then; n = used
 else;                    n = size(v,1)
 end if
 pos = bsearch(v(1:n), val, n)
-! insert and return
-call insert(v, val, abs(pos), used, fit) ! if n = size(v), reallocation is made
+!insert and return
+if (pos < 0) then
+  call insert(v, val, -pos, n, fit) !if n = size(v), reallocation is made
+  if (present(used)) used = n+1
+  return
+end if
 end subroutine
 
 !-----------------------------------------------------------------------

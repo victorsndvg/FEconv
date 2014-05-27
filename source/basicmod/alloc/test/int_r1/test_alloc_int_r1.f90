@@ -2,7 +2,18 @@ program test_alloc_int_r1
 use module_alloc
 implicit none
 integer, allocatable :: v(:), x(:)
-integer :: p
+integer :: p, n=0
+
+print*, 'Ordered insertion:'
+print*, 'call insert_sorted(v, 1, n, fit=.false.)'
+         call insert_sorted(v, 1, n, fit=.false.)
+print*, 'n = ', n, ' v = ', v
+print*, 'call insert_sorted(v, 2, n, fit=.false.)'
+         call insert_sorted(v, 2, n, fit=.false.)
+print*, 'n = ', n, ' v = ', v
+print*, 'call insert_sorted(v, 1, n, fit=.false.)'
+         call insert_sorted(v, 1, n, fit=.false.)
+print*, 'n = ', n, ' v = ', v
 
 print*, 'Extension of a non-allocated array without fitting:'
 print*, 'call extend(v, 1, fit=.false.)'

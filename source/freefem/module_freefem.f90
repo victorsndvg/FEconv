@@ -1,6 +1,6 @@
 module module_freefem
 !-----------------------------------------------------------------------
-! Module to manage MESH (FreeFem++) meshes (PMH)
+! Module to manage FreeFem++ MSH and MESH meshes
 !
 ! Licensing: This code is distributed under the GNU GPL license.
 ! Author: Francisco Pena, fran(dot)pena(at)usc(dot)es

@@ -1030,27 +1030,6 @@ do ip = 1, size(pmh%pc,1)
           end if
         end do
       elseif (tp == check_fe(.true.,   4, 4,  4, 0)) then
-!--------->
-        if (.false.) then !implementacion original de jacobiano positivo (eliminar tras testar el nuevo codigo)
-!--------->
-        !************************************* Quadrangle, Lagrange P1 **************************
-        !check 4-node quadrilateral jacobian (see http://mms2.ensmp.fr/ef_paris/technologie/transparents/e_Pathology.pdf)
-        do k = 1, elg%nel
-          QJac = [QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1, -1), &
-                  QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1, -1), &
-                  QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)),  1,  1), &
-                  QJ_pos(z(1:2, elg%mm(1,k)), z(1:2, elg%mm(2,k)), z(1:2, elg%mm(3,k)), z(1:2, elg%mm(4,k)), -1,  1)]
-          call sfind(QJac, .false., pos)
-          if     (size(pos,1) == 4) then
-            call swap(elg%mm(1,k), elg%mm(2,k))
-            call swap(elg%mm(3,k), elg%mm(4,k))
-          elseif (size(pos,1) == 2) then
-            call swap(elg%mm(pos(1),k), elg%mm(pos(2),k))
-          end if
-        end do
-!--------->
-        else !implementacion del jacobiano positivo en el plano (s,t) + comprobacion del vector normal
-!--------->
         !************************************* Quadrangle, Lagrange P1 **************************
         !check 4-node quadrilateral jacobian (see http://mms2.ensmp.fr/ef_paris/technologie/transparents/e_Pathology.pdf)
         do k = 1, elg%nel
@@ -1075,9 +1054,6 @@ do ip = 1, size(pmh%pc,1)
             call swap(elg%mm(3,k), elg%mm(4,k))
           end if
         end do
-!--------->
-        end if
-!--------->
       elseif (tp == check_fe(.true.,   4, 4,  6, 4)) then
         !************************************* Tetrahedron, Lagrange P1 *************************
         do k = 1, elg%nel
@@ -1158,13 +1134,3 @@ res = (a2(1)-a1(1))*(a3(2)-a1(2))*(a4(3)-a1(3)) + (a2(3)-a1(3))*(a3(1)-a1(1))*(a
 end function
 
 end module
-
-
-! PASOS A DAR:
-!   Definición de pmh
-!   Creacion de funciones para procesar las coordenadas, el nn, etc
-!   Opcionalmente, creación de funciones para procesar refs, orientación, etc.
-!   Conversor a/de mfm
-!   Conversor a vtu
-!   Uso en comsol
-!   hay que hacer subrutinas para dado p2, construir P1 en todos los elementos)
