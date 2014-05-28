@@ -7,13 +7,16 @@ module module_vtu
 ! Last update: 15/05/2013
 !
 ! PUBLIC PROCEDURES:
-!   save_vtu: saves a mesh in a VTU format file
+!   load_vtu: loads a VTU format file
+!   read_vtu: reads a mesh with fields in a VTU format file
+!   save_vtu: saves a mesh in a VTU format file from mfm (refs= nsd_*, nrc_*, nra_*,nrv_*)
+!   save_vtu2: saves a mesh and fields in a VTU format file from pmh
 !   type_cell: give the associated name of FE
 !-----------------------------------------------------------------------
 use module_compiler_dependant, only: real64
 use module_report, only:error, report_option
 use module_files, only:get_unit
-use module_convers, only:string
+use module_convers, only:string, lcase
 use module_alloc
 use module_set, only: sunique
 use LIB_VTK_IO
@@ -24,6 +27,8 @@ use module_fe_database_pmh
 implicit none
 
 !Constants
+
+integer, parameter, private :: DEFAULT_ALLOC  = 1000 !initial size for allocation
 !edge_tria(i,j), vertice i de la arista j de un triangulo
 integer, parameter, dimension(2,3) :: edge_tria = reshape([1,2, 2,3, 3,1], [2,3])
 !edge_quad(i,j), vertice i de la arista j de un cuadrangulo
@@ -39,7 +44,7 @@ integer, parameter :: face_hexa(4,6) = reshape([1,4,3,2, 1,5,8,4, 1,2,6,5, 5,6,7
 
 
 !Private procedures
-private :: true64, save_w_field !save_w_field must change
+private :: true64, save_w_field, search_multiple !save_w_field must change
 
 contains
 
@@ -344,20 +349,36 @@ call VTU_close()
 end subroutine
 
 
-
+!-----------------------------------------------------------------------
+! save_vtu2(filename, pmh): write VTU file
+!-----------------------------------------------------------------------
+! filename:   name of a VTU file
+! pmh:    PMH structure storing the piecewise mesh
+!-----------------------------------------------------------------------
 subroutine save_vtu2(filename, pmh)
+
+  type cdfield
+    character(len=maxpath)    :: name
+    integer                   :: ncomp
+    real(real64), allocatable :: val(:,:)
+  end type
+
   character(len=*), intent(in)  :: filename
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
   real(real64), allocatable     :: znod(:,:)
   integer, allocatable          :: connect(:), offset(:), celltypes(:)
   integer, allocatable          :: v_ref(:), e_ref(:), f_ref(:), el_ref(:)
+  integer, allocatable          :: uref(:), aux_ref(:)
+  type(cdfield), allocatable    :: cdfval(:)
   integer :: i, j, k, l, m
-  integer :: nnod, nel, conlen, tp, lnn, lnv, tnvpc, maxtopdim
+  integer :: nnod, nel, tp, lnn, lnv, tnvpc, maxtopdim, nparam
   logical :: all_P1
 
   call VTU_open(trim(filename)) 
   ! Loop in pieces
+  call info('Number of pieces: '//trim(string(size(pmh%pc,1))))
   do i=1,size(pmh%pc,1)
+    call info('  Piece: '//trim(string(i)))
     nel = 0 ! Number of VTK elements
     tnvpc = 0 ! Total number of vertex per cell
     maxtopdim = 0
@@ -376,7 +397,8 @@ subroutine save_vtu2(filename, pmh)
     ! Loop in element groups
     do j=1,size(pmh%pc(i)%el,1)
       tp = pmh%pc(i)%el(j)%type
-      print*, 'Element type: '//trim(FEDB(tp)%desc)
+      call info('    Element type: '//trim(FEDB(tp)%desc))
+
       if(.not. FEDB(tp)%nver_eq_nnod) then
           lnn = FEDB(tp)%lnn
           ! Build vtk conectivity array
@@ -393,7 +415,7 @@ subroutine save_vtu2(filename, pmh)
             &(/(k,k=tnvpc+1,tnvpc+pmh%pc(i)%el(j)%nel*lnv)/), fit=.false.)
           ! Build vtk offset array
           call set(offset, (/(tnvpc+k*lnv, k=1,pmh%pc(i)%el(j)%nel)/) , &
-            &(/(k,k=nel+1,nel+1+pmh%pc(i)%el(j)%nel)/), fit=.false.)
+            &(/(k,k=nel+1,nel+pmh%pc(i)%el(j)%nel)/), fit=.false.)
           tnvpc = tnvpc + pmh%pc(i)%el(j)%nel*lnv
       endif
       ! Build vtk cell types array
@@ -420,8 +442,21 @@ subroutine save_vtu2(filename, pmh)
 !        call set(v_ref, (/(pmh%pc(i)%el(j)%ref(k), k=1,pmh%pc(i)%el(j)%nel)/) , &
 !          &(/(k,k=nel+1,nel+1+pmh%pc(i)%el(j)%nel)/), fit=.false.)
       endif
+      if(.not. allocated(cdfval) .and. allocated(pmh%pc(i)%el(j)%fi)) allocate(cdfval(size(pmh%pc(i)%el(j)%fi,1)))
+      if(allocated(cdfval)) then
+        do l=1, size(cdfval,1)
+          cdfval(l)%name = trim(pmh%pc(i)%el(j)%fi(l)%name)
+          cdfval(l)%ncomp = size(pmh%pc(i)%el(j)%fi(l)%val,1)
+          do m=1, size(pmh%pc(i)%el(j)%fi(l)%val,1)
+            call set(cdfval(l)%val, (/(pmh%pc(i)%el(j)%fi(l)%val(m,k,1), k=1,pmh%pc(i)%el(j)%nel)/) , &
+              & [m], (/(k,k=nel+1,nel+pmh%pc(i)%el(j)%nel)/))
+          enddo
+        enddo
+      endif
+
       nel = nel + pmh%pc(i)%el(j)%nel
     enddo
+
     if(allocated(connect)) call reduce(connect, tnvpc)
     if(allocated(offset)) call reduce(offset, nel)
     if(allocated(celltypes)) call reduce(celltypes, nel)
@@ -448,31 +483,130 @@ subroutine save_vtu2(filename, pmh)
         &  stop 'writeVTU: vtk_geo_xml error 1'
       endif
     endif
+
     if(vtk_con_xml(nel,connect,offset,int(celltypes,I1P)) /= 0) stop 'writeVTU: vtk_con_xml error 1'
+    nparam = 1
 
     call VTU_begin_pointdata()
+    ! Array used to save references in this way: nsd_*
+    if(allocated(aux_ref)) deallocate(aux_ref)
+    allocate(aux_ref(nnod))
+
     if(allocated(v_ref) .and. size(pack(v_ref,v_ref/=0))>0) then
-      Print*, '  Vertex references found!'
+      call info('    Writing vertex references')
+      if(size(v_ref,1)<nnod) call add(v_ref,(/(0,k=size(v_ref,1),nnod)/),(/(k,k=size(v_ref,1),nnod)/),fit=.true.)
       call reduce(v_ref, nnod)
       if(vtk_var_xml(nnod, 'vertex_ref', v_ref) /= 0) stop 
+      if(allocated(uref)) deallocate(uref)
+      uref = unique(pack(v_ref,v_ref /= 0))
+      do k=1, size(uref,1)
+        aux_ref = 0
+        where(v_ref==uref(k))
+          aux_ref = v_ref
+        end where
+        if(vtk_var_xml(nnod, 'nrv_'//trim(string(uref(k))), aux_ref) /= 0) stop 
+      enddo
     endif
+
+    do j=1, size(pmh%pc(i)%fi,1)
+      call info('    Writing node field: '//trim(pmh%pc(i)%fi(j)%name))
+      if(size(pmh%pc(i)%fi(j)%val,1) == 1) then
+        if (vtk_var_xml(nnod, trim(pmh%pc(i)%fi(j)%name), pmh%pc(i)%fi(j)%val(1,1:nnod,nparam)) /= 0) &
+          call error('Writing '//trim(pmh%pc(i)%fi(j)%name))
+      elseif(size(pmh%pc(i)%fi(j)%val,1) == 2) then      
+        if (vtk_var_xml(nnod, trim(pmh%pc(i)%fi(j)%name), &
+          pmh%pc(i)%fi(j)%val(1,1:nnod,nparam), pmh%pc(i)%fi(j)%val(2,1:nnod,nparam), (/(real(0,R8P),i=1,nnod)/)) /= 0) &
+          call error('Writing '//trim(pmh%pc(i)%fi(j)%name))
+      elseif(size(pmh%pc(i)%fi(j)%val,1) == 3) then      
+        if (vtk_var_xml(nnod, trim(pmh%pc(i)%fi(j)%name), &
+          real(pmh%pc(i)%fi(j)%val(1,1:nnod,nparam),R8P), real(pmh%pc(i)%fi(j)%val(2,1:nnod,nparam),R8P), &
+          real(pmh%pc(i)%fi(j)%val(3,1:nnod,nparam),R8P)) /= 0) call error('Writing '//trim(pmh%pc(i)%fi(j)%name))
+      else
+        call error('Vector field with '//trim(string(size(pmh%pc(i)%fi(j)%val,1)))//' components not supported!')
+      endif
+    enddo
+
     call VTU_end_pointdata()
+
     call VTU_begin_celldata()
+    ! Array used to save references in this way: nsd_*
+    if(allocated(aux_ref)) deallocate(aux_ref)
+    allocate(aux_ref(nel))
+
     if(allocated(el_ref) .and. size(pack(el_ref,el_ref/=0))>0) then
-      Print*, '  Subdomain references found!'
+      call info('    Writing subdomain references')
+      if(size(el_ref,1)<nel) call add(el_ref,(/(0,k=size(el_ref,1),nel)/),(/(k,k=size(el_ref,1),nel)/),fit=.true.)
       call reduce(el_ref, nel)
       if(vtk_var_xml(nel, 'element_ref', el_ref) /= 0) stop 
+      ! Build nsd references
+      if(allocated(uref)) deallocate(uref)
+      uref = unique(pack(el_ref,el_ref /= 0))
+      do k=1, size(uref,1)
+        aux_ref = 0
+        where(el_ref==uref(k))
+          aux_ref = el_ref
+        end where
+        if(vtk_var_xml(nel, 'nsd_'//trim(string(uref(k))), aux_ref) /= 0) stop 
+      enddo
     endif
     if(allocated(f_ref)) then
-      Print*, '  Face references found!'
+      call info('    Writing face references')
+      if(size(f_ref,1)<nel) call add(f_ref,(/(0,k=size(f_ref,1),nel)/),(/(k,k=size(f_ref,1),nel)/),fit=.true.)
       call reduce(f_ref, nel)
       if(vtk_var_xml(nel, 'face_ref', f_ref) /= 0) stop 
+      ! Build nrc references
+      if(allocated(uref)) deallocate(uref)
+      uref = unique(pack(f_ref,f_ref /= 0))
+      do k=1, size(uref,1)
+        aux_ref = 0
+        where(f_ref==uref(k))
+          aux_ref = f_ref
+        end where
+        if(vtk_var_xml(nel, 'nrc_'//trim(string(uref(k))), aux_ref) /= 0) stop 
+      enddo
     endif
     if(allocated(e_ref)) then
-      Print*, '  Edge references found!'
+      call info('    Writing edge references')
+      if(size(e_ref,1)<nel) call add(e_ref,(/(0,k=size(e_ref,1),nel)/),(/(k,k=size(e_ref,1),nel)/),fit=.true.)
       call reduce(e_ref, nel)
       if(vtk_var_xml(nel, 'edge_ref', e_ref) /= 0) stop 
+      ! Build nra references
+      if(allocated(uref)) deallocate(uref)
+      uref = unique(pack(e_ref,e_ref /= 0))
+      do k=1, size(uref,1)
+        aux_ref = 0
+        where(e_ref==uref(k))
+          aux_ref = e_ref
+        end where
+        if(vtk_var_xml(nel, 'nra_'//trim(string(uref(k))), aux_ref) /= 0) stop 
+      enddo
     endif
+
+    if(allocated(cdfval)) then
+      do j=1, size(cdfval,1)
+        call info('    Writing cell field: '//trim(cdfval(j)%name))
+        if(size(cdfval(j)%val,2)<nel) call add(cdfval(j)%val, &
+          & (/(0._real64,k=size(cdfval(j)%val,2),nel*size(cdfval(j)%val,1))/), &
+          & (/(k,k=1,size(cdfval(j)%val,1))/), (/(k,k=size(cdfval(j)%val,2),nel)/))!,fit=(/.true.,.true./))
+        call reduce(cdfval(j)%val, cdfval(j)%ncomp, nel)
+
+        if(size(cdfval(j)%val,1) == 1) then
+          if (vtk_var_xml(nel, trim(cdfval(j)%name), cdfval(j)%val(1,1:nel)) /= 0) &
+            call error('Writing '//trim(cdfval(j)%name))
+        elseif(size(cdfval(j)%val,1) == 2) then      
+          if (vtk_var_xml(nel, trim(cdfval(j)%name), &
+            cdfval(j)%val(1,1:nel), cdfval(j)%val(2,1:nel), (/(real(0,R8P),i=1,nel)/)) /= 0) &
+            call error('Writing '//trim(cdfval(j)%name))
+        elseif(size(cdfval(j)%val,1) == 3) then      
+          if (vtk_var_xml(nnod, trim(cdfval(j)%name), &
+            real(cdfval(j)%val(1,1:nel),R8P), real(cdfval(j)%val(2,1:nel),R8P), &
+            real(cdfval(j)%val(3,1:nel),R8P)) /= 0) call error('Writing '//trim(cdfval(j)%name))
+        else
+          call error('Vector field with '//trim(string(size(cdfval(j)%val,1)))//' components not supported!')
+        endif
+      enddo
+    endif 
+
     call VTU_end_celldata()
     if(vtk_geo_xml() /= 0) stop 'writeVTU: vtk_geo_xml_closep error 1'
   enddo
@@ -667,47 +801,61 @@ end subroutine
 !-----------------------------------------------------------------------
 ! read_VTU(filename, pmh): read VTU file
 !-----------------------------------------------------------------------
-! this:   vtu type containing name a unit number
+! filename:   VTU file name
 ! pmh:    PMH structure storing the piecewise mesh
 !-----------------------------------------------------------------------
-
 subroutine read_vtu(filename, pmh)
+
+
+  type cdfield
+    real(R8P), allocatable    :: val(:,:)
+  end type
 
   character(len=*), intent(in)  :: filename
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
-  integer(I4P)              :: np, nn, nc, nco, nnref, ncref, ncomp
-  real(R8P), allocatable    :: X(:), Y(:), Z(:)
+  integer(I4P)              :: np, nn, nc, nnref, ncref, ncomp
+  real(R8P), allocatable    :: X(:), Y(:), Z(:), pdfval(:), temp(:),temp2(:,:,:)
   integer, allocatable      :: v_ref(:), aux_ref(:), c_refs(:)
   integer(I4P), allocatable :: connect(:), offset(:)
+  character(len=MAXPATH), allocatable:: pdfnames(:), cdfnames(:)
   integer(I1P), allocatable :: cell_type(:),uct(:)
-  integer                   :: i,j,k, lnn, ini, fin
+  integer                   :: i,j,k, l,lnn, npdf, ncdf
+  type(cdfield), allocatable:: cdfval(:)
+  logical :: file_exists
+  
 
 
   ! Reads the VTU file header and allocates the number of pieces
+  inquire(file=trim(filename), exist=file_exists)
+
+  if(.not. file_exists) call error('Input file '//trim(filename)//' not found!')
 
   print*, 'Reading VTK header ...'
   if (vtk_ini_xml_read('Binary',filename,'UnstructuredGrid', np)/=0) stop 'Error'
-  print*, 'Pieces founded: '//trim(string(np))
+  call info('Number of pieces: '//trim(string(np)))
 
   if(allocated(pmh%pc)) deallocate(pmh%pc)
   allocate(pmh%pc(np))
 
   do i=1, np
-    print*, 'Piece '//trim(string(i))//':'
-    print*, '  Reading coordinates ...'
+    call info('  Piece '//trim(string(i))//':')
+    call info('    Reading coordinates ...')
     if (vtk_geo_xml_read(nn, nc, X, Y, Z, i)/=0) stop 'Error'
     pmh%pc(i)%nnod = nn
     pmh%pc(i)%dim = 3
     if(allocated(pmh%pc(i)%z)) deallocate(pmh%pc(i)%z)
     allocate(pmh%pc(i)%z(3,nn))
 
-    
+    ! Save coordinates in PMH structure
     call set_row(pmh%pc(i)%z, X, 1, fit=[.true.,.true.])
+    if(allocated(X)) deallocate(X)
     call set_row(pmh%pc(i)%z, Y, 2, fit=[.true.,.true.])
+    if(allocated(Y)) deallocate(Y)
     call set_row(pmh%pc(i)%z, Z, 3, fit=[.true.,.true.])
+    if(allocated(Z)) deallocate(Z)
 
 
-    print*, '  Reading conectivities ... '
+    call info('    Reading conectivities ... ')
     if (vtk_con_xml_read(nc,connect,offset,cell_type,i)/=0) stop 'Error'
 
     ! Total array of cell references (celldata)
@@ -715,7 +863,8 @@ subroutine read_vtu(filename, pmh)
     allocate(c_refs(nc))
     c_refs = 0
 
-    print*, '  Reading references ... '
+
+    call info('    Reading references ... ')
     ! VTK+ vertex references (pointdata)
     if(vtk_var_xml_read('Node',nnref,ncomp,'vertex_ref',v_ref,i) == 0 ) then
       if((nnref/=nn .or. ncomp /= 1) .and. allocated(v_ref)) deallocate(v_ref)
@@ -748,20 +897,89 @@ subroutine read_vtu(filename, pmh)
       endif
     endif
 
+    ! Reads and store pointdata fields
+    if(vtk_var_xml_list(pdfnames,i,'Node') == 0 ) then
+      npdf = size(pdfnames,1) ! Number of pointdata fields
+      do j=1, size(pdfnames,1)
+        if(lcase(pdfnames(j)) == 'vertex_ref') npdf = npdf -1
+      enddo
+      if(allocated(pmh%pc(i)%fi)) deallocate(pmh%pc(i)%fi)
+      allocate(pmh%pc(i)%fi(npdf))
+      npdf = 0
+      do j=1, size(pdfnames,1)
+        if(lcase(pdfnames(j)) == 'vertex_ref') cycle
+        if(vtk_var_xml_read('Node',nnref,ncomp,trim(pdfnames(j)),pdfval,i) == 0 ) then
+          npdf = npdf +1
+          if(nnref == nn) then
+            call info('    Reading node field: '//trim(pdfnames(j)))
+            pmh%pc(i)%fi(npdf)%name = trim(pdfnames(j))
+            allocate(pmh%pc(i)%fi(npdf)%param(1))
+            pmh%pc(i)%fi(j)%param(1) = 0
+            allocate(pmh%pc(i)%fi(npdf)%val(ncomp,nnref,1))
+            pmh%pc(i)%fi(npdf)%val(:,:,1) = reshape(pdfval, (/ncomp, nnref/))
+          else
+            call error('Wrong number of node values')
+          endif
+          if(allocated(pdfval)) deallocate(pdfval)
+        else
+          call error('Reading VTU file')
+        endif
+      enddo
+      if(allocated(pdfnames)) deallocate(pdfnames)
+    endif
 
+    ! Reads celldata fields
+    if(vtk_var_xml_list(cdfnames,i,'Cell') == 0 ) then
+      ncdf = size(cdfnames,1) ! Number of celldata fields
+      do j=1, size(cdfnames,1)
+        if(lcase(cdfnames(j)) == 'element_ref' .or. lcase(cdfnames(j)) == 'face_ref' .or. &
+           lcase(cdfnames(j)) == 'edge_ref') npdf = npdf -1
+      enddo
+      if(allocated(cdfval)) deallocate(cdfval)
+      allocate(cdfval(ncdf))
+      ncdf = 0
+      do j=1, size(cdfnames,1)
+        if(lcase(cdfnames(j)) == 'element_ref' .or. lcase(cdfnames(j)) == 'face_ref' .or. &
+           lcase(cdfnames(j)) == 'edge_ref') cycle
+        if(vtk_var_xml_read('Cell',ncref,ncomp,trim(cdfnames(j)),temp,i) == 0 ) then
+          call info('    Reading cell field: '//trim(cdfnames(j)))
+          if(ncref == nc) then
+            ncdf = ncdf + 1
+            allocate(cdfval(ncdf)%val(ncomp,nc))
+            cdfval(ncdf)%val(:,:) = reshape(temp, (/ncomp,nc/))
+          else
+            call error('Wrong number of element values')
+          endif
+        endif
+        if(allocated(temp)) deallocate(temp)
+      enddo
+    endif
+
+    ! Initialize celldata field names and number of parameters
     uct = uniqueI1P(cell_type)
     if(allocated(pmh%pc(i)%el)) deallocate(pmh%pc(i)%el)
-!    if(allocated(v_ref)) then 
-!      allocate(pmh%pc(i)%el(size(uct,1)+1))
-!    else
-      allocate(pmh%pc(i)%el(size(uct,1)))
-!    endif
+    allocate(pmh%pc(i)%el(size(uct,1)))
+    do j=1, size(uct,1)
+      ncdf = 0
+      allocate(pmh%pc(i)%el(j)%fi(size(cdfval,1)))
+      do l=1, size(cdfval,1)
+        ncdf = ncdf + 1
+        if(lcase(cdfnames(j)) == 'element_ref' .or. lcase(cdfnames(j)) == 'face_ref' .or. &
+           lcase(cdfnames(j)) == 'edge_ref') cycle
+        pmh%pc(i)%el(j)%fi(l)%name = trim(cdfnames(ncdf))
+        allocate(pmh%pc(i)%el(j)%fi(l)%param(1))
+        pmh%pc(i)%el(j)%fi(l)%param(1) = 0
+      enddo
+    enddo
+    if(allocated(cdfnames)) deallocate(cdfnames)
+
     do j=1, size(uct,1)
       pmh%pc(i)%el(j)%type = vtk2pmhcelltype(int(uct(j)))
       lnn = FEDB(pmh%pc(i)%el(j)%type)%lnn
-      print*, '  Building group '//trim(string(j))//': '//trim(FEDB(pmh%pc(i)%el(j)%type)%desc)
+      call info('    Building group '//trim(string(j))//': '//trim(FEDB(pmh%pc(i)%el(j)%type)%desc))
       if(pmh%pc(i)%el(j)%type == 0) cycle
       do k=1, nc
+        ! Stores connectivities and references in PMH structure
         if(uct(j) == cell_type(k)) then
           pmh%pc(i)%el(j)%nel = pmh%pc(i)%el(j)%nel + 1
           call set_col(pmh%pc(i)%el(j)%nn, connect(offset(k)-lnn+1:offset(k))+1, pmh%pc(i)%el(j)%nel, fit=[.true.,.false.])
@@ -771,23 +989,62 @@ subroutine read_vtu(filename, pmh)
             call set(pmh%pc(i)%el(j)%ref, v_ref(connect(offset(k))+1), pmh%pc(i)%el(j)%nel, fit=.true.)
           endif
         endif
+        ! Saves VTU fields in a PMH structure. Manage memory allocation
+        do l=1,size(cdfval,1)
+          if(.not. allocated(pmh%pc(i)%el(j)%fi(l)%val)) then
+            allocate(pmh%pc(i)%el(j)%fi(l)%val(1:size(cdfval(l)%val,1),DEFAULT_ALLOC,1))
+          elseif(size(pmh%pc(i)%el(j)%fi(l)%val,2)<=pmh%pc(i)%el(j)%nel) then
+            if(allocated(temp2)) deallocate(temp2)
+            allocate(temp2( &
+                        & size(pmh%pc(i)%el(j)%fi(l)%val,1), &
+                        & search_multiple(DEFAULT_ALLOC, pmh%pc(i)%el(j)%nel) , &
+                        & size(pmh%pc(i)%el(j)%fi(l)%val,3) &
+                   & ))
+            temp2(:,1:pmh%pc(i)%el(j)%nel,1) = pmh%pc(i)%el(j)%fi(l)%val(:,:, 1)
+            temp2(:,pmh%pc(i)%el(j)%nel:,1) = 0._real64
+            call move_alloc(from=temp2, to=pmh%pc(i)%el(j)%fi(l)%val)
+          endif
+          pmh%pc(i)%el(j)%fi(l)%val(1:size(cdfval(l)%val,1),pmh%pc(i)%el(j)%nel,1) = cdfval(l)%val(:,k)
+        enddo
       enddo
+
+      ! Reduce arrays to the right size
       call reduce(pmh%pc(i)%el(j)%nn,FEDB(pmh%pc(i)%el(j)%type)%lnn,pmh%pc(i)%el(j)%nel)
       call reduce(pmh%pc(i)%el(j)%ref,pmh%pc(i)%el(j)%nel)
+      do l=1,size(pmh%pc(i)%el(j)%fi,1)
+        if(allocated(temp2)) deallocate(temp2)
+        allocate(temp2( &
+                    & size(pmh%pc(i)%el(j)%fi(l)%val,1), &
+                    & pmh%pc(i)%el(j)%nel , &
+                    & size(pmh%pc(i)%el(j)%fi(l)%val,3) &
+               & ))
+         temp2(:,1:pmh%pc(i)%el(j)%nel,1) = pmh%pc(i)%el(j)%fi(l)%val(:,1:pmh%pc(i)%el(j)%nel, 1)
+         call move_alloc(from=temp2, to=pmh%pc(i)%el(j)%fi(l)%val)
+         if(allocated(temp2)) deallocate(temp2)
+      enddo
     enddo
 
-!    if(allocated(v_ref)) then 
-!      j = size(uct,1) + 1
-!      pmh%pc(i)%el(j)%type = check_fe(.true.,1,1,0,0)
-!      call set_row(pmh%pc(i)%el(j)%nn, (/(j,j=1,nn)/), 1, fit=[.true.,.true.])
-!print*, 'nn',trim(string(pack(pmh%pc(i)%el(j)%nn,.true.)))
-!      call set(pmh%pc(i)%el(j)%ref, int(v_ref), (/(j,j=1,nn)/), fit=.true.)
-!print*, 'ref',trim(string(pmh%pc(i)%el(j)%ref))
-!    endif
+    ! Memory deallocation
+    if(allocated(X)) deallocate(X)
+    if(allocated(Y)) deallocate(Y)
+    if(allocated(Z)) deallocate(Z)
+    if(allocated(connect)) deallocate(connect)
+    if(allocated(offset)) deallocate(offset)
+    if(allocated(cell_type)) deallocate(cell_type)
+    if(allocated(uct)) deallocate(uct)
+    if(allocated(v_ref)) deallocate(v_ref)
+    if(allocated(c_refs)) deallocate(c_refs)
+    if(allocated(aux_ref)) deallocate(aux_ref)
+    if(allocated(pdfnames)) deallocate(pdfnames) 
+    if(allocated(cdfnames)) deallocate(cdfnames) 
+    if(allocated(pdfval)) deallocate(pdfval) 
+    if(allocated(cdfval)) deallocate(cdfval) 
+    if(allocated(temp)) deallocate(temp) 
+    if(allocated(temp2)) deallocate(temp2) 
 
   enddo
 
-    if (vtk_end_xml_read()/=0) stop 'Error'
+  if (vtk_end_xml_read()/=0) stop 'Error'
 
 
 end subroutine
@@ -900,6 +1157,22 @@ function pmh2vtkcelltype(pmhtype) result(res)
 
 end function
 
+!-----------------------------------------------------------------------
+! PRIVATE PROCEDURES
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! search_multiple: search the smallest value of 2 to the power of a that is bigger than b
+! 2^n*a > b  <=>  n > log2(b/a)
+!-----------------------------------------------------------------------
+integer function search_multiple(a,b)
+integer, intent(in) :: a, b
+
+if (b > a) then 
+  search_multiple = int(2**real(ceiling(log(real(b)/a)/log(2.)))*a)
+else 
+  search_multiple = a
+end if
+end function 
 
 
 end module
