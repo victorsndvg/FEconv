@@ -18,14 +18,18 @@ type :: field_db
   logical           :: is_field_outside = .false. !is field outside mesh?
 end type
 
-type(field_db), parameter :: FLDB(7) = [       &
-field_db('mfm       ', 'mff       ', .true.),  &
-field_db('mum       ', 'muf       ', .true.),  &
-field_db('vtu       ', 'vtu       ', .false.), &
-field_db('msh       ', '          ', .false.), & !FreeFem++ (old format)
-field_db('mesh      ', 'mesh      ', .false.), & !FreeFem++ (new format)
+type(field_db), parameter :: FLDB(9) = [       &
+field_db('mfm       ', 'mff       ', .true.), &
+field_db('mum       ', 'muf       ', .true.), &
+field_db('pf3       ', 'dex       ', .true.), &
 field_db('unv       ', 'unv       ', .false.), &
-field_db('pmh       ', 'pmh       ', .false.)]
+field_db('vtu       ', 'vtu       ', .false.), &
+field_db('msh       ', '          ', .false.), &
+field_db('bdf       ', '          ', .false.), &
+field_db('mphtxt    ', '          ', .false.), &
+field_db('mesh      ', 'mesh      ', .false.)]
+
+
 contains
 
 !-----------------------------------------------------------------------
@@ -38,6 +42,22 @@ integer :: res, i
 res = 0
 do i = 1, size(FLDB,1)
   if (mesh_ext == FLDB(i)%mesh_ext) then
+    res = i
+    return
+  end if
+enddo
+end function
+
+!-----------------------------------------------------------------------
+! id_field_ext: given the field extension, return the index of its position in the database
+!-----------------------------------------------------------------------
+function id_field_ext(field_ext) result(res)
+character(*), intent(in) :: field_ext
+integer :: res, i
+
+res = 0
+do i = 1, size(FLDB,1)
+  if (field_ext == FLDB(i)%field_ext) then
     res = i
     return
   end if
