@@ -11,7 +11,7 @@ use module_report, only: error
 use module_args, only: is_arg
 use module_feconv, only: convert
 implicit none
-character(10) :: last_update = '23/01/2014'
+character(10) :: last_update = '28/05/2014'
 
 !read and store arguments
 if (command_argument_count() == 0) call error('(feconv) command line arguments not found; to show help information: feconv -h')
