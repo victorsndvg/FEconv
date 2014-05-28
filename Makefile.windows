@@ -173,8 +173,8 @@ module_feconv.obj: module_compiler_gfortran.obj module_os_dependant.obj \
 module_report.obj module_convers.obj module_files.obj module_alloc.obj \
 module_args.obj module_transform.obj module_cuthill_mckee.obj module_msh.obj \
 module_unv.obj module_patran.obj module_mfm.obj module_mum.obj module_vtu.obj \
-module_mphtxt.obj module_pf3.obj module_field_database.obj module_freefem.obj \
-module_pmh.obj module_fem_extract.obj module_gmsh.obj
+module_mphtxt.obj module_pf3.obj module_field_database.obj module_mff.obj \
+module_freefem.obj module_pmh.obj module_fem_extract.obj module_gmsh.obj
  
 # INCLUDES
 includes = 

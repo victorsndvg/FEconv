@@ -11,7 +11,7 @@ module module_feconv
 ! is_arg: returns true when the argument is present
 !-----------------------------------------------------------------------
 use module_compiler_dependant, only: real64
-use module_os_dependant, only: maxpath
+use module_os_dependant, only: maxpath, slash
 use module_report, only: error
 use module_convers, only: adjustlt, lcase, word_count
 use module_files, only: get_unit
@@ -28,7 +28,8 @@ use module_vtu, only: save_vtu, save_vtu2, load_vtu, type_cell
 use module_mphtxt, only: load_mphtxt,save_mphtxt
 use module_pf3, only: load_pf3,save_pf3
 !use module_tra, only: load_tra,save_tra
-use module_field_database, only: FLDB, id_mesh_ext
+use module_field_database, only: FLDB, id_mesh_ext, id_field_ext
+use module_mff, only: load_mff, save_mff
 use module_freefem, only: save_freefem_msh, save_freefem_mesh, load_freefem_msh, load_freefem_mesh
 use module_pmh
 use module_fem_extract, only: extract_mesh, extract_ref
@@ -64,6 +65,7 @@ contains
 !-----------------------------------------------------------------------
 subroutine convert()
 character(maxpath) :: infile=' ', inmesh=' ', inext=' ', outfile=' ', outmesh=' ', outext=' '
+character(maxpath) :: infext=' ', outfext=' ', outpath = ' '
 character(maxpath), allocatable :: infield(:), outfield(:)
 character(maxpath) :: str
 integer :: p, nargs, q
@@ -77,6 +79,7 @@ real(real64), allocatable :: subz(:,:)
 nargs = args_count()
  infile = get_arg(nargs-1); p = index( infile, '.', back=.true.);  inmesh =  infile(1:p-1);  inext =  infile(p+1:len_trim( infile))
 outfile = get_arg(nargs);   p = index(outfile, '.', back=.true.); outmesh = outfile(1:p-1); outext = outfile(p+1:len_trim(outfile))
+ p = index(outfile, slash(), back=.true.); outpath = outfile(1:p)
 
 !check mesh names and extensions
 if (len_trim(infile)  == 0) call error('(module_feconv/fe_conv) unable to find input file.')
@@ -110,6 +113,10 @@ if (FLDB(id_mesh_ext(inext))%is_field_outside) then
       !there is -if, there is -of
       call set( infield, get_post_arg('-if'), 1, fit=.true.)
       call set(outfield, get_post_arg('-of'), 1, fit=.true.)
+      p = index( infield(1), '.', back=.true.);  infext =  infield(1)(p+1:len_trim( infield(1)))
+      p = index( outfield(1), '.', back=.true.);  outfext =  infield(1)(p+1:len_trim( outfield(1)))
+      if((id_mesh_ext(inext) /= id_field_ext(infext)) .or. (id_mesh_ext(outext) /= id_field_ext(outfext))) &
+        & call error("Inconsistent mesh and field extensions")
     elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
       !there is not -if, there is not -of
       there_is_field = .false.
@@ -189,6 +196,11 @@ case('mfm')
   print '(a)', 'Loading MFM mesh file...'
   call load_mfm(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   print '(a)', 'Done!'
+  if(there_is_field) then
+    if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+    is_pmh = .true.
+    call load_mff(pmh, infield, outfield)
+  endif
 case('mum')
   print '(a)', 'Loading MUM mesh file...'
   call load_mum(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
@@ -305,6 +317,11 @@ end if
 !save mesh
 select case (trim(adjustlt(outext)))
 case('mfm')
+  if(there_is_field) then
+    if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+    is_pmh = .true.
+    call save_mff(pmh, infield, outfield, outpath)
+  endif
   print '(/a)', 'Saving MFM mesh file...'
   if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   call save_mfm(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
@@ -316,8 +333,8 @@ case('mum')
   print '(a)', 'Done!'
 case('vtu')
   print '(/a)', 'Saving VTU mesh file...'
-  if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  call save_vtu2(outfile, pmh)
   print '(a)', 'Done!'
 !case('vtu')
 !  print '(/a)', 'Saving VTU mesh file...'

@@ -24,7 +24,7 @@ dir_objetos = object
 condir_principal = source/main.f90
  
 # EXECUTABLE NAME 
-ejecutable = feconv.exe
+ejecutable = feconv
  
 # NEEDED TO convert ejecutable THE DEFAULT RULE: 
 $(ejecutable): $(condir_principal) 
@@ -170,8 +170,8 @@ module_feconv.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_convers.o module_files.o module_alloc.o module_args.o \
 module_transform.o module_cuthill_mckee.o module_msh.o module_unv.o \
 module_patran.o module_mfm.o module_mum.o module_vtu.o module_mphtxt.o \
-module_pf3.o module_field_database.o module_freefem.o module_pmh.o \
-module_fem_extract.o module_gmsh.o
+module_pf3.o module_field_database.o module_mff.o module_freefem.o \
+module_pmh.o module_fem_extract.o module_gmsh.o
  
 # INCLUDES
 includes = 
