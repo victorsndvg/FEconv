@@ -36,12 +36,20 @@ use module_set, only: unique
 implicit none
 
 !Types
+
+type field
+  character(maxpath)        :: name 
+  real(real64), allocatable :: param(:)   !nshot
+  real(real64), allocatable :: val(:,:,:) !ncomp x nnod x nshot
+end type
+
 type elgroup
   integer              :: nel  = 0 !total number of elements
   integer              :: type = 0 !element type (one of those defined in module_eltype)
   integer, allocatable :: nn(:,:)  !global numbering of nodes
   integer, allocatable :: mm(:,:)  !global numbering of vertices
   integer, allocatable :: ref(:)   !reference numbering
+  type(field), allocatable :: fi(:)!Fields on elements
 end type
 
 type piece
@@ -50,6 +58,7 @@ type piece
   integer                    :: dim  = 0 !space dimension of the node/vertex coordinates
   real(real64),  allocatable :: z(:,:)   !vertex coordinates
   type(elgroup), allocatable :: el(:)    !element groups  
+  type(field), allocatable   :: fi(:)    !Fields on nodes
 end type
 
 type pmh_mesh
@@ -1084,9 +1093,7 @@ do ip = 1, size(pmh%pc,1)
           if(.not. check) then
           call info('(module_pmh/reorder_nodes) hexahedron '//trim(string(k))//' does not fulfill sufficient condition to '//&
           &' ensure positive Jacobian: piece '//trim(string(ip))//', group '//trim(string(ig))//'; node order remains unchanged')
-if(k==1) print*, elg%mm(:,k)
-endif
-
+          endif
         end do
       else
         call info('(module_pmh/reorder_nodes) reordering of element type '//trim(string(FEDB(pmh%pc(ip)%el(ig)%type)%desc))//&

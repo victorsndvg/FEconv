@@ -24,7 +24,7 @@ dir_objetos = object
 condir_principal = source/main.f90
  
 # EXECUTABLE NAME 
-ejecutable = feconv
+ejecutable = feconv.exe
  
 # NEEDED TO convert ejecutable THE DEFAULT RULE: 
 $(ejecutable): $(condir_principal) 
@@ -79,7 +79,7 @@ module_alloc_log_r1.o
 module_system.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_convers.o module_alloc_char_r1.o module_files.o
 Lib_VTK_IO.o: IR_Precision.o
-LIB_VTK_IO_READ.o: Lib_VTK_IO.o
+LIB_VTK_IO_READ.o: Lib_VTK_IO.o module_alloc.o
 module_writevtu.o: Lib_VTK_IO.o
 module_ALLOC_int_alloc_r2.o: module_alloc.o
 module_ALLOC_log_r2.o: module_report.o

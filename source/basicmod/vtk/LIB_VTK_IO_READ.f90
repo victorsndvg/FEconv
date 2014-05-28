@@ -1,6 +1,7 @@
 module LIB_VTK_IO_READ
 
 use LIB_VTK_IO !temporal use, while this functions are not included in LIB_VTK_IO
+use module_alloc
 implicit none
 
 private
@@ -9,6 +10,7 @@ public:: VTK_INI_XML_READ
 public:: VTK_GEO_XML_READ
 public:: VTK_CON_XML_READ
 public:: VTK_VAR_XML_READ
+public:: VTK_VAR_XML_LIST
 public:: VTK_END_XML_READ
 
 ! overloading of VTK_GEO_XML
@@ -316,6 +318,57 @@ end function
 
 
 !-----------------------------------------------------------------------------------------------------------------------------------
+function VTK_VAR_XML_LIST(varname,npiece,var_location) result(E_IO)
+  implicit none
+  character(len=MAXPATH), allocatable,intent(OUT):: varname(:)      ! variable name
+  integer(I4P), intent(IN), optional :: npiece ! Number of the piece to read (by default: 1)
+  character(len=*), intent(IN),optional :: var_location    ! force variable location
+  integer(I4P):: E_IO         ! Input/Output inquiring flag: $0$ if IO is done, $> 0$ if IO is not done
+  integer :: np
+
+  np = 1; if (present(npiece)) np = npiece
+  select case(f_out)
+  case(f_out_ascii)
+    stop 'Not implemented'
+  case(f_out_binary)
+  
+    if(present(var_location)) then
+      select case(trim(Upper_case(var_location)))
+        case('NODE')
+          ! Pointdata
+          rewind(unit=Unit_VTK, iostat=E_IO)
+          E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
+          E_IO = search_all(inside='PointData', to_find='DataArray', with_attribute='Name',&
+                      &  varname=varname)
+        case('CELL')
+          ! Celldata
+          rewind(unit=Unit_VTK, iostat=E_IO)
+          E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
+          E_IO = search_all(inside='CellData', to_find='DataArray', with_attribute='Name',&
+                      &  varname=varname)
+
+      endselect
+    else
+      ! Pointdata
+      rewind(unit=Unit_VTK, iostat=E_IO)
+      E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
+      E_IO = search_all(inside='PointData', to_find='DataArray', with_attribute='Name',&
+                      & varname=varname)
+    
+      ! Celldata
+      rewind(unit=Unit_VTK, iostat=E_IO)
+      E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
+      E_IO = search_all(inside='CellData', to_find='DataArray', with_attribute='Name',&
+                      & varname=varname)
+    endif
+    
+    if(allocated(varname)) E_IO = 0 !If any field was found
+  
+  endselect
+end function
+
+
+!-----------------------------------------------------------------------------------------------------------------------------------
 function VTK_END_XML_READ() result(E_IO)
 integer(I4P):: E_IO 
 
@@ -346,29 +399,59 @@ end function
 !-----------------------------------------------------------------------------------------------------------------------------------
 ! get_int: get in buffer, the value of attribute 'attrib'
 !-----------------------------------------------------------------------------------------------------------------------------------
-subroutine get_int(attrib, val)
+subroutine get_int(attrib, val, case)
 character(len=*), intent(in)  :: attrib
 integer,          intent(out) :: val
+character(len=*), intent(in), optional :: case
 integer :: pos, po2
 
-pos = index(buffer, trim(adjustlt(Upper_Case(attrib)))//'="')+len_trim(adjustlt(attrib))+2
-if (pos <= len_trim(adjustlt(attrib))+2) stop 'Attrib not found'
-po2 = index(buffer(pos:len_trim(buffer)), '"')+pos-2
-read(buffer(pos:po2),*) val
+if(present(case)) then
+  if(trim(case)=='lower') then
+    pos = index(buffer, trim(adjustlt(attrib))//'="')+len_trim(adjustlt(attrib))+2
+    if (pos <= len_trim(adjustlt(attrib))+2) stop 'Attrib not found'
+    po2 = index(buffer(pos:len_trim(buffer)), '"')+pos-2
+    read(buffer(pos:po2),*) val
+  else
+    pos = index(buffer, trim(adjustlt(Upper_Case(attrib)))//'="')+len_trim(adjustlt(attrib))+2
+    if (pos <= len_trim(adjustlt(attrib))+2) stop 'Attrib not found'
+    po2 = index(buffer(pos:len_trim(buffer)), '"')+pos-2
+    read(buffer(pos:po2),*) val
+  endif
+else
+  pos = index(buffer, trim(adjustlt(Upper_Case(attrib)))//'="')+len_trim(adjustlt(attrib))+2
+  if (pos <= len_trim(adjustlt(attrib))+2) stop 'Attrib not found'
+  po2 = index(buffer(pos:len_trim(buffer)), '"')+pos-2
+  read(buffer(pos:po2),*) val
+endif
 end subroutine
 
 !-----------------------------------------------------------------------------------------------------------------------------------
 ! get_char: get in buffer, the value of attribute 'attrib'
 !-----------------------------------------------------------------------------------------------------------------------------------
-subroutine get_char(attrib, val)
+subroutine get_char(attrib, val, case)
 character(len=*), intent(in)  :: attrib
 character(len=*), intent(out) :: val
+character(len=*), intent(in), optional :: case
 integer :: pos, po2
 
-pos = index(buffer, trim(adjustlt(Upper_Case(attrib)))//'="')+len_trim(adjustlt(attrib))+2
-if (pos <= len_trim(adjustlt(attrib))+2) stop 'Attrib not found'
-po2 = index(buffer(pos:len_trim(buffer)), '"')+pos-2
-read(buffer(pos:po2),'(a)') val
+if(present(case)) then
+  if(trim(case) == 'lower') then
+    pos = index(buffer, trim(adjustlt(attrib))//'="')+len_trim(adjustlt(attrib))+2
+    if (pos <= len_trim(adjustlt(attrib))+2) stop 'Attrib not found'
+    po2 = index(buffer(pos:len_trim(buffer)), '"')+pos-2
+    read(buffer(pos:po2),'(a)') val
+  else
+    pos = index(buffer, trim(adjustlt(Upper_Case(attrib)))//'="')+len_trim(adjustlt(attrib))+2
+    if (pos <= len_trim(adjustlt(attrib))+2) stop 'Attrib not found'
+    po2 = index(buffer(pos:len_trim(buffer)), '"')+pos-2
+    read(buffer(pos:po2),'(a)') val
+  endif
+else
+  pos = index(buffer, trim(adjustlt(Upper_Case(attrib)))//'="')+len_trim(adjustlt(attrib))+2
+  if (pos <= len_trim(adjustlt(attrib))+2) stop 'Attrib not found'
+  po2 = index(buffer(pos:len_trim(buffer)), '"')+pos-2
+  read(buffer(pos:po2),'(a)') val
+endif
 end subroutine
 
 !-----------------------------------------------------------------------------------------------------------------------------------
@@ -445,7 +528,7 @@ do !search 'repeat' times the mark 'to_find'
   E_IO = read_record(buffer)
   buffer = trim(adjustlt(Upper_Case(buffer)))
   if (index(buffer, '</'//trim(adjustlt(Upper_Case(inside)))) > 0) then
-    E_IO = 1 ! Not found
+    E_IO = -1 ! Not found
     return
   endif
   if (index(buffer, '<'//trim(adjustlt(Upper_Case(to_find)))) > 0) then
@@ -455,5 +538,41 @@ do !search 'repeat' times the mark 'to_find'
   end if
 enddo
 end function
+
+!-----------------------------------------------------------------------------------------------------------------------------------
+! search: search in VTK file from position 'pos' inside the mark 'inside', until find the mark 'to_find', eventually, having 
+! attribute 'with_attribute'
+!-----------------------------------------------------------------------------------------------------------------------------------
+function search_all(from, inside, to_find, with_attribute, varname) result(E_IO)
+  integer, optional, intent(in) :: from
+  character(len=*),  intent(in) :: inside, to_find
+  character(len=*),  intent(in) :: with_attribute
+  character(len=MAXPATH), allocatable,intent(INOUT):: varname(:)      ! variable name
+  integer(I4P)                  :: E_IO, counter
+  character(maxlen) :: str
+  integer :: pos
+
+  pos = 1; if (present(from)) pos = from
+  E_IO = read_record(buffer, from=pos)
+  do !search the beginnig of the mark 'inside' from position 'pos'
+    buffer = trim(adjustlt(Upper_Case(buffer)))
+    if (index(buffer, '<'//trim(adjustlt(Upper_Case(inside)))) > 0) exit !Mark 'inside' founded once
+    E_IO = read_record(buffer)
+    if(E_IO /= 0) return
+  enddo
+  if(.not.allocated(varname)) then;counter=1;else;counter=size(varname,1)+1;endif
+  do !search 'repeat' times the mark 'to_find'
+    E_IO = read_record(buffer)
+    buffer = trim(adjustlt(buffer))
+    if (index(Upper_Case(buffer), '</'//trim(adjustlt(Upper_Case(inside)))) > 0) return
+    if (index(Upper_Case(buffer), '<'//trim(adjustlt(Upper_Case(to_find)))) > 0) then
+      call get_char(with_attribute, str, case='lower')
+      call set(varname,trim(str),counter)
+      counter = counter + 1
+    end if
+  enddo
+  call reduce(varname, counter)
+end function
+
 
 end module
