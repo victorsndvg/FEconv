@@ -31,7 +31,7 @@ character(*), intent(in) :: filename
 integer,      intent(in) :: iu      
 type(pmh_mesh), intent(inout) :: pmh
 integer :: res, i, j, k, ios, nel, elt, nelt, id4gmsh(93), xxx, ntags, tag(100), tmp(100)
-integer, allocatable :: el_type(:), inv_el_type(:)
+integer, allocatable :: el_type(:), inv_el_type(:), new4old(:), old4new(:)
 character(maxpath) :: cad
 
 !id4gmsh("gmsh element id") = "pmh element id"
@@ -72,8 +72,14 @@ associate (m => pmh%pc(1)) !m: current mesh
   read (unit=iu, fmt=*, iostat=ios) m%nnod
   if (ios /= 0) call error('read (str), #'//trim(string(ios)))
   call alloc(m%z, m%dim, m%nnod)
-  read (unit=iu, fmt=*, iostat=ios) (xxx, (m%z(i,j),  i=1,m%dim), j=1,m%nnod)
+  call alloc(old4new,    m%nnod)
+  read (unit=iu, fmt=*, iostat=ios) (old4new(j), (m%z(i,j),  i=1,m%dim), j=1,m%nnod) !j is the new node index, old4new(j), the old
   if (ios /= 0) call error('(module_gmsh/load_gmsh) unable to read z: #'//trim(string(ios)))
+  !invert old4new: new4old
+  call alloc(new4old, maxval(old4new))
+  do j = 1, m%nnod
+    new4old(old4new(j)) = j
+  end do
   !element types: el_type
   res = search_mark(iu, '$Elements')
   if (res /= 0) call error('(module_gmsh/load_gmsh) Unable to find mark $Elements: #'//trim(string(res)))
@@ -109,6 +115,7 @@ associate (m => pmh%pc(1)) !m: current mesh
     if (ntags < 2) call error('(module_gmsh/load_gmsh) Gmsh requires at least two tags per element, failed at element #'//&
     &trim(string(k)))
     i = inv_el_type(elt) !index of m%el() where elt was saved
+    tmp(1:FEDB(m%el(i)%type)%lnn) = new4old(tmp(1:FEDB(m%el(i)%type)%lnn)) !use the new node indices
     tmp(FEDB(m%el(i)%type)%lnn+1) = tag(1) !save the (first found) physical tag as reference, initially in nn
     if (find_col_sorted(m%el(i)%nn, tmp(1:FEDB(m%el(i)%type)%lnn), m%el(i)%nel) <= 0) then !this element was not previously saved
       call insert_col_sorted(m%el(i)%nn, tmp(1:FEDB(m%el(i)%type)%lnn+1), m%el(i)%nel, fit=[.true., .false.])
