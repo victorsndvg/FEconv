@@ -406,8 +406,8 @@ subroutine save_vtu2(filename, pmh)
             &(/(k,k=tnvpc+1,tnvpc+pmh%pc(i)%el(j)%nel*lnn)/), fit=.false.)
           ! Build vtk offset array
           call set(offset, (/(tnvpc+k*lnn, k=1,pmh%pc(i)%el(j)%nel)/) , &
-            &(/(k,k=nel,nel+pmh%pc(i)%el(j)%nel)/), fit=.false.)
-          tnvpc = tnvpc + pmh%pc(i)%el(j)%nel*lnn-1+lnv
+            &(/(k,k=nel+1,nel+pmh%pc(i)%el(j)%nel)/), fit=.false.)
+          tnvpc = tnvpc + pmh%pc(i)%el(j)%nel*lnn
       else
           lnv = FEDB(tp)%lnv
           ! Build vtk conectivity array
