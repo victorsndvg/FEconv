@@ -153,6 +153,7 @@ integer :: i, j, k, ln2, le2, lf2, ios
 !open file
 open (unit=iu, file=filename, form='formatted', position='rewind', iostat=ios)
 if (ios /= 0) call error('save/open, #'//trim(string(ios)))
+print'(a,i9)','Writing data ...'
 !write data (nel, nnod, nver, dim, ...)   
 call feed(iu, string(nel)); call feed(iu, string(nnod)); call feed(iu, string(nver))
 call feed(iu, string(dim)); call feed(iu, string(lnn));  call feed(iu, string(lnv))
@@ -173,6 +174,14 @@ call empty(iu)
 do k = 1, nel; call feed(iu, string(nsd(k)));  end do
 call empty(iu)
 close(iu)
+print'(a,i9)','Global number of elements: ', nel
+print'(a,i9)','Global number of nodes:    ', nnod
+print'(a,i9)','Global number of vertices: ', nver
+print'(a,i9)','Space dimension :          ', dim
+print'(a,i9)','Local number of nodes :    ', lnn
+print'(a,i9)','Local number of vertices : ', lnv
+print'(a,i9)','Local number of edges :    ', lne
+print'(a,i9)','Local number of faces :    ', lnf
 end subroutine
 
 end module

@@ -75,6 +75,7 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
           deallocate(tempfields)
         endif
         idx = size(pmh%pc(1)%fi,1)
+        call info('Reading node field from: '//trim(adjustl(filenames(j))))
         pmh%pc(1)%fi(idx)%name = trim(fieldname)
         if(allocated(pmh%pc(1)%fi(idx)%param)) deallocate(pmh%pc(1)%fi(idx)%param)
         allocate(pmh%pc(1)%fi(idx)%param(1))      
@@ -107,6 +108,7 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
                 deallocate(tempfields)
               endif
               idx = size(pmh%pc(1)%el(i)%fi,1)
+              call info('Reading cell field from: '//trim(adjustl(filenames(j))))
               pmh%pc(1)%el(i)%fi(idx)%name = trim(fieldname)
               if(allocated(pmh%pc(1)%el(i)%fi(idx)%param)) deallocate(pmh%pc(1)%el(i)%fi(idx)%param)
               allocate(pmh%pc(1)%el(i)%fi(idx)%param(1))      
@@ -127,7 +129,7 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
       endif
     endif
   enddo
-
+  print*, ''
 
 end subroutine
 
@@ -149,10 +151,10 @@ subroutine save_mff(pmh, infield, outfield, path, param)
   all_f = .false.
 
   if(size(infield,1) == 1) all_f = (trim(infield(1)) == '*')
+  if(size(infield,1) == 1 .and. size(outfield,1) == 1) all_f = .true.
 
   do fidx=1, size(infield,1)
     filename = trim(path)//trim(outfield(fidx))
-  
 
     pi = 1
     mtdim = 0
@@ -161,12 +163,14 @@ subroutine save_mff(pmh, infield, outfield, path, param)
       ! Point data
       if(allocated(pmh%pc(i)%fi)) then
         do j=1, size(pmh%pc(i)%fi,1)
+print*,trim(outfield(fidx)),'-',trim(pmh%pc(i)%fi(j)%name)
           if(trim(infield(fidx)) == trim(pmh%pc(i)%fi(j)%name) .or. all_f) then
             if(.not. allocated(pmh%pc(i)%fi(j)%val)) &
                &call error("save_mff/ Point field "//trim(infield(fidx))//": not allocated")
             call fix_filename(pmh%pc(i)%fi(j)%name)
-            if(all_f) filename = trim(path)//trim(outfield(1))//'__'//trim(pmh%pc(i)%fi(j)%name)//'.mff'
-            print '(/a)', 'Saving MFF field file: '//trim(filename)
+            if(all_f .and. trim(infield(1)) == '*') &
+              & filename = trim(path)//trim(outfield(1))//'__'//trim(pmh%pc(i)%fi(j)%name)//'.mff'
+            call info('Writing node field to: '//trim(adjustl(filename)))
             if(present(param)) then
               do k=1, size(pmh%pc(i)%fi(j)%param,1)
                 if((pmh%pc(i)%fi(j)%param(k)-param)<pmh%ztol) pi = k
@@ -198,6 +202,10 @@ subroutine save_mff(pmh, infield, outfield, path, param)
             if(trim(infield(fidx)) == trim(pmh%pc(i)%el(j)%fi(k)%name)) then
               if(.not. allocated(pmh%pc(i)%el(j)%fi(k)%val)) &
                 & call error("save_mff/ Cell field "//trim(infield(fidx))//": not allocated")
+              call fix_filename(pmh%pc(i)%el(j)%fi(k)%name)
+              if(all_f .and. trim(infield(1)) == '*') &
+                & filename = trim(path)//trim(outfield(1))//'__'//trim(pmh%pc(i)%el(j)%fi(k)%name)//'.mff'
+            call info('Writing cell field to: '//trim(adjustl(filename)))
               if(present(param)) then
                 do l=1, size(pmh%pc(i)%el(j)%fi(l)%param,1)
                   if((pmh%pc(i)%el(j)%fi(k)%param(l)-param)<pmh%ztol) pi = k
