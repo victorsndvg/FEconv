@@ -221,4 +221,51 @@ subroutine read_pf3_coordinates(iu, pc)
 end subroutine
 
 
+subroutine read_pf3_field(iu, pc, line, param)
+
+  integer,                intent(in) :: iu     ! Unit number for PF3 file
+  type(piece),         intent(inout) :: pc     ! PMH Piece
+  character(len=*),       intent(in) :: line   ! Field header
+  real(real64), optional, intent(in) :: param  ! Field shot parameter
+  integer                            :: ncomp, npoint
+  integer                            :: i, j, ios
+
+
+
+
+  read (unit=iu, fmt=*, iostat = ios)  ncomp, npoint
+  if (ios /= 0) call error('pf3/read/field, #'//trim(string(ios)))
+
+  if(npoint /= pc%nnod) call error('pf3/read/field, # number of values and points must agree')
+
+  if(allocated(pc%fi)) deallocate(pc%fi)
+  allocate(pc%fi(1))
+
+  pc%fi(1)%name = word(trim(adjustl(line(index(lcase(line),'table of the values of')+len('table of the values of'):))),1)
+
+  call info('Reading node field: '//trim(pc%fi(1)%name))
+
+  if(allocated(pc%fi(1)%param)) deallocate(pc%fi(1)%param)
+  allocate(pc%fi(1)%param(1))
+
+  if(present(param)) then
+    pc%fi(1)%param(1) = param
+  else
+    pc%fi(1)%param(1) = 0._real64
+  endif
+
+  if(allocated(pc%fi(1)%val)) deallocate(pc%fi(1)%val)
+  allocate(pc%fi(1)%val(ncomp,npoint,1))
+
+  do i = 1, pc%nnod
+    read (unit=iu, fmt=*, iostat = ios)  (pc%fi(1)%val(j,i,1), j=1,ncomp)
+    if (ios /= 0) call error('pf3/read/field, #'//trim(string(ios)))
+  enddo
+
+  if(.not. allocated(pc%fi)) call error('Piece without field.')
+
+end subroutine
+
+
+
 end module

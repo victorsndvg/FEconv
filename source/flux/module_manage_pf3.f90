@@ -109,11 +109,12 @@ subroutine read_pf3(this, pmh, maxdim)
     if(is_iostat_end(ios)) then; exit;
     elseif (ios /= 0) then; call error('pf3/read, #'//trim(string(ios)));
     endif
-
-    if(index(line,'DESCRIPTEUR DE TOPOLOGIE DES ELEMENTS') /= 0) then
+    if(index(lcase(line),'descripteur de topologie des elements') /= 0) then
       call read_pf3_elements(this%unit, pmh, nel, nelvol, nelsur, neledge, nelpoint)
-    elseif(index(line,'COORDONNEES DES NOEUDS') /= 0) then
+    elseif(index(lcase(line),'coordonnees des noeuds') /= 0) then
       call read_pf3_coordinates(this%unit, pmh%pc(1))
+    elseif(index(lcase(line),'table of the values of') /= 0) then
+      call read_pf3_field(this%unit, pmh%pc(1), line)
     endif
    enddo
 
@@ -129,10 +130,13 @@ end subroutine
 ! pmh:    PMH structure storing the piecewise mesh
 !-----------------------------------------------------------------------
 
-subroutine write_pf3(this, pmh)
-
-  type(pf3), intent(inout)   :: this !   PF3 object
-  type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
+subroutine write_pf3(this, pmh, infield, outfield, path, param)
+  type(pf3),            intent(inout)   :: this !   PF3 object
+  type(pmh_mesh),         intent(inout) :: pmh ! pmh_mesh
+  character(*), allocatable, intent(in) :: infield(:)  ! In field names
+  character(*), allocatable, intent(in) :: outfield(:) ! Out field names
+  character(*),              intent(in) :: path !file names
+  real(real64), optional,    intent(in) :: param 
   integer                       :: i, j, ios, tp, mphlnn, prevnnod
   logical                       :: all_P1
   real(real64), allocatable     :: znod(:,:)
@@ -157,6 +161,7 @@ subroutine write_pf3(this, pmh)
   enddo
   write(unit=this%unit, fmt='(a)', iostat = ios) ' ==== DECOUPAGE  TERMINE'
   if (ios /= 0) call error('module_write_pf3/write_coordinates # write error #'//trim(string(ios)))
+  call write_pf3_node_field(this%unit, pmh, infield, outfield, path, param)
 
 
 end subroutine

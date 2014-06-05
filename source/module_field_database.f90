@@ -21,7 +21,7 @@ end type
 type(field_db), parameter :: FLDB(9) = [       &
 field_db('mfm       ', 'mff       ', .true.), &
 field_db('mum       ', 'muf       ', .true.), &
-field_db('pf3       ', 'dex       ', .true.), &
+field_db('pf3       ', 'dex       ', .false.), &
 field_db('unv       ', 'unv       ', .false.), &
 field_db('vtu       ', 'vtu       ', .false.), &
 field_db('msh       ', '          ', .false.), &

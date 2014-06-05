@@ -65,7 +65,7 @@ contains
 !-----------------------------------------------------------------------
 subroutine convert()
 character(maxpath) :: infile=' ', inmesh=' ', inext=' ', outfile=' ', outmesh=' ', outext=' '
-character(maxpath) :: infext=' ', outfext=' ', outpath = ' '
+character(maxpath) :: infext=' ', outfext=' ', outpath = ' ',fieldfilename = ' '
 character(maxpath), allocatable :: infield(:), outfield(:)
 character(maxpath) :: str
 integer :: p, nargs, q
@@ -77,8 +77,10 @@ real(real64), allocatable :: subz(:,:)
 
 !find infile and outfile at the end of the arguments
 nargs = args_count()
- infile = get_arg(nargs-1); p = index( infile, '.', back=.true.);  inmesh =  infile(1:p-1);  inext =  infile(p+1:len_trim( infile))
-outfile = get_arg(nargs);   p = index(outfile, '.', back=.true.); outmesh = outfile(1:p-1); outext = outfile(p+1:len_trim(outfile))
+ infile = get_arg(nargs-1); p = index( infile, '.', back=.true.); &
+       & inmesh =  infile(1:p-1);  inext =  lcase(infile(p+1:len_trim( infile)))
+outfile = get_arg(nargs);   p = index(outfile, '.', back=.true.); &
+       & outmesh = outfile(1:p-1); outext = lcase(outfile(p+1:len_trim(outfile)))
  p = index(outfile, slash(), back=.true.); outpath = outfile(1:p)
 
 !check mesh names and extensions
@@ -114,7 +116,7 @@ if (FLDB(id_mesh_ext(inext))%is_field_outside) then
       call set( infield, get_post_arg('-if'), 1, fit=.true.)
       call set(outfield, get_post_arg('-of'), 1, fit=.true.)
       p = index( infield(1), '.', back=.true.);  infext =  infield(1)(p+1:len_trim( infield(1)))
-      p = index( outfield(1), '.', back=.true.);  outfext =  infield(1)(p+1:len_trim( outfield(1)))
+      p = index( outfield(1), '.', back=.true.);  outfext =  outfield(1)(p+1:len_trim( outfield(1)))
       if((id_mesh_ext(inext) /= id_field_ext(infext)) .or. (id_mesh_ext(outext) /= id_field_ext(outfext))) &
         & call error("Inconsistent mesh and field extensions")
     elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
@@ -123,8 +125,9 @@ if (FLDB(id_mesh_ext(inext))%is_field_outside) then
     elseif (.not. is_arg('-of')) then
       !there is -if, there is not -of
       call set( infield, get_post_arg('-if'), 1, fit=.true.)
-      p = index(infield(1), '.', back=.true.)
-      call set(outfield, trim(outmesh)//'__'//trim(infield(1)(1:p-1))//'.'//trim(FLDB(id_mesh_ext(outext))%field_ext), 1, &
+      p = index(infield(1), slash(), back=.true.); fieldfilename = infield(1)(p+1:)
+      p = index(fieldfilename, '.', back=.true.)
+      call set(outfield, trim(outmesh)//'__'//trim(fieldfilename(1:p-1))//'.'//trim(FLDB(id_mesh_ext(outext))%field_ext), 1, &
       &fit=.true.)
     else
       !there is not -if, there is -of
@@ -354,7 +357,7 @@ case('unv')
 case('pf3')
   print '(/a)', 'Saving FLUX mesh file...'
   if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_pf3(outfile, pmh)
+  call save_pf3(outfile, pmh, infield, outfield, outpath)
   print '(a)', 'Done!'
 case('msh')
   if (is_arg('-ff')) then !FreeFem++

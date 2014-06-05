@@ -11,6 +11,7 @@ module module_write_pf3
 ! write_pf3_header: write PF3 header
 ! write_pf3_elements: write PF3 elements
 ! write_pf3_coordinates: write PF3 coordinates
+! write_pf3_node_field: write PF3 node field
 !-----------------------------------------------------------------------
 
 use module_COMPILER_DEPENDANT, only: real64
@@ -238,6 +239,90 @@ subroutine write_pf3_coordinates(iu, pc, all_P1, znod, prevnnod)
       endif
 
 !    enddo
+
+end subroutine
+
+
+!-----------------------------------------------------------------------
+! write_pf3_node_field(iu, pmh): write PF3 node field
+!-----------------------------------------------------------------------
+! iu:  unit number of the PF3 file
+! pmh: pmh mesh
+!-----------------------------------------------------------------------
+
+subroutine write_pf3_node_field(iu, pmh, infield, outfield, path, param)
+  integer,                   intent(in) :: iu  ! Unit number for PF3 file
+  type(pmh_mesh),         intent(inout) :: pmh
+  character(*), allocatable, intent(in) :: infield(:)  ! In field names
+  character(*), allocatable, intent(in) :: outfield(:) ! Out field names
+  character(*),              intent(in) :: path !file names
+  real(real64), optional,    intent(in) :: param 
+  character(len=maxpath)                :: fieldname
+  integer                               :: i, j, k, ios
+  integer                               :: tnnod, ncomp, pindex
+  logical                               :: singlefield, exists
+
+  singlefield = .false.
+  exists = .false.
+
+  if(size(outfield,1)/=1) then
+    call info('You must specify only one output field. Field will not be saved.')
+    return
+  endif
+  if(size(infield,1) == 1 .and. size(outfield,1) == 1) singlefield = .true.
+  tnnod = 0
+  do i=1, size(pmh%pc,1)
+    if(allocated(pmh%pc(i)%fi)) then
+      do j=1, size(pmh%pc(i)%fi,1)
+        if(trim(infield(1)) == trim(pmh%pc(i)%fi(j)%name) .or. trim(outfield(1)) == '*') then
+          if(.not. allocated(pmh%pc(i)%fi(j)%val)) call error('write/pf3/node/field # Not allocated!')
+          if(present(param)) then
+            do k=1,size(pmh%pc(i)%fi(j)%param)
+              if(pmh%pc(i)%fi(j)%param(k)-param<pmh%ztol) pindex = k
+            enddo
+          else
+            pindex = 1
+          endif
+          if(trim(outfield(1)) == '*') then
+            fieldname = trim(pmh%pc(i)%fi(j)%name)
+          else
+            fieldname = trim(outfield(1))
+          endif
+          tnnod = tnnod + pmh%pc(i)%nnod
+          ncomp = size(pmh%pc(i)%fi(j)%val,1)
+          exists = .true.
+        endif
+      enddo
+    endif
+  enddo
+
+
+  if(.not. exists) return
+
+!  if(trim(outfield(1)) /= '*') fieldname = trim(outfield))
+  call info('Writing node field: '//trim(fieldname))
+
+  write(unit=iu, fmt=*, iostat = ios) ''
+  write(unit=iu, fmt='(a,a50,a)', iostat = ios) &
+     & 'Table of the values of ',fieldname,' (Local values on the nodes of the region PIECE)'
+  write(unit=iu, fmt=*, iostat = ios) ncomp, tnnod, ' (Nb of components, nb of points)'
+  write(unit=iu, fmt=*, iostat = ios) ''
+  if (ios /= 0) call error('write/pf3/node/field # write error #'//trim(string(ios)))
+
+  do i=1, size(pmh%pc,1)
+    if(allocated(pmh%pc(i)%fi)) then
+      do j=1, size(pmh%pc(i)%fi,1)
+        if(trim(infield(1)) == trim(pmh%pc(i)%fi(j)%name) .or. outfield(1) == '*') then
+          if(.not. allocated(pmh%pc(i)%fi(j)%val)) call error('write/pf3/node/field # Not allocated!')
+          do k=1, size(pmh%pc(i)%fi(j)%val,2)
+            write(unit=iu, fmt='(a)', iostat = ios) trim(string(pmh%pc(i)%fi(j)%val(:,k,pindex)))
+            if (ios /= 0) call error('write/pf3/node/field # write error #'//trim(string(ios)))
+          enddo
+        endif
+      enddo
+    endif
+  enddo
+
 
 end subroutine
 
