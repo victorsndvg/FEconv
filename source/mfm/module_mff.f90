@@ -76,7 +76,7 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
         endif
         idx = size(pmh%pc(1)%fi,1)
         call info('Reading node field from: '//trim(adjustl(filenames(j))))
-        pmh%pc(1)%fi(idx)%name = trim(fieldname)
+        pmh%pc(1)%fi(idx)%name = trim(filename)
         if(allocated(pmh%pc(1)%fi(idx)%param)) deallocate(pmh%pc(1)%fi(idx)%param)
         allocate(pmh%pc(1)%fi(idx)%param(1))      
         if(present(param)) then 
@@ -109,7 +109,7 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
               endif
               idx = size(pmh%pc(1)%el(i)%fi,1)
               call info('Reading cell field from: '//trim(adjustl(filenames(j))))
-              pmh%pc(1)%el(i)%fi(idx)%name = trim(fieldname)
+              pmh%pc(1)%el(i)%fi(idx)%name = trim(filename)
               if(allocated(pmh%pc(1)%el(i)%fi(idx)%param)) deallocate(pmh%pc(1)%el(i)%fi(idx)%param)
               allocate(pmh%pc(1)%el(i)%fi(idx)%param(1))      
               if(present(param)) then 
@@ -163,7 +163,6 @@ subroutine save_mff(pmh, infield, outfield, path, param)
       ! Point data
       if(allocated(pmh%pc(i)%fi)) then
         do j=1, size(pmh%pc(i)%fi,1)
-print*,trim(outfield(fidx)),'-',trim(pmh%pc(i)%fi(j)%name)
           if(trim(infield(fidx)) == trim(pmh%pc(i)%fi(j)%name) .or. all_f) then
             if(.not. allocated(pmh%pc(i)%fi(j)%val)) &
                &call error("save_mff/ Point field "//trim(infield(fidx))//": not allocated")
