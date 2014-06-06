@@ -814,7 +814,8 @@ subroutine read_vtu(filename, pmh)
   character(len=*), intent(in)  :: filename
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
   integer(I4P)              :: np, nn, nc, nnref, ncref, ncomp
-  real(R8P), allocatable    :: X(:), Y(:), Z(:), pdfval(:), temp(:),temp2(:,:,:)
+  real(R8P), allocatable    :: X(:), Y(:), Z(:), pdfval(:)
+  real(R8P), allocatable    :: temp(:),temp2(:,:,:)
   integer, allocatable      :: v_ref(:), aux_ref(:), c_refs(:)
   integer(I4P), allocatable :: connect(:), offset(:)
   character(len=MAXPATH), allocatable:: pdfnames(:), cdfnames(:)
@@ -920,10 +921,10 @@ subroutine read_vtu(filename, pmh)
           else
             call error('Wrong number of node values')
           endif
-          if(allocated(pdfval)) deallocate(pdfval)
         else
           call error('Reading VTU file')
         endif
+        if(allocated(pdfval)) deallocate(pdfval)
       enddo
       if(allocated(pdfnames)) deallocate(pdfnames)
     endif
@@ -959,19 +960,22 @@ subroutine read_vtu(filename, pmh)
     uct = uniqueI1P(cell_type)
     if(allocated(pmh%pc(i)%el)) deallocate(pmh%pc(i)%el)
     allocate(pmh%pc(i)%el(size(uct,1)))
-    do j=1, size(uct,1)
-      ncdf = 0
-      allocate(pmh%pc(i)%el(j)%fi(size(cdfval,1)))
-      do l=1, size(cdfval,1)
-        ncdf = ncdf + 1
-        if(lcase(cdfnames(j)) == 'element_ref' .or. lcase(cdfnames(j)) == 'face_ref' .or. &
-           lcase(cdfnames(j)) == 'edge_ref') cycle
-        pmh%pc(i)%el(j)%fi(l)%name = trim(cdfnames(ncdf))
-        allocate(pmh%pc(i)%el(j)%fi(l)%param(1))
-        pmh%pc(i)%el(j)%fi(l)%param(1) = 0
+
+    if(allocated(cdfval)) then
+      do j=1, size(uct,1)
+        ncdf = 0
+        allocate(pmh%pc(i)%el(j)%fi(size(cdfval,1)))
+        do l=1, size(cdfval,1)
+          ncdf = ncdf + 1
+          if(lcase(cdfnames(j)) == 'element_ref' .or. lcase(cdfnames(j)) == 'face_ref' .or. &
+             lcase(cdfnames(j)) == 'edge_ref') cycle
+          pmh%pc(i)%el(j)%fi(l)%name = trim(cdfnames(ncdf))
+          allocate(pmh%pc(i)%el(j)%fi(l)%param(1))
+          pmh%pc(i)%el(j)%fi(l)%param(1) = 0
+        enddo
       enddo
-    enddo
-    if(allocated(cdfnames)) deallocate(cdfnames)
+      if(allocated(cdfnames)) deallocate(cdfnames)
+    endif
 
     do j=1, size(uct,1)
       pmh%pc(i)%el(j)%type = vtk2pmhcelltype(int(uct(j)))
@@ -990,41 +994,51 @@ subroutine read_vtu(filename, pmh)
           endif
         endif
         ! Saves VTU fields in a PMH structure. Manage memory allocation
-        do l=1,size(cdfval,1)
-          if(.not. allocated(pmh%pc(i)%el(j)%fi(l)%val)) then
-            allocate(pmh%pc(i)%el(j)%fi(l)%val(1:size(cdfval(l)%val,1),DEFAULT_ALLOC,1))
-          elseif(size(pmh%pc(i)%el(j)%fi(l)%val,2)<=pmh%pc(i)%el(j)%nel) then
-            if(allocated(temp2)) deallocate(temp2)
-            allocate(temp2( &
-                        & size(pmh%pc(i)%el(j)%fi(l)%val,1), &
-                        & search_multiple(DEFAULT_ALLOC, pmh%pc(i)%el(j)%nel) , &
-                        & size(pmh%pc(i)%el(j)%fi(l)%val,3) &
-                   & ))
-            temp2(:,1:pmh%pc(i)%el(j)%nel,1) = pmh%pc(i)%el(j)%fi(l)%val(:,:, 1)
-            temp2(:,pmh%pc(i)%el(j)%nel:,1) = 0._real64
-            call move_alloc(from=temp2, to=pmh%pc(i)%el(j)%fi(l)%val)
-          endif
-          pmh%pc(i)%el(j)%fi(l)%val(1:size(cdfval(l)%val,1),pmh%pc(i)%el(j)%nel,1) = cdfval(l)%val(:,k)
-        enddo
+        if(allocated(cdfval)) then
+          do l=1,size(cdfval,1)
+            if(.not. allocated(pmh%pc(i)%el(j)%fi(l)%val)) then
+              allocate(pmh%pc(i)%el(j)%fi(l)%val(1:size(cdfval(l)%val,1),DEFAULT_ALLOC,1))
+            elseif(size(pmh%pc(i)%el(j)%fi(l)%val,2)<=pmh%pc(i)%el(j)%nel) then
+              if(allocated(temp2)) deallocate(temp2)
+              allocate(temp2( &
+                          & size(pmh%pc(i)%el(j)%fi(l)%val,1), &
+                          & search_multiple(DEFAULT_ALLOC, pmh%pc(i)%el(j)%nel) , &
+                          & size(pmh%pc(i)%el(j)%fi(l)%val,3) &
+                     & ))
+              temp2(:,1:pmh%pc(i)%el(j)%nel,1) = pmh%pc(i)%el(j)%fi(l)%val(:,:, 1)
+              temp2(:,pmh%pc(i)%el(j)%nel:,1) = 0._real64
+              call move_alloc(from=temp2, to=pmh%pc(i)%el(j)%fi(l)%val)
+            endif
+            pmh%pc(i)%el(j)%fi(l)%val(1:size(cdfval(l)%val,1),pmh%pc(i)%el(j)%nel,1) = cdfval(l)%val(:,k)
+          enddo
+        endif
       enddo
 
       ! Reduce arrays to the right size
       call reduce(pmh%pc(i)%el(j)%nn,FEDB(pmh%pc(i)%el(j)%type)%lnn,pmh%pc(i)%el(j)%nel)
       call reduce(pmh%pc(i)%el(j)%ref,pmh%pc(i)%el(j)%nel)
-      do l=1,size(pmh%pc(i)%el(j)%fi,1)
-        if(allocated(temp2)) deallocate(temp2)
-        allocate(temp2( &
+      if(allocated(pmh%pc(i)%el(j)%fi)) then
+        do l=1,size(pmh%pc(i)%el(j)%fi,1)
+          if(allocated(temp2)) deallocate(temp2)
+          allocate(temp2( &
                     & size(pmh%pc(i)%el(j)%fi(l)%val,1), &
                     & pmh%pc(i)%el(j)%nel , &
                     & size(pmh%pc(i)%el(j)%fi(l)%val,3) &
-               & ))
-         temp2(:,1:pmh%pc(i)%el(j)%nel,1) = pmh%pc(i)%el(j)%fi(l)%val(:,1:pmh%pc(i)%el(j)%nel, 1)
-         call move_alloc(from=temp2, to=pmh%pc(i)%el(j)%fi(l)%val)
-         if(allocated(temp2)) deallocate(temp2)
-      enddo
+                 & ))
+           temp2(:,1:pmh%pc(i)%el(j)%nel,1) = pmh%pc(i)%el(j)%fi(l)%val(:,1:pmh%pc(i)%el(j)%nel, 1)
+           call move_alloc(from=temp2, to=pmh%pc(i)%el(j)%fi(l)%val)
+           if(allocated(temp2)) deallocate(temp2)
+         enddo
+       endif
     enddo
 
     ! Memory deallocation
+    if(allocated(cdfval)) then
+      do j=1,size(cdfval,1)
+        deallocate(cdfval(j)%val)
+      enddo
+    endif
+
     if(allocated(X)) deallocate(X)
     if(allocated(Y)) deallocate(Y)
     if(allocated(Z)) deallocate(Z)
