@@ -28,8 +28,7 @@ module module_dataset_2411
 use module_COMPILER_DEPENDANT, only: real64
 use module_ALLOC
 use module_dataset
-!use module_mesh
-use module_pmh, only: piece
+use module_mesh
 implicit none
 
 contains
@@ -40,39 +39,32 @@ contains
 !-----------------------------------------------------------------------
 ! read: read dataset 2411
 !-----------------------------------------------------------------------
-subroutine read_2411(iu, pc)
+subroutine read_2411(iu, m)
 
-integer,        intent(in) :: iu   !unit number for unvfile
-type(piece), intent(inout) :: pc   !piece
-real(real64), allocatable, dimension(:) :: x
+integer,    intent(in)    :: iu   !unit number for unvfile
+type(mfm_mesh), intent(inout) :: m    !mesh
+real(real64), dimension(3) :: x
 integer :: ios, Field1, F2, F3, F4
 logical :: fit(2)
 
-
-  pc%dim = 3
-  if(.not. allocated(x)) allocate(x(pc%dim))
-
-  do
-    if (is_dataset_delimiter(iu, back=.true.)) exit
-  ! Record 1
-    read (unit=iu, fmt='(4I10)', iostat = ios) &
-    Field1, & !node label
-    F2, &     !export coordinate system number
-    F3, &     !displacement coordinate system number
-    F4        !color
-    if (ios /= 0) call error('dataset_2411/read, #'//trim(string(ios)))
-  ! Record 2
-    x = 0._real64
-    read (unit=iu, fmt='(3E25.16)', iostat = ios) &
-    x !Fields 1-3    -- node coordinates in the part coordinate system
-    if (ios /= 0) call error('dataset_2411/read, #'//trim(string(ios)))
-  ! copy to mm
-    fit = [.true., .false.]
-    call set_col(pc%z, x(1:pc%dim), Field1, fit)
-    pc%nnod = max(pc%nnod, Field1)
-  end do
-
-  call reduce(pc%z, pc%dim, pc%nnod)
+do
+  if (is_dataset_delimiter(iu, back=.true.)) return
+! Record 1
+  read (unit=iu, fmt='(4I10)', iostat = ios) &
+  Field1, & !node label
+  F2, &     !export coordinate system number
+  F3, &     !displacement coordinate system number
+  F4        !color
+  if (ios /= 0) call error('dataset_2411/read, #'//trim(string(ios)))
+! Record 2
+  read (unit=iu, fmt='(3E25.16)', iostat = ios) &
+  x !Fields 1-3    -- node coordinates in the part coordinate system
+  if (ios /= 0) call error('dataset_2411/read, #'//trim(string(ios)))
+! copy to mm
+  fit = [.true., .false.]
+  call set_col(m%xd, x(1:3), Field1, fit)
+  m%nd = max(m%nd, Field1)
+end do
 
 end subroutine
 

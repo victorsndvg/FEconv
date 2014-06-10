@@ -43,8 +43,8 @@ contains
 !-----------------------------------------------------------------------
 subroutine FE_DB_init()
 
-FE_DB( 11) = fe_db_type('Rod',                                 1, 2,2, 1,0,.true.,          0)
-FE_DB( 22) = fe_db_type('Tapered beam',                        1, 3,2, 1,0,.true., ND_EDGE_P2)
+FE_DB( 11) = fe_db_type('Rod',                                 1, 2,2, 0,0,.true.,          0)
+FE_DB( 22) = fe_db_type('Tapered beam',                        1, 3,2, 0,0,.true., ND_EDGE_P2)
 
 FE_DB( 41) = fe_db_type('Plane Stress Linear Triangle',        2, 3,3, 3,0,.false.,         0)
 FE_DB( 42) = fe_db_type('Plane Stress Parabolic Triangle',     2, 6,3, 3,0,.false.,ND_TRIA_P2)

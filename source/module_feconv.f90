@@ -222,7 +222,7 @@ case('msh')
   print '(a)', 'Done!'
 case('unv')
   print '(a)', 'Loading UNV mesh file...'
-  call load_unv(infile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, is_arg('-is'))
+  call load_unv(infile, pmh, is_arg('-is')); is_pmh = .true.
   print '(a)', 'Done!'
 case('bdf')
   print '(a)', 'Loading MD Nastran input file...'

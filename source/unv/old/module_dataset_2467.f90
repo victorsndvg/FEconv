@@ -47,8 +47,6 @@ use module_dataset
 use module_mesh
 use module_cells
 use module_groups
-use module_pmh, only: piece, elgroup
-use module_fe_database_pmh, only: FEDB, check_fe
 implicit none
 
 !Private procedures
@@ -63,22 +61,20 @@ contains
 ! read: read dataset 2467
 ! REMARK: dataset 2467 must be read after 2412 
 !-----------------------------------------------------------------------
-subroutine read_2467(iu, pc, els_loc)
-integer,                              intent(in) :: iu   !unit number for unvfile
-type(piece),                       intent(inout) :: pc    !PMH piece
-integer, allocatable, dimension(:,:), intent(in) :: els_loc !Elements location
-type(elgroup), allocatable, dimension(:)         :: auxelgroup 
-integer :: ios, Field1, F2, F3, F4, F5, F6, F7, Field8, p, j, pos, k, m, n_elgroup
+subroutine read_2467(iu, m, d)
+integer,                   intent(in)                 :: iu   !unit number for unvfile
+type(mfm_mesh),  dimension(:), intent(inout), allocatable :: m    !meshes
+integer,                   intent(in)                 :: d    !dimension
+integer :: ios, Field1, F2, F3, F4, F5, F6, F7, Field8, p, j, pos, k, dm
 integer, dimension(2):: etc, tag
 character(len=MAXPATH) :: gname
 
-if(.not. allocated(pc%el)) call error('dataset_2467/read, meshes not allocated')
-n_elgroup = size(pc%el,1) ! Number of element groups without vertex groups
-!call alloc(groups, d+1)
-!call alloc(m(d)%rv, m(d)%LNV, m(d)%nl)
-!call alloc(m(d)%re, m(d)%LNE, m(d)%nl)
-!call alloc(m(d)%rf, m(d)%LNF, m(d)%nl)
-!call alloc(m(d)%rl, m(d)%nl);         
+if(.not. allocated(m)) call error('dataset_2467/read, meshes not allocated')
+call alloc(groups, d+1)
+call alloc(m(d)%rv, m(d)%LNV, m(d)%nl)
+call alloc(m(d)%re, m(d)%LNE, m(d)%nl)
+call alloc(m(d)%rf, m(d)%LNF, m(d)%nl)
+call alloc(m(d)%rl, m(d)%nl);         
 do
   if (is_dataset_delimiter(iu, back=.true.)) exit
 
@@ -96,7 +92,14 @@ do
 ! Record 2
   read (unit=iu, fmt='(A40)', iostat = ios) gname !group name
   if (ios /= 0) call error('dataset_2467/read, #'//trim(string(ios)))
-    call info('  Reference number '//trim(string(Field1))//', associated with group named "'//trim(gname)//'"')
+!!  read(gname, fmt=*, iostat=ios) j 
+!!  if (ios == 0) then
+!!    print'(a,i9,a,a,a,i9)','Group number ',Field1,', named "',trim(gname), '", associated with reference number',j
+!!    Field1 = j !if the group name is a number, it is used as reference
+!!  else
+!!    print'(a,i9,a,a,a,i9)','Group number ',Field1,', named "',trim(gname), '", associated with reference number',Field1
+!!  endif
+    print'(a,i9,a,a,a)','Reference number ',Field1,', associated with group named "',trim(gname),'"'
 ! Record 3-N
   if (Field8 == 0) then !si Field8 = 0, lectura vacia
     read (unit=iu, fmt=*, iostat = ios) (F2, p=1,Field8)
@@ -110,26 +113,54 @@ do
     F4,      j = 1, 2 - dim(2*p, Field8)) !dim(x,y) = max(x-y, 0)
     do j = 1, 2 - dim(2*p, Field8)
       if (etc(j) == 8) then !8 => finite elements
-        pc%el(els_loc(1,tag(j)))%ref(els_loc(2,tag(j))) = Field1
+        dm = cells(1,tag(j)); k = cells(2,tag(j)) !values for dimension dm and element k
+        if (dm < d) then
+          call insert(groups(dm+1), [order(m(dm)%id(1:m(dm)%LNV,k)), Field1])
+        else
+          call insert(groups(dm+1), [k, Field1])
+        end if
       elseif (etc(j) == 7) then !7 => nodes
-        ! Create node group
-        if(size(pc%el,1) == n_elgroup) then
-          allocate(auxelgroup(n_elgroup+1))
-          auxelgroup(1:n_elgroup) = pc%el(:)
-          call move_alloc(from=auxelgroup, to=pc%el)
-          pc%el(n_elgroup+1)%type = check_fe(.true.,1,1,0,0)
-          if(.not. allocated(pc%el(n_elgroup+1)%nn)) allocate(pc%el(n_elgroup+1)%nn(1,pc%nnod))
-          if(.not. allocated(pc%el(n_elgroup+1)%ref)) allocate(pc%el(n_elgroup+1)%ref(pc%nnod))
-          pc%el(n_elgroup+1)%nn(1,:) = (/(m,m=1,pc%nnod)/)
-          pc%el(n_elgroup+1)%ref = 0
-          pc%el(n_elgroup+1)%nel = pc%nnod
-        endif
-        pc%el(n_elgroup+1)%ref(tag(j)) = Field1
+        call insert(groups(1), [tag(j), Field1])
       end if
     end do
   end do
 end do
 
+! CHANGE MESH REFERENCES
+!vertex groups
+if (groups(1)%ncells > 0) then
+  do k = 1, m(d)%nl
+    do j = 1, m(d)%LNV
+      pos = search(groups(1), [m(d)%id(j,k)])
+      if (pos > 0) m(d)%rv(j,k) = groups(1)%cell(pos,2)
+    end do
+  end do
+end if
+
+!edge groups
+if (groups(2)%ncells > 0) then
+  do k = 1, m(d)%nl
+    do j = 1, m(d)%LNE
+      pos = search(groups(2), order(m(d)%id(m(d)%edge(:,j),k)))
+      if (pos > 0) m(d)%re(j,k) = groups(2)%cell(pos,3)
+    end do
+  end do
+end if
+
+!face groups
+if (d == 3 .and. groups(3)%ncells > 0) then
+  do k = 1, m(d)%nl
+    do j = 1, m(d)%LNF
+      pos = search(groups(3), order(m(d)%id(m(d)%face(:,j),k)))
+      if (pos > 0) m(d)%rf(j,k) = groups(3)%cell(pos,4)
+    end do
+  end do
+end if
+
+!subdomain groups
+if (groups(d+1)%ncells > 0) then
+  m(d)%rl(groups(d+1)%cell(1:groups(d+1)%ncells,1)) = groups(d+1)%cell(1:groups(d+1)%ncells,2)
+end if
 
 end subroutine
 

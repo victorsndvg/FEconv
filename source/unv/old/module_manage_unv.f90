@@ -5,8 +5,7 @@ module module_manage_unv
 !-----------------------------------------------------------------------
 use module_ALLOC
 use module_files, only: get_unit
-!use module_mesh
-use module_pmh, only: pmh_mesh
+use module_mesh
 use module_dataset_2411
 use module_dataset_2412
 use module_dataset_2467
@@ -48,18 +47,17 @@ end subroutine
 !-----------------------------------------------------------------------
 ! read: read universal file
 !-----------------------------------------------------------------------
-subroutine read_unv(this, pmh, is_opt)
+subroutine read_unv(this, m, maxdim, is_opt)
 
-  type(unv),      intent(in)    :: this   !universal object
-  type(pmh_mesh), intent(inout) :: pmh    !mesh
-  logical,        intent(in)    :: is_opt !-is option
-  integer                       :: maxdim !dimension detected
-  integer, allocatable, dimension(:,:) :: els_loc!elements location in pmh structure
+  type(unv),                               intent(in)    :: this   !universal object
+  type(mfm_mesh),  dimension(:), allocatable, intent(inout) :: m      !mesh
+  integer,                                 intent(inout) :: maxdim !dimension detected
+  logical,                                 intent(in)    :: is_opt !-is option
   integer :: ios, n, j, i, pgroup(6)
   logical :: fit(2)
 
-  if(.not. allocated(pmh%pc)) allocate(pmh%pc(1))
-  n = size(pmh%pc,1)
+  if(.not. allocated(m)) call error('unv/read, mesh(es) not allocated')
+  n = size(m,1) !last mesh
 
 ! dataset 2411, node coordinates
   rewind(unit=this%unit, iostat=ios)
@@ -71,13 +69,26 @@ subroutine read_unv(this, pmh, is_opt)
       continue
     end if
   end if          
-  call read_2411(this%unit, pmh%pc(n))
+  call read_2411(this%unit, m(n))
 
 ! dataset 2412, elements
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
   if (search_dataset_type(this,2412) /= 0) call error('unv/read, dataset 2412 not found')
-  call read_2412(this%unit, pmh%pc(n), maxdim, els_loc, is_opt)
+  call read_2412(this%unit, m, maxdim, is_opt)
+  if (maxdim < n) then !mesh dimension is less than the allocated one  
+    do j = 1, m(n)%nd  !transfer node coordinates from m(n) to m(maxdim)
+      m(maxdim)%nd = m(maxdim)%nd + 1
+      fit = [.true., .false.]
+      call set_col(m(maxdim)%xd, m(n)%xd(1:3,j), m(maxdim)%nd, fit)
+    enddo
+    call reduce(m(maxdim)%xd, size(m(maxdim)%xd,1), m(maxdim)%nd)
+    do j = maxdim+1,n !deallocate meshes from m(maxdim+1) to m(n) 
+      call dealloc_mesh(m(j))
+    enddo
+    n = maxdim
+  endif
+  print'(a,a)', 'Detected FE of higher dimension: ',trim(m(n)%FEtype)
 
 ! datasets for permanent groups, several numbers (see pgroup)
   pgroup = [2467, 2477, 2452, 2435, 2432, 2430]
@@ -85,23 +96,23 @@ subroutine read_unv(this, pmh, is_opt)
     rewind(unit=this%unit, iostat=ios)
     if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
     if (search_dataset_type(this,pgroup(i)) == 0) then
-      call read_2467(this%unit, pmh%pc(n), els_loc)
+      call read_2467(this%unit, m, n)
       exit
     end if
   end do
-!  if (i > size(pgroup,1)) then
-!    call info('unv/read, none of datasets 2430, 2432, 2435, 2452, 2467 or 2477 (permanent groups) was found')
-!    call alloc(m(n)%rv, m(n)%LNV, m(n)%nl)
-!    call alloc(m(n)%re, m(n)%LNE, m(n)%nl)
-!    call alloc(m(n)%rf, m(n)%LNF, m(n)%nl)
-!    call alloc(m(n)%rl, m(n)%nl)
-!  end if
-!
-!! create vertex data
-!  call create_vertex_data(m(n))
-!  if (n == 2 .and. m(n)%DIM == 3) call info('Triangles does not belong to XY plane: &
-!  &counter-clockwise orientation may not be ensured.')
-!
+  if (i > size(pgroup,1)) then
+    call info('unv/read, none of datasets 2430, 2432, 2435, 2452, 2467 or 2477 (permanent groups) was found')
+    call alloc(m(n)%rv, m(n)%LNV, m(n)%nl)
+    call alloc(m(n)%re, m(n)%LNE, m(n)%nl)
+    call alloc(m(n)%rf, m(n)%LNF, m(n)%nl)
+    call alloc(m(n)%rl, m(n)%nl)
+  end if
+
+! create vertex data
+  call create_vertex_data(m(n))
+  if (n == 2 .and. m(n)%DIM == 3) call info('Triangles does not belong to XY plane: &
+  &counter-clockwise orientation may not be ensured.')
+
 ! close file
   close(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('univ_file/close, #'//trim(string(ios)))
