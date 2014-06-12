@@ -10,6 +10,7 @@ use module_pmh, only: pmh_mesh
 use module_dataset_2411
 use module_dataset_2412
 use module_dataset_2467
+use module_dataset_2414
 implicit none
 
 !Types
@@ -55,7 +56,7 @@ subroutine read_unv(this, pmh, is_opt)
   logical,        intent(in)    :: is_opt !-is option
   integer                       :: maxdim !dimension detected
   integer, allocatable, dimension(:,:) :: els_loc!elements location in pmh structure
-  integer :: ios, n, j, i, pgroup(6)
+  integer :: ios, n, j, i, pgroup(6), fgroup(3),nfield
   logical :: fit(2)
 
   if(.not. allocated(pmh%pc)) allocate(pmh%pc(1))
@@ -89,19 +90,19 @@ subroutine read_unv(this, pmh, is_opt)
       exit
     end if
   end do
-!  if (i > size(pgroup,1)) then
-!    call info('unv/read, none of datasets 2430, 2432, 2435, 2452, 2467 or 2477 (permanent groups) was found')
-!    call alloc(m(n)%rv, m(n)%LNV, m(n)%nl)
-!    call alloc(m(n)%re, m(n)%LNE, m(n)%nl)
-!    call alloc(m(n)%rf, m(n)%LNF, m(n)%nl)
-!    call alloc(m(n)%rl, m(n)%nl)
-!  end if
-!
-!! create vertex data
-!  call create_vertex_data(m(n))
-!  if (n == 2 .and. m(n)%DIM == 3) call info('Triangles does not belong to XY plane: &
-!  &counter-clockwise orientation may not be ensured.')
-!
+
+! datasets for fields, several numbers (see fgroup)
+  fgroup = [2414, 55, 57]
+  nfield = 0
+  do i = 1, size(fgroup,1)
+    rewind(unit=this%unit, iostat=ios)
+    if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
+    do while (search_dataset_type(this,fgroup(i)) == 0) 
+      call read_2414(this%unit, pmh, n, nfield, els_loc, fgroup(i))
+!      exit ! Not needed, reading multiple fields
+    end do
+  enddo
+
 ! close file
   close(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('univ_file/close, #'//trim(string(ios)))
@@ -123,7 +124,7 @@ function search_dataset_delimiter(this) result(res)
   integer :: res, val
 
   do
-    read (unit=this%unit, fmt='(I10)', iostat=res) val
+    read (unit=this%unit, fmt='(I6)', iostat=res) val
 !   find EOF or '-1', then return
     if (res<0 .or. val==-1) return
 !   res>0 when reading chars, then cycle
@@ -147,7 +148,7 @@ function search_dataset_type(this, ds) result(res)
     res = search_dataset_delimiter(this) 
     if (res /= 0) return
 !   read the type of dataset
-    read (unit=this%unit, fmt='(I10)', iostat=res) dsnumber
+    read (unit=this%unit, fmt='(I6)', iostat=res) dsnumber
     if (res /= 0) call error('unv/search_dataset_type, #'//trim(string(res)))
     if (dsnumber == ds) exit
     res = search_dataset_delimiter(this)

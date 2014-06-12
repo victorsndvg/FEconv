@@ -87,6 +87,8 @@ subroutine read_2412(iu, pc, maxdim, els_loc, is_opt)
   integer, allocatable, dimension(:) :: nn !node numbers
   logical :: fit(2)
 
+  call info('Reading mesh connectivities ...')
+
   maxdim = 0
   gcounter = 1
   if(.not. allocated(elsingroup)) allocate(elsingroup(size(FE_DB,1)))
@@ -124,7 +126,7 @@ subroutine read_2412(iu, pc, maxdim, els_loc, is_opt)
       pc%el(elsingroup(Field2))%type = &
         & check_fe(FE_DB(Field2)%LNN==FE_DB(Field2)%LNV, FE_DB(Field2)%LNN, &
         & FE_DB(Field2)%LNV, FE_DB(Field2)%LNE, FE_DB(Field2)%LNF)
-      call info('Reading '//trim(FEDB(pc%el(elsingroup(Field2))%type)%desc))
+      call info('  Element type: '//trim(FEDB(pc%el(elsingroup(Field2))%type)%desc))
     endif
 
     ! Extend pc%el
@@ -136,7 +138,7 @@ subroutine read_2412(iu, pc, maxdim, els_loc, is_opt)
       pc%el(elsingroup(Field2))%type = &
         & check_fe(FE_DB(Field2)%LNN==FE_DB(Field2)%LNV, FE_DB(Field2)%LNN, &
         & FE_DB(Field2)%LNV, FE_DB(Field2)%LNE, FE_DB(Field2)%LNF)
-      call info('Reading '//trim(FEDB(pc%el(elsingroup(Field2))%type)%desc))
+      call info('  Element type: '//trim(FEDB(pc%el(elsingroup(Field2))%type)%desc))
     endif
     
 !   Record 2:  *** FOR BEAM ELEMENTS ONLY ***

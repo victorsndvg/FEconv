@@ -48,6 +48,7 @@ real(real64), allocatable, dimension(:) :: x
 integer :: ios, Field1, F2, F3, F4
 logical :: fit(2)
 
+  call info('Reading mesh coordinates ...')
 
   pc%dim = 3
   if(.not. allocated(x)) allocate(x(pc%dim))

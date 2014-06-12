@@ -72,6 +72,8 @@ integer :: ios, Field1, F2, F3, F4, F5, F6, F7, Field8, p, j, pos, k, m, n_elgro
 integer, dimension(2):: etc, tag
 character(len=MAXPATH) :: gname
 
+  call info('Reading mesh references ...')
+
 if(.not. allocated(pc%el)) call error('dataset_2467/read, meshes not allocated')
 n_elgroup = size(pc%el,1) ! Number of element groups without vertex groups
 !call alloc(groups, d+1)

@@ -443,8 +443,8 @@ subroutine save_vtu2(filename, pmh)
 !          &(/(k,k=nel+1,nel+1+pmh%pc(i)%el(j)%nel)/), fit=.false.)
       endif
       if(.not. allocated(cdfval) .and. allocated(pmh%pc(i)%el(j)%fi)) allocate(cdfval(size(pmh%pc(i)%el(j)%fi,1)))
-      if(allocated(cdfval)) then
-        do l=1, size(cdfval,1)
+      if(allocated(pmh%pc(i)%el(j)%fi)) then
+        do l=1, size(pmh%pc(i)%el(j)%fi,1)
           cdfval(l)%name = trim(pmh%pc(i)%el(j)%fi(l)%name)
           cdfval(l)%ncomp = size(pmh%pc(i)%el(j)%fi(l)%val,1)
           do m=1, size(pmh%pc(i)%el(j)%fi(l)%val,1)
@@ -522,7 +522,8 @@ subroutine save_vtu2(filename, pmh)
           real(pmh%pc(i)%fi(j)%val(1,1:nnod,nparam),R8P), real(pmh%pc(i)%fi(j)%val(2,1:nnod,nparam),R8P), &
           real(pmh%pc(i)%fi(j)%val(3,1:nnod,nparam),R8P)) /= 0) call error('Writing '//trim(pmh%pc(i)%fi(j)%name))
       else
-        call error('Vector field with '//trim(string(size(pmh%pc(i)%fi(j)%val,1)))//' components not supported!')
+        call info('      Vector field with '// &
+          & trim(string(size(pmh%pc(i)%fi(j)%val,1)))//' components not supported. Skipped!')
       endif
     enddo
 

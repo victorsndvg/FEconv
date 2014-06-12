@@ -27,7 +27,7 @@ logical :: res
 integer :: val, ios
 
 res = .false.
-read (unit=iu, fmt='(I10)', iostat=ios) val
+read (unit=iu, fmt='(I6)', iostat=ios) val
 if (ios /= 0) call error('dataset/is_dataset_delimiter/read, #'//trim(string(ios)))
 !delimiter found
 if (val == -1) then

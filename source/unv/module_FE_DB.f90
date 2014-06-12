@@ -44,12 +44,15 @@ contains
 subroutine FE_DB_init()
 
 FE_DB( 11) = fe_db_type('Rod',                                 1, 2,2, 1,0,.true.,          0)
+FE_DB( 21) = fe_db_type('Linear beam',                         1, 2,2, 1,0,.true.,          0)
 FE_DB( 22) = fe_db_type('Tapered beam',                        1, 3,2, 1,0,.true., ND_EDGE_P2)
 
 FE_DB( 41) = fe_db_type('Plane Stress Linear Triangle',        2, 3,3, 3,0,.false.,         0)
 FE_DB( 42) = fe_db_type('Plane Stress Parabolic Triangle',     2, 6,3, 3,0,.false.,ND_TRIA_P2)
 FE_DB( 44) = fe_db_type('Plane Stress Linear Quadrilateral',   2, 4,4, 4,0,.false.,         0)
 FE_DB( 45) = fe_db_type('Plane Stress Parabolic Quadrilateral',2, 8,4, 4,0,.false.,ND_QUAD_P2)  
+
+FE_DB( 81) = fe_db_type('Axisymetric Solid Linear Triangle',   2, 3,3, 3,0,.false.,         0)
 
 FE_DB( 91) = fe_db_type('Thin Shell Linear Triangle',          3, 3,3, 3,0,.false.,         0)
 FE_DB( 92) = fe_db_type('Thin Shell Parabolic Triangle',       3, 6,3, 3,0,.false.,ND_TRIA_P2)
@@ -61,6 +64,8 @@ FE_DB(112) = fe_db_type('Solid Linear Wedge',                  3, 6,6, 9,5,.fals
 FE_DB(115) = fe_db_type('Solid Linear Brick',                  3, 8,8,12,6,.false.,         0)
 FE_DB(116) = fe_db_type('Solid Parabolic Brick',               3,20,8,12,6,.false.,ND_HEXA_P2)
 FE_DB(118) = fe_db_type('Solid Parabolic Tetrahedron',         3,10,4, 6,4,.false.,ND_TETR_P2)
+
+FE_DB(122) = fe_db_type('Rigid Element',                       2, 4,4, 4,0,.false.,         0)
 end subroutine
 
 !-----------------------------------------------------------------------
