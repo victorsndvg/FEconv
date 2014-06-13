@@ -358,7 +358,7 @@ type(field), allocatable, dimension(:) :: auxfi
   endif
 
   if(dloc == 1) then ! Data at nodes
-    call info('Reading node field: '//trim(name))
+    call info('Reading node field: '//trim(adjustl(name)))
     ! PMH field structure allocation
     if(.not. allocated(pmh%pc(npc)%fi)) then
       fidx = 1
@@ -371,7 +371,7 @@ type(field), allocatable, dimension(:) :: auxfi
       call move_alloc(from=auxfi, to=pmh%pc(npc)%fi)
     endif
     ! PMH Field structure: name, param and values initilization
-    pmh%pc(npc)%fi(fidx)%name = trim(name)
+    pmh%pc(npc)%fi(fidx)%name = trim(adjustl(name))
     if(.not. allocated(pmh%pc(npc)%fi(fidx)%param)) &
       & allocate(pmh%pc(npc)%fi(fidx)%param(nparam))
     if(present(param)) then
@@ -397,7 +397,7 @@ type(field), allocatable, dimension(:) :: auxfi
     if(pmh%pc(npc)%nnod /= counter) call error('dataset_2414/read, # Wrong number of values')
 
   elseif(dloc == 2) then ! Data at elements
-    call info('Reading element field: '//trim(name))
+    call info('Reading cell field: '//trim(adjustl(name)))
     fidx = 0
     do
       if (is_dataset_delimiter(iu, back=.true.)) exit
@@ -414,7 +414,7 @@ type(field), allocatable, dimension(:) :: auxfi
           fidx = 1
           allocate(elg%fi(fidx))
           ! PMH Field structure: name, param and values initilization
-          elg%fi(fidx)%name = trim(name)
+          elg%fi(fidx)%name = trim(adjustl(name))
           if(.not. allocated(elg%fi(fidx)%param)) &
             & allocate(elg%fi(fidx)%param(nparam))
           if(present(param)) then
@@ -432,7 +432,7 @@ type(field), allocatable, dimension(:) :: auxfi
           auxfi(1:fidx-1) = elg%fi(:)
           call move_alloc(from=auxfi, to=elg%fi)
           ! PMH Field structure: name, param and values initilization
-          elg%fi(fidx)%name = trim(name)
+          elg%fi(fidx)%name = trim(adjustl(name))
           if(.not. allocated(elg%fi(fidx)%param)) &
             & allocate(elg%fi(fidx)%param(nparam))
           if(present(param)) then

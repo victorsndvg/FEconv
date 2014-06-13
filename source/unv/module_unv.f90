@@ -76,6 +76,7 @@ subroutine save_unv(filename, iu, pmh)
   open (unit = iu, file = filename, form = 'formatted', position = 'rewind', iostat = ios)
   if (ios /= 0) call error('(module_unv/save_unv) unable to open file; error number '//trim(string(ios)))
 
+   call info('Writin coordinates ...')
   !save coordinates
   write(iu,'(I6)') -1
   write(iu,'(I6)') 2411
@@ -116,6 +117,7 @@ subroutine save_unv(filename, iu, pmh)
   end do
   write(iu,'(I6)') -1
  
+   call info('Writing conectivities ...')
   !save elements
   call FE_DB_init() !initialize FE database
   write(iu,'(I6)') -1
@@ -125,6 +127,7 @@ subroutine save_unv(filename, iu, pmh)
     ip = piece2save(ipp)
     do ig = 1, size(pmh%pc(ip)%el,1)
       associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+        call info('  Element type: '//trim(FEDB(tp)%desc))
         if (FEDB(tp)%tdim > 1) then !non-beam elements
           idesc = check_unv_fe(FEDB(tp)%tdim, FEDB(tp)%lnn, FEDB(tp)%lnv, FEDB(tp)%lne, FEDB(tp)%lnf)
           if (idesc == 0) call error('(module_unv/save_unv) unable to find a UNV equivalente to element type '//&
@@ -176,7 +179,9 @@ subroutine save_unv(filename, iu, pmh)
     end if
   end do
   write(iu,'(I6)') -1
-  
+
+
+   call info('Writin references ...')  
   !save groups
   write(iu,'(I6)') -1
   write(iu,'(I6)') 2467
@@ -187,6 +192,7 @@ subroutine save_unv(filename, iu, pmh)
       associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
         call sunique(elg%ref, unique_ref)
         do ir = 1, size(unique_ref,1)
+          call info('  piece_'//trim(string(ip))//'_group_'//trim(string(ig))//'_ref_'//trim(string(unique_ref(ir))))
           call sfind(elg%ref, unique_ref(ir), k_ref)
           write(iu,'(8I10)') unique_ref(ir), 0, 0, 0, 0, 0, 0, size(k_ref, 1) 
           write(iu,'(A)') 'piece_'//trim(string(ip))//'_group_'//trim(string(ig))//'_ref_'//trim(string(unique_ref(ir)))
@@ -205,16 +211,139 @@ subroutine save_unv(filename, iu, pmh)
     end if
   end do
   write(iu,'(I6)') -1
+
+  !save fields
+  call write_unv_fields(iu, pmh, piece2save)
+
   close(iu)
+
 end subroutine
 
 !-----------------------------------------------------------------------
-! save_unv: save a PMH structure into a UNV file
+! save_unv: save a PMH field into a UNV file
 !-----------------------------------------------------------------------
-subroutine write_unv_field(iu, pmh, prev_coord)
-  integer,        intent(in) :: iu       !file unit
-  type(pmh_mesh), intent(in) :: pmh      !pmh structure
-  integer,        intent(in) :: prev_coord
+subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
+  integer,         intent(in) :: iu       !file unit
+  type(pmh_mesh),  intent(in) :: pmh      !pmh mesh structure
+  integer,         intent(in) :: piece2save(:)
+  integer,optional,intent(in) :: dataset
+  integer,optional,intent(in) :: nparam
+  integer                     :: prev_coord
+  integer                     :: prev_nel
+  integer                     :: i, j, k, l, m
+  integer                     :: counter, ds, ncomp, dc, np
+
+  if(present(dataset)) then
+    ds = dataset
+  else
+    ds = 2414
+  endif
+
+  if(present(nparam)) then
+    np = nparam
+  else
+    np = 1
+  endif
+
+
+  prev_coord = 0; prev_nel = 0; counter = 0
+
+  do i = 1,size(piece2save,1)
+    associate(pc => pmh%pc(piece2save(i)))
+      if(allocated(pc%fi) .and. (ds==2414 .or. ds==55)) then
+        ! Node fields
+        do j = 1,size(pc%fi,1)
+          call info('Writin node field: '//trim(adjustl(pc%fi(j)%name)))
+          counter = counter + 1
+          ncomp = size(pc%fi(j)%val,1)
+          if(ncomp == 1) then
+            dc = 1 ! Scalar
+          elseif(ncomp == 3) then
+            dc = 2 ! 3 Comp. vector
+          elseif(ncomp == 6) then
+            dc = 4 ! 6 Comp. simmetric global tensor
+          elseif(ncomp == 9) then
+            dc = 5 ! 9 Comp. general tensor
+          else
+            dc = 0
+          endif
+          write(iu,'(1I6)') -1
+          write(iu,'(1I6)') ds                                  ! Dataset
+          if(ds == 2414) then
+            write(iu,'(1I10)') counter                          ! Record1: Analysis dataset label
+            write(iu,*) trim(adjustl(pc%fi(j)%name))            ! Record2: Analysis dataset name
+            write(iu,'(1I10)') 1                                ! Record3: Dataset location. 1:Data at nodes, 2:Data on elements
+          endif
+          write(iu,*) trim(adjustl(pc%fi(j)%name))              ! Record4: ID line 1
+          write(iu,*) 'Double precission floating point'        ! Record5: ID line 2
+          write(iu,*) 'NONE'                                    ! Record6: ID line 3
+          write(iu,*) 'NONE'                                    ! Record7: ID line 4
+          write(iu,*) 'NONE'                                    ! Record8: ID line 5
+          ! Model type, Analysis type, Data characteristic, Result type, Data type, Number of data values for data component
+          write(iu,'(6I10)') 0,0,dc,1001,4,ncomp                ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp
+          write(iu,'(8I10)') (/(0,m=1,8)/)                      ! Record10: Integer analysis type speciic data (1-8)
+          write(iu,'(8I10)') (/(0,m=1,2)/)                      ! Record11: Integer analysis type speciic data (9-10)
+          if(ds == 2414) then
+            write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record12: Real analysis type speciic data (1-6)
+            write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record13: Real analysis type speciic data (7-12)
+          endif
+          do k = 1, pc%nnod
+            write(iu,'(1I10)') prev_coord+k                     ! Record14: Node Number
+            write(iu,'(6E13.5)') pc%fi(j)%val(:,k,np)           ! Record15: Data at this node
+          enddo
+          write(iu,'(I6)') -1
+        enddo
+        prev_coord = prev_coord+pc%nnod
+      endif
+      do j=1, size(pc%el,1)
+        if(allocated(pc%el(j)%fi) .and. (ds==2414 .or. ds==57)) then
+          do k=1, size(pc%el(j)%fi,1)
+            call info('Writin cell field: '//trim(adjustl(pc%fi(j)%name)))
+            counter = counter + 1
+            ncomp = size(pc%el(j)%fi(k)%val,1)
+            if(ncomp == 1) then
+              dc = 1 ! Scalar
+            elseif(ncomp == 3) then
+              dc = 2 ! 3 Comp. vector
+            elseif(ncomp == 6) then
+              dc = 4 ! 6 Comp. simmetric global tensor
+            elseif(ncomp == 9) then
+              dc = 5 ! 9 Comp. general tensor
+            else
+              dc = 0
+            endif
+            write(iu,'(1I6)') -1
+            write(iu,'(1I6)') ds                                  ! Dataset
+            if(ds == 2414) then
+              write(iu,'(1I10)') counter                          ! Record1: Analysis dataset label
+              write(iu,*) trim(adjustl(pc%el(j)%fi(k)%name))      ! Record2: Analysis dataset name
+              write(iu,'(1I10)') 2                                ! Record3: Dataset location. 1:Data at nodes, 2:Data on elements
+            endif
+            write(iu,*) trim(adjustl(pc%el(j)%fi(k)%name))        ! Record4: ID line 1
+            write(iu,*) 'Double precission floating point'        ! Record5: ID line 2
+            write(iu,*) 'NONE'                                    ! Record6: ID line 3
+            write(iu,*) 'NONE'                                    ! Record7: ID line 4
+            write(iu,*) 'NONE'                                    ! Record8: ID line 5
+            ! Model type, Analysis type, Data characteristic, Result type, Data type, Number of data values for data component
+            write(iu,'(6I10)') 0,0,dc,1001,4,ncomp                ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp
+            write(iu,'(8I10)') (/(0,m=1,8)/)                      ! Record10: Integer analysis type speciic data (1-8)
+            write(iu,'(8I10)') (/(0,m=1,2)/)                      ! Record11: Integer analysis type speciic data (9-10)
+            if(ds == 2414) then
+              write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record12: Real analysis type speciic data (1-6)
+              write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record13: Real analysis type speciic data (7-12)
+            endif
+            do l = 1, pc%el(j)%nel
+              write(iu,'(2I10)') prev_nel+l,1                     ! Record14: Element Number, Number of data values
+              write(iu,'(6E13.5)') pc%el(j)%fi(k)%val(:,k,np)     ! Record15: Data at this element
+            enddo
+            write(iu,'(I6)') -1
+          enddo
+          prev_nel = prev_nel+pc%el(j)%nel
+        endif
+      enddo
+    end associate 
+  enddo
+
 end subroutine
   
 end module

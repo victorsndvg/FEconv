@@ -1,4 +1,4 @@
-module module_mff
+module module_dex
 !-----------------------------------------------------------------------
 ! Module to manage MFF (Modulef Formatted Field) files
 !
@@ -27,44 +27,52 @@ implicit none!
 
 contains
 
-subroutine load_mff(pmh, filenames, fieldnames, param)
+subroutine load_dex(pmh, filenames, fieldnames, param)
   character(len=*), allocatable, intent(in) :: filenames(:) !fields file names
   type(pmh_mesh),             intent(inout) :: pmh
   character(*), allocatable,     intent(in) :: fieldnames(:) !field names
   real(real64), optional,        intent(in) :: param 
-  character(len=maxpath)                    :: filename, fieldname
-  integer                                   :: iu, ios, i, j, k, idx  
-  integer                                   :: ncomp, totcomp, maxtdim
-  real(real64), allocatable                 :: fielddata(:)
+  character(len=maxpath)                    :: filename, fieldname, aux
+  integer                                   :: nb_real, nb_comp, nb_point
+  integer                                   :: iu, ios, i, j, k, idx
+  real(real64), allocatable                 :: coords(:,:), vals(:,:)
   type(field), allocatable                  :: tempfields(:)
+!  integer                                   :: ncomp, totcomp, maxtdim
+
 
 
   if(size(filenames,1) /= size(fieldnames,1)) &
-    call error('load_mff/ Filenames and fieldnames dimension must agree')
+    call error('load_dex/ Filenames and fieldnames dimension must agree')
 
   do j=1, size(filenames,1)
     filename = trim(filenames(j))
     fieldname = trim(fieldnames(j))
     iu = get_unit()
     !open file
+
     open (unit=iu, file=filename, form='formatted', status='old', position='rewind', iostat=ios)
     if (ios /= 0) call error('load/open, #'//trim(string(ios)))
   
-    !try read number of components
-    read(unit=iu, fmt=*, iostat=ios) totcomp
-  
-    if(allocated(fielddata)) deallocate(fielddata)
-    allocate(fielddata(totcomp))
-  
-    read(unit=iu, fmt=*, iostat=ios) (fielddata(i),  i=1,totcomp)
-    close(iu)
-  
-    maxtdim = 0
-  
+    !try read field name
+    read(unit=iu, fmt=*, iostat=ios) aux,aux,aux,aux,aux,aux,aux
+    if (ios /= 0) call error('load/open, #'//trim(string(ios)))
+    !try read number of real, number of components and number of points
+    read(unit=iu, fmt=*, iostat=ios) aux,aux,nb_real,aux,aux,nb_comp,aux,aux,nb_point
+    if (ios /= 0) call error('load/open, #'//trim(string(ios)))  
+
     if(size(pmh%pc,1) == 1) then
-      ! Field over nodes. 1,2 or 3 components allowed
-      if (mod(totcomp, size(pmh%pc(1)%z,2)) == 0 .and. (totcomp/size(pmh%pc(1)%z,2)<= 3)) then
-        ncomp = totcomp/size(pmh%pc(1)%z,2)
+      if(pmh%pc(1)%nnod /= nb_point) then
+        call info('Number of values in field must agree with number of nodes. Skipped!')
+      else
+        if(allocated(coords)) deallocate(coords)
+        if(allocated(vals)) deallocate(vals)
+        allocate(coords(pmh%pc(1)%dim,nb_point))
+        allocate(vals(nb_comp,nb_point))
+        ! Read coords and values
+        do i=1,nb_point
+          read(unit=iu, fmt=*, iostat=ios) coords(:,i),vals(:,i)
+          if (ios /= 0) call error('load/open, #'//trim(string(ios)))  
+        enddo
         if(.not. allocated(pmh%pc(1)%fi)) then 
           allocate(pmh%pc(1)%fi(1))
         else
@@ -84,56 +92,21 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
           pmh%pc(1)%fi(idx)%param(1) = 0._real64
         endif
         if(allocated(pmh%pc(1)%fi(idx)%val)) deallocate(pmh%pc(1)%fi(idx)%val)
-        allocate(pmh%pc(1)%fi(idx)%val(ncomp, totcomp/ncomp,1))
-        do i=1, totcomp/ncomp
-           pmh%pc(1)%fi(idx)%val(:,i,1) = fielddata((i-1)*ncomp+1:i*ncomp)
-        enddo
-      else
-        do i=1, size(pmh%pc(1)%el,1)
-          maxtdim = max(FEDB(pmh%pc(1)%el(i)%type)%tdim,maxtdim)
-        enddo
-   
-        do i=1, size(pmh%pc(1)%el,1)
-          if(maxtdim == FEDB(pmh%pc(1)%el(i)%type)%tdim) then
-            if(mod(totcomp,pmh%pc(1)%el(i)%nel) == 0 .and. totcomp/pmh%pc(1)%el(i)%nel<= 3) then
-              ncomp = totcomp/pmh%pc(1)%el(i)%nel
-              if(.not. allocated(pmh%pc(1)%el(i)%fi)) then
-                allocate(pmh%pc(1)%el(i)%fi(1))
-              else
-                if(allocated(tempfields)) deallocate(tempfields)
-                allocate(tempfields(size(pmh%pc(1)%el(i)%fi,1)+1))
-                tempfields(1:size(pmh%pc(1)%fi,1)) = pmh%pc(1)%el(i)%fi(:)
-                call move_alloc(from=tempfields, to=pmh%pc(1)%el(i)%fi)
-                deallocate(tempfields)
-              endif
-              idx = size(pmh%pc(1)%el(i)%fi,1)
-              call info('Reading cell field from: '//trim(adjustl(filenames(j))))
-              pmh%pc(1)%el(i)%fi(idx)%name = trim(filename)
-              if(allocated(pmh%pc(1)%el(i)%fi(idx)%param)) deallocate(pmh%pc(1)%el(i)%fi(idx)%param)
-              allocate(pmh%pc(1)%el(i)%fi(idx)%param(1))      
-              if(present(param)) then 
-                pmh%pc(1)%el(i)%fi(idx)%param(1) = param
-              else
-                pmh%pc(1)%el(i)%fi(idx)%param(1) = 0._real64
-              endif
-              if(allocated(pmh%pc(1)%el(i)%fi(idx)%val)) deallocate(pmh%pc(1)%el(i)%fi(idx)%val)
-              allocate(pmh%pc(1)%el(i)%fi(idx)%val(ncomp, totcomp/ncomp,1))
-              do k=1, pmh%pc(1)%el(i)%nel
-                pmh%pc(1)%el(i)%fi(idx)%val(:,k,1) = fielddata((k-1)*ncomp+1:k*ncomp)
-              enddo
-              exit
-            endif
-          endif
-        enddo
+        allocate(pmh%pc(1)%fi(idx)%val(nb_comp, nb_point,1))
+        pmh%pc(1)%fi(idx)%val(:,:,1) = vals(:,:)
+
       endif
     endif
+
+    close(iu)
+
   enddo
   print*, ''
 
 end subroutine
 
 
-subroutine save_mff(pmh, infield, outfield, path, param)
+subroutine save_dex(pmh, infield, outfield, path, param)
   type(pmh_mesh),            intent(inout) :: pmh      !PMH mesh
   character(*), allocatable, intent(in) :: infield(:)  ! In field names
   character(*), allocatable, intent(in) :: outfield(:) ! Out field names

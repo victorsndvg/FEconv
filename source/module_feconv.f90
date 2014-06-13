@@ -34,6 +34,7 @@ use module_freefem, only: save_freefem_msh, save_freefem_mesh, load_freefem_msh,
 use module_pmh
 use module_fem_extract, only: extract_mesh, extract_ref
 use module_gmsh, only: load_gmsh
+use module_dex, only: load_dex, save_dex
 implicit none
 
 !PMH structure
@@ -236,6 +237,11 @@ case('pf3')
   print '(a)', 'Loading FLUX mesh file...'
   call load_pf3(infile, pmh); is_pmh = .true.
   print '(a)', 'Done!'
+  if(there_is_field) then
+    if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+    is_pmh = .true.
+    call load_dex(pmh, infield, outfield)
+  endif
 case('vtu')
   print '(a)', 'Loading MFM mesh file...'
   call load_vtu( infile, pmh); is_pmh = .true.
