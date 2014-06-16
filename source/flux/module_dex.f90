@@ -1,14 +1,14 @@
 module module_dex
 !-----------------------------------------------------------------------
-! Module to manage MFF (Modulef Formatted Field) files
+! Module to manage DEX (Flux field) files
 !
 ! Licensing: This code is distributed under the GNU GPL license.
 ! Author: Víctor Sande, victor(dot)sande(at)usc(dot)es
 ! Last update: 19/05/2014
 !
 ! PUBLIC PROCEDURES:
-!   load_mff: loads a mesh from a MFM format file
-!   save_mff: saves a mesh in a MFM format file
+!   load_dex: loads a mesh from a DEX format file
+!   save_dex: saves a mesh in a DEX format file
 !-----------------------------------------------------------------------
 use module_compiler_dependant, only: real64
 use module_files, only: get_unit
@@ -112,13 +112,14 @@ subroutine save_dex(pmh, infield, outfield, path, param)
   character(*), allocatable, intent(in) :: outfield(:) ! Out field names
   character(*),              intent(in) :: path !file names
   real(real64), optional,    intent(in) :: param 
+  real(real64),allocatable              :: znod(:,:)
   character(len=maxpath)                :: filename !file names
   integer                               :: i,j,k,l,m,pi,mtdim
   integer                               :: iu, ios, fidx
-  logical                               :: all_f
+  logical                               :: all_f, all_P1
 
   if(size(infield,1) /= size(outfield,1)) &
-    call error('load_mff/ Filenames and fieldnames dimension must agree')
+    call error('load_dex/ Filenames and fieldnames dimension must agree')
 
   all_f = .false.
 
@@ -134,64 +135,58 @@ subroutine save_dex(pmh, infield, outfield, path, param)
     do i=1, size(pmh%pc,1)
       ! Point data
       if(allocated(pmh%pc(i)%fi)) then
+        if(allocated(znod)) deallocate(znod)
+        call build_node_coordinates(pmh%pc(i), i, all_P1, znod)
         do j=1, size(pmh%pc(i)%fi,1)
           if(trim(infield(fidx)) == trim(pmh%pc(i)%fi(j)%name) .or. all_f) then
             if(.not. allocated(pmh%pc(i)%fi(j)%val)) &
-               &call error("save_mff/ Point field "//trim(infield(fidx))//": not allocated")
+               &call error("save_dex/ Point field "//trim(infield(fidx))//": not allocated")
             call fix_filename(pmh%pc(i)%fi(j)%name)
             if(all_f .and. trim(infield(1)) == '*') &
-              & filename = trim(path)//trim(outfield(1))//'__'//trim(pmh%pc(i)%fi(j)%name)//'.mff'
+              & filename = trim(path)//trim(outfield(1))//'__'//trim(pmh%pc(i)%fi(j)%name)//'.dex'
             call info('Writing node field to: '//trim(adjustl(filename)))
             if(present(param)) then
               do k=1, size(pmh%pc(i)%fi(j)%param,1)
                 if((pmh%pc(i)%fi(j)%param(k)-param)<pmh%ztol) pi = k
               enddo
             endif
+            if(pmh%pc(i)%nnod /= size(znod,2) .and. pmh%pc(i)%nnod /= size(pmh%pc(i)%fi(j)%val,2)) then
+              call info('  Wrong number of values. Skipped!')
+              cycle
+            endif
             iu = get_unit() 
             open (unit=iu, file=trim(filename), form='formatted', position='rewind', iostat=ios)
-            if (ios /= 0) call error('save/open, #'//trim(string(ios)))
-            write(unit=iu, fmt=*, iostat = ios) size(pmh%pc(i)%z,2)*size(pmh%pc(i)%fi(j)%val,1)
-            if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
-            do k=1,size(pmh%pc(i)%fi(j)%val,2)
-  !            do l=1,size(pmh%pc(i)%fi(j)%val,1)
+            if (ios /= 0) call error('save_dex/header, #'//trim(string(ios)))
+
+            ! Header
+            write(unit=iu, fmt=*, iostat = ios) &
+              & '# NAME = PIECE'//trim(string(i))// ' FORMULA = '//trim(adjustl(pmh%pc(i)%fi(j)%name))
+            if (ios /= 0) call error('save_dex/header, #'//trim(string(ios)))
+            write(unit=iu, fmt=*, iostat = ios) &
+              & 'NB_REAL = '//trim(string(1))// ' NB_COMP = '//trim(string(size(pmh%pc(i)%fi(j)%val,1)))//&
+              & ' NB_POINT = '//trim(string(size(pmh%pc(i)%fi(j)%val,2)))//' #'
+            if (ios /= 0) call error('save_dex/header, #'//trim(string(ios)))
+
+            if(all_P1) then
+              do k=1,pmh%pc(i)%nver
                 write(unit=iu, fmt=*, iostat = ios) &
+                  & (pmh%pc(i)%z(l,k), l=1, size(pmh%pc(i)%z,1) ), &
                   & (pmh%pc(i)%fi(j)%val(l,k,pi), l=1, size(pmh%pc(i)%fi(j)%val,1) )
-                if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
-  !            enddo
-            enddo
+                if (ios /= 0) call error('save_dex/vertex, #'//trim(string(ios)))
+              enddo
+            else
+              do k=1,size(znod,2)
+                write(unit=iu, fmt=*, iostat = ios) &
+                  & (znod(l,k), l=1, size(znod,1) ), &
+                  & (pmh%pc(i)%fi(j)%val(l,k,pi), l=1, size(pmh%pc(i)%fi(j)%val,1) )
+                if (ios /= 0) call error('save_dex/nodes, #'//trim(string(ios)))
+              enddo
+            endif
             close(iu)
           endif
         enddo
       endif
-      ! Cell data
-      do j=1, size(pmh%pc(i)%el,1)
-        mtdim = max(FEDB(pmh%pc(i)%el(j)%type)%tdim,mtdim)
-      enddo
-      do j=1, size(pmh%pc(i)%el,1)
-        if(mtdim == FEDB(pmh%pc(i)%el(j)%type)%tdim .and. allocated(pmh%pc(i)%el(j)%fi)) then
-          do k=1,size(pmh%pc(i)%el(j)%fi,1)
-            if(trim(infield(fidx)) == trim(pmh%pc(i)%el(j)%fi(k)%name)) then
-              if(.not. allocated(pmh%pc(i)%el(j)%fi(k)%val)) &
-                & call error("save_mff/ Cell field "//trim(infield(fidx))//": not allocated")
-              call fix_filename(pmh%pc(i)%el(j)%fi(k)%name)
-              if(all_f .and. trim(infield(1)) == '*') &
-                & filename = trim(path)//trim(outfield(1))//'__'//trim(pmh%pc(i)%el(j)%fi(k)%name)//'.mff'
-            call info('Writing cell field to: '//trim(adjustl(filename)))
-              if(present(param)) then
-                do l=1, size(pmh%pc(i)%el(j)%fi(l)%param,1)
-                  if((pmh%pc(i)%el(j)%fi(k)%param(l)-param)<pmh%ztol) pi = k
-                enddo
-              endif
-              ! write pmh%pc(i)%el(j)%nel
-              do l=1,size(pmh%pc(i)%el(j)%fi(k)%val,2)
-                do m=1,size(pmh%pc(i)%el(j)%fi(k)%val,1)
-                  !write pmh%pc(i)%el(j)%fi(k)%val(l,k,pi)
-                enddo
-              enddo            
-            endif
-          enddo
-        endif
-      enddo
+
     enddo
 
   

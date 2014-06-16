@@ -265,12 +265,15 @@ subroutine write_pf3_node_field(iu, pmh, infield, outfield, path, param)
   singlefield = .false.
   exists = .false.
 
+  if(.not. allocated(infield)) return
+
   if(size(outfield,1)/=1) then
     call info('You must specify only one output field. Field will not be saved.')
     return
   endif
   if(size(infield,1) == 1 .and. size(outfield,1) == 1) singlefield = .true.
   tnnod = 0
+
   do i=1, size(pmh%pc,1)
     if(allocated(pmh%pc(i)%fi)) then
       do j=1, size(pmh%pc(i)%fi,1)

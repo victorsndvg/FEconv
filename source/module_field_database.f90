@@ -18,13 +18,14 @@ type :: field_db
   logical           :: is_field_outside = .false. !is field outside mesh?
 end type
 
-type(field_db), parameter :: FLDB(9) = [       &
+type(field_db), parameter :: FLDB(10) = [       &
 field_db('mfm       ', 'mff       ', .true.), &
 field_db('mum       ', 'muf       ', .true.), &
-field_db('pf3       ', 'dex       ', .false.), &
+field_db('pf3       ', 'dex       ', .true.), &
+field_db('pf3       ', 'pf3       ', .false.), &
 field_db('unv       ', 'unv       ', .false.), &
 field_db('vtu       ', 'vtu       ', .false.), &
-field_db('msh       ', '          ', .false.), &
+field_db('msh       ', 'ip        ', .true.), &
 field_db('bdf       ', '          ', .false.), &
 field_db('mphtxt    ', '          ', .false.), &
 field_db('mesh      ', 'mesh      ', .false.)]
