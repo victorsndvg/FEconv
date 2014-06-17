@@ -45,11 +45,11 @@ module_utils_mphtxt.f90 module_write_mphtxt.f90 module_read_mphtxt.f90 \
 module_manage_mphtxt.f90 module_mphtxt.f90 module_vtu.f90 module_mff.f90 \
 module_dataset_2467.f90 module_dataset_2414.f90 module_dataset_2412.f90 \
 module_dataset_2411.f90 module_manage_unv.f90 module_unv.f90 \
-module_utils_msh.f90 module_read_msh.f90 module_cuthill_mckee.f90 \
-module_transform.f90 module_write_msh.f90 module_manage_msh.f90 module_msh.f90 \
-module_dex.f90 module_utils_pf3.f90 module_read_pf3.f90 module_write_pf3.f90 \
-module_manage_pf3.f90 module_pf3.f90 module_freefem.f90 \
-module_fem_extract_complex.f90 module_fem_extract_real.f90 \
+module_utils_msh.f90 module_read_msh.f90 module_ip.f90 \
+module_cuthill_mckee.f90 module_transform.f90 module_write_msh.f90 \
+module_manage_msh.f90 module_msh.f90 module_dex.f90 module_utils_pf3.f90 \
+module_read_pf3.f90 module_write_pf3.f90 module_manage_pf3.f90 module_pf3.f90 \
+module_freefem.f90 module_fem_extract_complex.f90 module_fem_extract_real.f90 \
 module_fem_extract.f90 module_gmsh.f90 module_feconv.f90
  
 # MODULE DEPENDENCIES
@@ -138,6 +138,8 @@ module_utils_msh.o: module_alloc.o module_report.o module_convers.o \
 module_pmh.o module_fe_database_pmh.o module_compiler_gfortran.o
 module_read_msh.o: module_alloc.o module_convers.o module_pmh.o \
 module_utils_msh.o
+module_ip.o: module_compiler_gfortran.o module_files.o module_convers.o \
+module_report.o module_utils_msh.o module_pmh.o
 module_cuthill_mckee.o: module_compiler_gfortran.o module_os_dependant.o \
 module_report.o module_vtu.o
 module_transform.o: module_os_dependant.o module_report.o \
@@ -177,7 +179,7 @@ module_report.o module_convers.o module_files.o module_alloc.o module_args.o \
 module_transform.o module_cuthill_mckee.o module_msh.o module_unv.o \
 module_patran.o module_mfm.o module_mum.o module_vtu.o module_mphtxt.o \
 module_pf3.o module_field_database.o module_mff.o module_freefem.o \
-module_pmh.o module_fem_extract.o module_gmsh.o module_dex.o
+module_pmh.o module_fem_extract.o module_gmsh.o module_dex.o module_ip.o
  
 # INCLUDES
 includes = 
