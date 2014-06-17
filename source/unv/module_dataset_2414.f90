@@ -287,7 +287,7 @@ integer, allocatable, dimension(:,:), intent(in) :: els_loc !Elements location (
 integer,           intent(in) :: dataset
 real(real64), optional        :: param
 integer, dimension(6)         :: r9
-integer                       :: ios, counter
+integer                       :: ios, counter, i, prev_nel
 integer                       :: lbl, dloc, ncomp, fidx, nparam, n_nod, n_el, iexp
 character(len=maxpath) :: name, aux
 real(real64), allocatable, dimension(:) :: val
@@ -400,10 +400,15 @@ type(field), allocatable, dimension(:) :: auxfi
     call info('Reading cell field: '//trim(adjustl(name)))
     fidx = 0
     do
+      prev_nel = 0
       if (is_dataset_delimiter(iu, back=.true.)) exit
-    ! Node or element number. Record14
+      ! Node or element number. Record14
       read (unit=iu, fmt='(2I10)', iostat = ios) n_el, iexp
       if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
+      ! Count elements in previous groups
+      do i=1, els_loc(1,n_el)-1
+        if(FEDB(pmh%pc(npc)%el(i)%type)%tdim>0) prev_nel = prev_nel + pmh%pc(npc)%el(i)%nel
+      enddo
       ! 1:data for all nodes, 2:data ofr only 1st node
       if(dataset == 57 .and. iexp /= 2) then
         call info('  Data present for all nodes not supported. Skipped!') 
@@ -445,7 +450,7 @@ type(field), allocatable, dimension(:) :: auxfi
         endif
 
       ! Data. Record15
-        read (unit=iu, fmt=*, iostat = ios) elg%fi(fidx)%val(:,n_el,nparam)
+        read (unit=iu, fmt=*, iostat = ios) elg%fi(fidx)%val(:,n_el-prev_nel,nparam)
         if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
 
       end associate

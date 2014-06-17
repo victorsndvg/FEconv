@@ -296,14 +296,18 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
         prev_coord = prev_coord+pc%nnod
       endif
       do j=1, size(pc%el,1)
+        if(FEDB(pc%el(j)%type)%tdim == 0) cycle
+
         if(allocated(pc%el(j)%fi) .and. (ds==2414 .or. ds==57)) then
           do k=1, size(pc%el(j)%fi,1)
-            call info('Writin cell field: '//trim(adjustl(pc%fi(j)%name)))
+            call info('Writin cell field: '//trim(adjustl(pc%el(j)%fi(k)%name)))
             counter = counter + 1
             ncomp = size(pc%el(j)%fi(k)%val,1)
+
             if(ncomp == 1) then
               dc = 1 ! Scalar
-            elseif(ncomp == 3) then
+            elseif(ncomp == 2 .or. ncomp == 3) then
+              ncomp = 3
               dc = 2 ! 3 Comp. vector
             elseif(ncomp == 6) then
               dc = 4 ! 6 Comp. simmetric global tensor
@@ -312,6 +316,7 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
             else
               dc = 0
             endif
+
             write(iu,'(1I6)') -1
             write(iu,'(1I6)') ds                                  ! Dataset
             if(ds == 2414) then
@@ -333,13 +338,18 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
               write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record13: Real analysis type speciic data (7-12)
             endif
             do l = 1, pc%el(j)%nel
-              write(iu,'(2I10)') prev_nel+l,1                     ! Record14: Element Number, Number of data values
-              write(iu,'(6E13.5)') pc%el(j)%fi(k)%val(:,k,np)     ! Record15: Data at this element
+              if(ds == 2414) then                                 ! Record14: Element Number, Number of data values
+                write(iu,'(2I10)') prev_nel+l,ncomp
+              else
+                write(iu,'(2I10)') prev_nel+l,1
+              endif
+              write(iu,'(6E13.5)') &                              ! Record15: Data at this element
+                & reshape(pc%el(j)%fi(k)%val(:,k,np), [3], [0._real64,0._real64,0._real64])
             enddo
             write(iu,'(I6)') -1
           enddo
-          prev_nel = prev_nel+pc%el(j)%nel
         endif
+        prev_nel = prev_nel+pc%el(j)%nel
       enddo
     end associate 
   enddo
