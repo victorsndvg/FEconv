@@ -289,7 +289,8 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
           endif
           do k = 1, pc%nnod
             write(iu,'(1I10)') prev_coord+k                     ! Record14: Node Number
-            write(iu,'(6E13.5)') pc%fi(j)%val(:,k,np)           ! Record15: Data at this node
+            write(iu,'(6E13.5)') &                              ! Record15: Data at this node
+              & reshape(pc%fi(j)%val(:,k,np), [ncomp], [(0._real64,m=1,ncomp)])
           enddo
           write(iu,'(I6)') -1
         enddo
@@ -344,7 +345,7 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
                 write(iu,'(2I10)') prev_nel+l,1
               endif
               write(iu,'(6E13.5)') &                              ! Record15: Data at this element
-                & reshape(pc%el(j)%fi(k)%val(:,k,np), [3], [0._real64,0._real64,0._real64])
+                & reshape(pc%el(j)%fi(k)%val(:,k,np), [ncomp], [(0._real64,m=1,ncomp)])
             enddo
             write(iu,'(I6)') -1
           enddo

@@ -85,8 +85,8 @@ subroutine load_ip(pmh, filenames, fieldnames, param)
         read(unit=iu, fmt=*, iostat=ios) compnames(i)
         if (ios /= 0) call error('load_ip/fieldnames, #'//trim(string(ios)))
         comp = [index(compnames(i),'x-'), index(compnames(i),'y-'), index(compnames(i),'z-')]
+        ncomp = maxloc(comp,1)
         if(maxval(comp)==1 .and. (ncomp>=1 .or. ncomp<=3)) then ! x, y and z
-          ncomp = maxloc(comp,1)
           do k=1, i-1
             if(index(compnames(k),compnames(i)(3:))>0) then
               fieldcomp(1,i) = fieldcomp(1,k) ! Field number
