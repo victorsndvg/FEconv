@@ -222,7 +222,7 @@ subroutine write_pf3_coordinates(iu, pc, all_P1, znod, prevnnod)
   integer, intent(in)                   ::prevnnod
   logical, intent(in)                   :: all_P1
   real(real64), allocatable, intent(in) :: znod(:,:)
-  integer                       :: i, j, ios
+  integer                       :: j, ios
 
 !    do i = 1, size(pmh%pc,1)
 
@@ -250,12 +250,11 @@ end subroutine
 ! pmh: pmh mesh
 !-----------------------------------------------------------------------
 
-subroutine write_pf3_node_field(iu, pmh, infield, outfield, path, param)
+subroutine write_pf3_node_field(iu, pmh, infield, outfield, param)
   integer,                   intent(in) :: iu  ! Unit number for PF3 file
   type(pmh_mesh),         intent(inout) :: pmh
   character(*), allocatable, intent(in) :: infield(:)  ! In field names
   character(*), allocatable, intent(in) :: outfield(:) ! Out field names
-  character(*),              intent(in) :: path !file names
   real(real64), optional,    intent(in) :: param 
   character(len=maxpath)                :: fieldname
   integer                               :: i, j, k, ios

@@ -32,12 +32,11 @@ subroutine load_ip(pmh, filenames, fieldnames, param)
   real(real64), optional,        intent(in) :: param 
   character(len=maxpath)                    :: filename, fieldname, aux
   integer                                   :: iu, ios, i, j, k, idx  
-  integer                                   :: ncomp, totcomp, maxtdim, comp(3)
+  integer                                   :: ncomp, maxtdim, comp(3)
   integer                                   :: version, n_points, n_comps, n_fields, ncells, dim
   integer, allocatable                      :: fieldcomp(:,:) ! [(field number, number of component) x every component]
   integer, allocatable                      :: compsperfield(:) ! [(field number, number of component) x every component]
   character(len=maxpath), allocatable       :: compnames(:), fnames(:) !comp names
-  real(real64), allocatable                 :: fielddata(:)
   type(field), allocatable                  :: tempfields(:)
   logical                                   :: is_vector_comp
   type(tempfield), allocatable              :: tfields(:)
@@ -79,7 +78,6 @@ subroutine load_ip(pmh, filenames, fieldnames, param)
       if(allocated(compsperfield)) deallocate(compsperfield)
       allocate(compsperfield(n_comps))
 
-print*, 'n_points:',n_points
 
       n_fields = 0
       do i=1,n_comps
@@ -147,7 +145,6 @@ print*, 'n_points:',n_points
           call replace_char(aux, ')', ' ')
           if(is_blank_line(aux)) cycle
           read(aux,fmt=*,iostat=ios) tfields(fieldcomp(1,k))%val(fieldcomp(2,k),i)
-print*, fieldcomp(1,k),i,tfields(fieldcomp(1,k))%val(fieldcomp(2,k),i)
           i = i + 1
         enddo
       enddo
@@ -161,7 +158,7 @@ print*, fieldcomp(1,k),i,tfields(fieldcomp(1,k))%val(fieldcomp(2,k),i)
   
       do k=1,n_fields
         ncells = 0
-        ! Field over nodes. 1,2 or 3 components allowed
+        ! Field over cells. 1,2 or 3 components allowed
         if (n_points == pmh%pc(1)%nnod) then
           if(.not. allocated(pmh%pc(1)%fi)) then 
             allocate(pmh%pc(1)%fi(1))
@@ -223,6 +220,19 @@ print*, fieldcomp(1,k),i,tfields(fieldcomp(1,k))%val(fieldcomp(2,k),i)
     endif
   enddo
   print*, ''
+
+  ! Memory deallocation
+  if(allocated(compnames)) deallocate(compnames)
+  if(allocated(fnames)) deallocate(fnames)
+  if(allocated(fieldcomp)) deallocate(fieldcomp)
+  if(allocated(compsperfield)) deallocate(compsperfield)
+  if(allocated(tfields)) then
+    do k=1, size(tfields)
+      if(allocated(tfields(k)%val)) deallocate(tfields(k)%val)
+    enddo
+    deallocate(tfields)
+  endif
+
 
 end subroutine
 

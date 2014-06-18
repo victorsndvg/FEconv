@@ -34,7 +34,7 @@ subroutine load_dex(pmh, filenames, fieldnames, param)
   real(real64), optional,        intent(in) :: param 
   character(len=maxpath)                    :: filename, fieldname, aux
   integer                                   :: nb_real, nb_comp, nb_point
-  integer                                   :: iu, ios, i, j, k, idx
+  integer                                   :: iu, ios, i, j, idx
   real(real64), allocatable                 :: coords(:,:), vals(:,:)
   type(field), allocatable                  :: tempfields(:)
 !  integer                                   :: ncomp, totcomp, maxtdim
@@ -114,7 +114,7 @@ subroutine save_dex(pmh, infield, outfield, path, param)
   real(real64), optional,    intent(in) :: param 
   real(real64),allocatable              :: znod(:,:)
   character(len=maxpath)                :: filename !file names
-  integer                               :: i,j,k,l,m,pi,mtdim
+  integer                               :: i,j,k,l,pi,mtdim
   integer                               :: iu, ios, fidx
   logical                               :: all_f, all_P1
 

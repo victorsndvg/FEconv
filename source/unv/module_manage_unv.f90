@@ -56,8 +56,7 @@ subroutine read_unv(this, pmh, is_opt)
   logical,        intent(in)    :: is_opt !-is option
   integer                       :: maxdim !dimension detected
   integer, allocatable, dimension(:,:) :: els_loc!elements location in pmh structure
-  integer :: ios, n, j, i, pgroup(6), fgroup(3),nfield
-  logical :: fit(2)
+  integer :: ios, n, i, pgroup(6), fgroup(3),nfield
 
   if(.not. allocated(pmh%pc)) allocate(pmh%pc(1))
   n = size(pmh%pc,1)

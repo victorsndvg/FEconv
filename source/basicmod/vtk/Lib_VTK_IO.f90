@@ -145,7 +145,7 @@ integer(I4P)::            f_out        = f_out_ascii ! current output-format (in
 character(len=maxlen)::   topology                   ! mesh topology
 integer(I4P)::            Unit_VTK                   ! internal logical unit
 integer(I4P)::            Unit_VTK_Append            ! internal logical unit for raw binary XML append file
-integer(I4P)::            N_Byte                     ! number of byte to be written/read
+integer(I8P)::            N_Byte                     ! number of byte to be written/read
 real(R8P)::               Tipo_R8 = 1._R8P           ! prototype of R8P real
 real(R4P)::               Tipo_R4 = 1._R4P           ! prototype of R4P real
 integer(I8P)::            Tipo_I8 = 1_I8P            ! prototype of I8P integer
