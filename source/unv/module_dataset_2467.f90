@@ -68,7 +68,7 @@ integer,                              intent(in) :: iu   !unit number for unvfil
 type(piece),                       intent(inout) :: pc    !PMH piece
 integer, allocatable, dimension(:,:), intent(in) :: els_loc !Elements location
 type(elgroup), allocatable, dimension(:)         :: auxelgroup 
-integer :: ios, Field1, F2, F3, F4, F5, F6, F7, Field8, p, j, m, n_elgroup
+integer :: ios, Field1, F2, F3, F4, F5, F6, F7, Field8, p, j, pos, k, m, n_elgroup
 integer, dimension(2):: etc, tag
 character(len=MAXPATH) :: gname
 

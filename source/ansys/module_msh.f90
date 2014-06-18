@@ -38,6 +38,7 @@ subroutine load_msh(filename, pmh)
   character(len=*), intent(in)          :: filename
   type(pmh_mesh), intent(inout)         :: pmh
   type(msh)                             :: u
+  integer                               :: dim
 
   ! Inital settings
   call report_option('level', 'stdout')

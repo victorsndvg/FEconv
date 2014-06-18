@@ -369,7 +369,7 @@ case('unv')
 case('pf3')
   print '(/a)', 'Saving FLUX mesh file...'
   if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_pf3(outfile, pmh, infield, outfield)
+  call save_pf3(outfile, pmh, infield, outfield, outpath)
   print '(a)', 'Done!'
   if(there_is_field) then
     if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)

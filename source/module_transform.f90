@@ -264,7 +264,7 @@ end subroutine
 !-----------------------------------------------------------------------
 subroutine to_l1(pmh)
   type(pmh_mesh), intent(inout) :: pmh
-  integer :: i, j, tp
+  integer :: i, j, k, tp
 
   do i=1, size(pmh%pc)
     do j=1, size(pmh%pc(i)%el)

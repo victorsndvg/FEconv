@@ -357,8 +357,9 @@ subroutine add_faces_to_pmh(faces,izones,pmh)
   type(msh_faces),              intent(inout) :: faces ! msh faces
   type(msh_zone),               intent(inout) :: izones
   type(pmh_mesh),               intent(inout) :: pmh
+  integer                                     :: facetypes = 0
   integer, allocatable                        :: groups(:) !groups(face type) = group number
-  integer                                     :: i, numgroups, group, numface,ft
+  integer                                     :: i, j, aux, numgroups, group, numface,ft
 
 
   if(.not. allocated(faces%mm)) call error("MSH without faces, could be a binary file")
@@ -417,9 +418,10 @@ subroutine build_cells(faces,cells, pmh)
   integer, allocatable                        :: nels(:)
   integer, allocatable                        :: newnodes(:), posinsubcell(:), posincell(:), auxnodes(:)
   integer, allocatable                        :: groups(:) !groups(face type) = group number
-  integer                                     :: i,j, k, l,aux1,aux2,aux3,aux4
+  integer                                     :: i,j, k, l,m,n,aux1, aux2,aux3,aux4
   integer                                     :: wedgequadface(4),face(4)
-  integer                                     :: numgroups,group,numcell,ft,ct,ac,snn, prevcell
+  integer                                     :: numgroups,group,numcell,ft,ct,ac,zone, snn, prevcell
+  logical                                     :: check
 
   if(.not. allocated(faces%mm)) call error("MSH without faces, could be a binary file")
   if(.not. allocated(cells%type)) call error("MSH without cells, could be a binary file")

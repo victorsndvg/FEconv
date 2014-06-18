@@ -101,7 +101,7 @@ subroutine read_msh(this, pmh)
   type(msh_faces)               :: faces ! msh faces
   type(msh_cells)               :: cells ! msh faces
   type(msh_zone)                :: izones ! interior zones
-  integer                       :: ios, i, indx
+  integer                       :: ios, i, j, indx
 
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('msh/read/rewind, #'//trim(string(ios)))
@@ -137,9 +137,9 @@ subroutine read_msh(this, pmh)
       case(13) !Faces
         call read_msh_faces(this%unit, faces, line)
       case(39) !Zones & BC
-        call read_msh_zones(izones, line)
+        call read_msh_zones(this%unit, izones, line)
       case(45) !Zones
-        call read_msh_zones(izones, line)
+        call read_msh_zones(this%unit, izones, line)
     end select
   enddo
 
@@ -170,7 +170,10 @@ subroutine write_msh(this, pmh)
 
   type(msh), intent(inout)   :: this ! msh object
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
-  integer                       :: ios,  maxtopdim, maxref
+  integer                       :: ip, ig, ios, tp, totnver, maxtopdim, maxref
+  integer, allocatable          :: ie_zones(:), new_refs
+  logical                       :: all_P1
+  character(len=MAXPATH)        :: auxch
   real(real64), allocatable     :: znod(:,:)
 
 
@@ -180,7 +183,7 @@ subroutine write_msh(this, pmh)
   maxref = 0  
   call write_msh_header(this%unit, pmh, maxtopdim)
   call write_msh_nodes(this%unit, pmh, maxref, z=znod)
-  call pmh2msh(this%unit, pmh, maxref)
+  call pmh2msh(this%unit, pmh, maxref, z=znod)
   call write_msh_cells(this%unit, pmh, maxtopdim, maxref)
 
 !  call build_msh_faces(pmh, maxtopdim)

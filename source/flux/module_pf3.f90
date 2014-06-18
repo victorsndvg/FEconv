@@ -58,17 +58,18 @@ end subroutine
 ! pmh:      PMH structure storing the piecewise mesh
 !-----------------------------------------------------------------------
 
-subroutine save_pf3(filename, pmh, infield, outfield, param)
+subroutine save_pf3(filename, pmh, infield, outfield, path, param)
   character(len=*),          intent(in) :: filename
   type(pmh_mesh),         intent(inout) :: pmh
   character(*), allocatable, intent(in) :: infield(:)  ! In field names
   character(*), allocatable, intent(in) :: outfield(:) ! Out field names
+  character(*),              intent(in) :: path !file names
   real(real64), optional,    intent(in) :: param 
   type(pf3) :: u
 
   call open_pf3(u, filename,'unknown')
   call info('Writing PF3 file ...')
-  call write_pf3(u, pmh, infield, outfield, param)
+  call write_pf3(u, pmh, infield, outfield, path, param)
   call close_pf3(u)
 
 end subroutine
