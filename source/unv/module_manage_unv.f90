@@ -56,7 +56,7 @@ subroutine read_unv(this, pmh, is_opt)
   logical,        intent(in)    :: is_opt !-is option
   integer                       :: maxdim !dimension detected
   integer, allocatable, dimension(:,:) :: els_loc!elements location in pmh structure
-  integer :: ios, n, j, i, pgroup(6), fgroup(3),nfield
+  integer :: ios, n, j, i, pgroup(6), fgroup(4),nfield
   logical :: fit(2)
 
   if(.not. allocated(pmh%pc)) allocate(pmh%pc(1))
@@ -92,7 +92,7 @@ subroutine read_unv(this, pmh, is_opt)
   end do
 
 ! datasets for fields, several numbers (see fgroup)
-  fgroup = [2414, 55, 57]
+  fgroup = [2414, 55, 56, 57]
   nfield = 0
   do i = 1, size(fgroup,1)
     rewind(unit=this%unit, iostat=ios)

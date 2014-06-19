@@ -270,26 +270,30 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
           write(iu,'(1I6)') -1
           write(iu,'(1I6)') ds                                  ! Dataset
           if(ds == 2414) then
-            write(iu,'(1I10)') counter                          ! Record1: Analysis dataset label
-            write(iu,*) trim(adjustl(pc%fi(j)%name))            ! Record2: Analysis dataset name
-            write(iu,'(1I10)') 1                                ! Record3: Dataset location. 1:Data at nodes, 2:Data on elements
+            write(iu,'(1I10)') counter                          ! Record1: Analysis dataset label (2414)
+            write(iu,*) trim(adjustl(pc%fi(j)%name))            ! Record2: Analysis dataset name (2414)
+            write(iu,'(1I10)') 1                                ! Record3: Dataset location. 1:Data at nodes, 2:Data on elements (2414)
           endif
-          write(iu,*) trim(adjustl(pc%fi(j)%name))              ! Record4: ID line 1
-          write(iu,*) 'Double precission floating point'        ! Record5: ID line 2
-          write(iu,*) 'NONE'                                    ! Record6: ID line 3
-          write(iu,*) 'NONE'                                    ! Record7: ID line 4
-          write(iu,*) 'NONE'                                    ! Record8: ID line 5
+          write(iu,*) trim(adjustl(pc%fi(j)%name))              ! Record4: ID line 1 (2414)
+          write(iu,*) 'Double precission floating point'        ! Record5: ID line 2 (2414)
+          write(iu,*) 'NONE'                                    ! Record6: ID line 3 (2414)
+          write(iu,*) 'NONE'                                    ! Record7: ID line 4 (2414)
+          write(iu,*) 'NONE'                                    ! Record8: ID line 5 (2414)
           ! Model type, Analysis type, Data characteristic, Result type, Data type, Number of data values for data component
-          write(iu,'(6I10)') 0,0,dc,1001,4,ncomp                ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp
-          write(iu,'(8I10)') (/(0,m=1,8)/)                      ! Record10: Integer analysis type speciic data (1-8)
-          write(iu,'(8I10)') (/(0,m=1,2)/)                      ! Record11: Integer analysis type speciic data (9-10)
+          write(iu,'(6I10)') 0,0,dc,9999,4,ncomp                ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp (2414)
           if(ds == 2414) then
-            write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record12: Real analysis type speciic data (1-6)
-            write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record13: Real analysis type speciic data (7-12)
+            write(iu,'(8I10)') (/(0,m=1,8)/)                    ! Record10: Integer analysis type speciic data (1-8) (2414)
+            write(iu,'(8I10)') (/(0,m=1,2)/)                    ! Record11: Integer analysis type speciic data (9-10) (2414)
+            write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record12: Real analysis type specific data (1-6) (2414)
+            write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record13: Real analysis type specific data (7-12) (2414)
+          else
+            write(iu,'(8I10)') ncomp,ncomp,np,np,0,0,0,0        ! Record7: Integer analysis type speciic data (1-8) (55)
+            write(iu,'(6E13.5)') &                              ! Record8: Real analysis type specific data (9-10) (55)
+              & (/pc%fi(j)%param(np),(0._real64,m=1,5)/)
           endif
           do k = 1, pc%nnod
-            write(iu,'(1I10)') prev_coord+k                     ! Record14: Node Number
-            write(iu,'(6E13.5)') &                              ! Record15: Data at this node
+            write(iu,'(1I10)') prev_coord+k                     ! Record14: Node Number (2414)
+            write(iu,'(6E13.5)') &                              ! Record15: Data at this node (2414)
               & reshape(pc%fi(j)%val(:,k,np), [ncomp], [(0._real64,m=1,ncomp)])
           enddo
           write(iu,'(I6)') -1
@@ -321,31 +325,35 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
             write(iu,'(1I6)') -1
             write(iu,'(1I6)') ds                                  ! Dataset
             if(ds == 2414) then
-              write(iu,'(1I10)') counter                          ! Record1: Analysis dataset label
-              write(iu,*) trim(adjustl(pc%el(j)%fi(k)%name))      ! Record2: Analysis dataset name
-              write(iu,'(1I10)') 2                                ! Record3: Dataset location. 1:Data at nodes, 2:Data on elements
+              write(iu,'(1I10)') counter                          ! Record1: Analysis dataset label (2414)
+              write(iu,*) trim(adjustl(pc%el(j)%fi(k)%name))      ! Record2: Analysis dataset name (2414)
+              write(iu,'(1I10)') 2                                ! Record3: Dataset location. 1:Data at nodes, 2:Data on elements (2414)
             endif
-            write(iu,*) trim(adjustl(pc%el(j)%fi(k)%name))        ! Record4: ID line 1
-            write(iu,*) 'Double precission floating point'        ! Record5: ID line 2
-            write(iu,*) 'NONE'                                    ! Record6: ID line 3
-            write(iu,*) 'NONE'                                    ! Record7: ID line 4
-            write(iu,*) 'NONE'                                    ! Record8: ID line 5
+            write(iu,*) trim(adjustl(pc%el(j)%fi(k)%name))        ! Record4: ID line 1 (2414)
+            write(iu,*) 'Double precission floating point'        ! Record5: ID line 2 (2414)
+            write(iu,*) 'NONE'                                    ! Record6: ID line 3 (2414)
+            write(iu,*) 'NONE'                                    ! Record7: ID line 4 (2414)
+            write(iu,*) 'NONE'                                    ! Record8: ID line 5 (2414)
             ! Model type, Analysis type, Data characteristic, Result type, Data type, Number of data values for data component
-            write(iu,'(6I10)') 0,0,dc,1001,4,ncomp                ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp
-            write(iu,'(8I10)') (/(0,m=1,8)/)                      ! Record10: Integer analysis type speciic data (1-8)
-            write(iu,'(8I10)') (/(0,m=1,2)/)                      ! Record11: Integer analysis type speciic data (9-10)
+            write(iu,'(6I10)') 0,0,dc,9999,4,ncomp                ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp (2414)
             if(ds == 2414) then
-              write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record12: Real analysis type speciic data (1-6)
-              write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record13: Real analysis type speciic data (7-12)
+              write(iu,'(8I10)') (/(0,m=1,8)/)                    ! Record10: Integer analysis type speciic data (1-8) (2414)
+              write(iu,'(8I10)') (/(0,m=1,2)/)                    ! Record11: Integer analysis type speciic data (9-10) (2414)
+              write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record12: Real analysis type speciic data (1-6) (2414)
+              write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)          ! Record13: Real analysis type speciic data (7-12) (2414)
+            else
+              write(iu,'(8I10)') ncomp,ncomp,np,np,0,0,0,0        ! Record7: Integer analysis type speciic data (9-10) (57)
+              write(iu,'(6E13.5)') &                              ! Record8: Real analysis type specific data (9-10) (57)
+                & (/pc%el(j)%fi(k)%param(np),(0._real64,m=1,5)/)
             endif
             do l = 1, pc%el(j)%nel
-              if(ds == 2414) then                                 ! Record14: Element Number, Number of data values
+              if(ds == 2414) then                                 ! Record14: Element Number, Number of data values (2414)
                 write(iu,'(2I10)') prev_nel+l,ncomp
               else
-                write(iu,'(2I10)') prev_nel+l,1
+                write(iu,'(2I10)') prev_nel+l
               endif
               write(iu,'(6E13.5)') &                              ! Record15: Data at this element
-                & reshape(pc%el(j)%fi(k)%val(:,k,np), [ncomp], [(0._real64,m=1,ncomp)])
+                & reshape(pc%el(j)%fi(k)%val(:,l,np), [ncomp], [(0._real64,m=1,ncomp)])
             enddo
             write(iu,'(I6)') -1
           enddo

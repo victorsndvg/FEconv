@@ -310,7 +310,7 @@ type(field), allocatable, dimension(:) :: auxfi
     lbl = nfield
     name = 'field'//trim(string(nfield))
     dloc = 1 ! Data at nodes
-  elseif(dataset == 57) then
+  elseif(dataset == 57 .or. dataset == 56) then
     nfield = nfield + 1
     lbl = nfield
     name = 'field'//trim(string(nfield))
@@ -410,7 +410,7 @@ type(field), allocatable, dimension(:) :: auxfi
         if(FEDB(pmh%pc(npc)%el(i)%type)%tdim>0) prev_nel = prev_nel + pmh%pc(npc)%el(i)%nel
       enddo
       ! 1:data for all nodes, 2:data ofr only 1st node
-      if(dataset == 57 .and. iexp /= 2) then
+      if((dataset == 57 .or. dataset == 56) .and. iexp /= 2) then
         call info('  Data present for all nodes not supported. Skipped!') 
         exit
       endif

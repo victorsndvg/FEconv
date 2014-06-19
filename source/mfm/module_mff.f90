@@ -157,7 +157,6 @@ subroutine save_mff(pmh, infield, outfield, path, param)
 
     pi = 1
     mtdim = 0
-
     do i=1, size(pmh%pc,1)
       ! Point data
       if(allocated(pmh%pc(i)%fi)) then
@@ -210,10 +209,17 @@ subroutine save_mff(pmh, infield, outfield, path, param)
                 enddo
               endif
               ! write pmh%pc(i)%el(j)%nel
+              iu = get_unit() 
+              open (unit=iu, file=trim(filename), form='formatted', position='rewind', iostat=ios)
+              if (ios /= 0) call error('save/open, #'//trim(string(ios)))
+              write(unit=iu, fmt=*, iostat = ios) pmh%pc(i)%el(j)%nel*size(pmh%pc(i)%el(j)%fi(k)%val,1)
+              if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
               do l=1,size(pmh%pc(i)%el(j)%fi(k)%val,2)
-                do m=1,size(pmh%pc(i)%el(j)%fi(k)%val,1)
-                  !write pmh%pc(i)%el(j)%fi(k)%val(l,k,pi)
-                enddo
+!                do m=1,size(pmh%pc(i)%el(j)%fi(k)%val,1)
+                write(unit=iu, fmt=*, iostat = ios) &
+                  & (pmh%pc(i)%el(j)%fi(k)%val(m,l,pi), m=1, size(pmh%pc(i)%el(j)%fi(k)%val,1) )
+                if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
+!                enddo
               enddo            
             endif
           enddo

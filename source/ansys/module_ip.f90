@@ -31,7 +31,7 @@ subroutine load_ip(pmh, filenames, fieldnames, param)
   character(*), allocatable,     intent(in) :: fieldnames(:) !field names
   real(real64), optional,        intent(in) :: param 
   character(len=maxpath)                    :: filename, fieldname, aux
-  integer                                   :: iu, ios, i, j, k, idx  
+  integer                                   :: iu, ios, i, j, k, idx, maxtdimtotnel  
   integer                                   :: ncomp, totcomp, maxtdim, comp(3)
   integer                                   :: version, n_points, n_comps, n_fields, ncells, dim
   integer, allocatable                      :: fieldcomp(:,:) ! [(field number, number of component) x every component]
@@ -51,6 +51,8 @@ subroutine load_ip(pmh, filenames, fieldnames, param)
       filename = trim(filenames(j))
       fieldname = trim(fieldnames(j))
       iu = get_unit()
+
+      call info('Reading fields from: '//trim(adjustl(filenames(j))))
       !open file
       open (unit=iu, file=filename, form='formatted', status='old', position='rewind', iostat=ios)
       if (ios /= 0) call error('load_ip/open, #'//trim(string(ios)))
@@ -79,8 +81,20 @@ subroutine load_ip(pmh, filenames, fieldnames, param)
       if(allocated(compsperfield)) deallocate(compsperfield)
       allocate(compsperfield(n_comps))
 
-print*, 'n_points:',n_points
+      ! Search the max topological dimension
+      maxtdim = 0
+      do i=1, size(pmh%pc(1)%el,1)
+        maxtdim = max(FEDB(pmh%pc(1)%el(i)%type)%tdim,maxtdim)
+      enddo
 
+      ! Count the total number of elements with max topological dimension
+      maxtdimtotnel = 0
+      do i=1, size(pmh%pc(1)%el,1)
+        if(FEDB(pmh%pc(1)%el(i)%type)%tdim == maxtdim) &
+          maxtdimtotnel = maxtdimtotnel + pmh%pc(1)%el(i)%nel
+      enddo
+
+      ! Read fieldnames and searchs patterns to build vector fields
       n_fields = 0
       do i=1,n_comps
         is_vector_comp = .false.
@@ -115,6 +129,7 @@ print*, 'n_points:',n_points
         endif
       enddo  
 
+      ! Read coordinates for IP version 2 or 3
       do k=1, dim
         i = 1
         do
@@ -136,8 +151,10 @@ print*, 'n_points:',n_points
       endif
       allocate(tfields(n_fields))
 
+      ! Read field values
       do k=1,n_comps
-        if(.not. allocated(tfields(k)%val)) allocate(tfields(k)%val(compsperfield(n_fields),n_points))
+        if(.not. allocated(tfields(fieldcomp(1,k))%val)) &
+          & allocate(tfields(fieldcomp(1,k))%val(compsperfield(n_fields),n_points))
         i = 1
         do
           if(i > n_points) exit
@@ -147,18 +164,14 @@ print*, 'n_points:',n_points
           call replace_char(aux, ')', ' ')
           if(is_blank_line(aux)) cycle
           read(aux,fmt=*,iostat=ios) tfields(fieldcomp(1,k))%val(fieldcomp(2,k),i)
-print*, fieldcomp(1,k),i,tfields(fieldcomp(1,k))%val(fieldcomp(2,k),i)
           i = i + 1
         enddo
       enddo
 
       close(iu)
 
-      maxtdim = 0
-      do i=1, size(pmh%pc(1)%el,1)
-        maxtdim = max(FEDB(pmh%pc(1)%el(i)%type)%tdim,maxtdim)
-      enddo
-  
+
+      ! Assign fields to PMH Structure
       do k=1,n_fields
         ncells = 0
         ! Field over nodes. 1,2 or 3 components allowed
@@ -172,7 +185,7 @@ print*, fieldcomp(1,k),i,tfields(fieldcomp(1,k))%val(fieldcomp(2,k),i)
             call move_alloc(from=tempfields, to=pmh%pc(1)%fi)
           endif
           idx = size(pmh%pc(1)%fi,1)
-          call info('Reading node field from: '//trim(adjustl(filenames(j))))
+          call info('  Assigning node field: '//trim(fnames(k)))
           pmh%pc(1)%fi(idx)%name = trim(fnames(k))
           if(allocated(pmh%pc(1)%fi(idx)%param)) deallocate(pmh%pc(1)%fi(idx)%param)
           allocate(pmh%pc(1)%fi(idx)%param(1))      
@@ -188,19 +201,18 @@ print*, fieldcomp(1,k),i,tfields(fieldcomp(1,k))%val(fieldcomp(2,k),i)
         ! Field over cells. 1,2 or 3 components allowed
           do i=1, size(pmh%pc(1)%el,1)
             if(maxtdim == FEDB(pmh%pc(1)%el(i)%type)%tdim) then
-! Max top dim elements can be in different element grops
-!              if(n_points == pmh%pc(1)%el(i)%nel) then
+              ! Max top dim elements can be in different element grops
+              if(n_points == pmh%pc(1)%el(i)%nel .or. n_points == maxtdimtotnel) then
                 if(.not. allocated(pmh%pc(1)%el(i)%fi)) then
                   allocate(pmh%pc(1)%el(i)%fi(1))
                 else
                   if(allocated(tempfields)) deallocate(tempfields)
                   allocate(tempfields(size(pmh%pc(1)%el(i)%fi,1)+1))
-                  tempfields(1:size(pmh%pc(1)%fi,1)) = pmh%pc(1)%el(i)%fi(:)
+                  tempfields(1:size(pmh%pc(1)%el(i)%fi,1)) = pmh%pc(1)%el(i)%fi(:)
                   call move_alloc(from=tempfields, to=pmh%pc(1)%el(i)%fi)
-                  deallocate(tempfields)
                 endif
                 idx = size(pmh%pc(1)%el(i)%fi,1)
-                call info('Reading cell field from: '//trim(adjustl(filenames(j))))
+                call info('  Assigning cell field: '//trim(fnames(k)))
                 pmh%pc(1)%el(i)%fi(idx)%name = trim(fnames(k))
                 if(allocated(pmh%pc(1)%el(i)%fi(idx)%param)) deallocate(pmh%pc(1)%el(i)%fi(idx)%param)
                 allocate(pmh%pc(1)%el(i)%fi(idx)%param(1))      
@@ -212,10 +224,10 @@ print*, fieldcomp(1,k),i,tfields(fieldcomp(1,k))%val(fieldcomp(2,k),i)
                 if(allocated(pmh%pc(1)%el(i)%fi(idx)%val)) deallocate(pmh%pc(1)%el(i)%fi(idx)%val)
                 allocate(pmh%pc(1)%el(i)%fi(idx)%val(compsperfield(k), pmh%pc(1)%el(i)%nel,1))
                 pmh%pc(1)%el(i)%fi(idx)%val = 0._real64
-                pmh%pc(1)%el(i)%fi(idx)%val(:,:,1) = tfields(fieldcomp(1,k))%val(:,ncells+1:ncells+pmh%pc(1)%el(i)%nel)
+                pmh%pc(1)%el(i)%fi(idx)%val(:,:,1) = tfields(k)%val(:compsperfield(k),ncells+1:ncells+pmh%pc(1)%el(i)%nel)
                 ncells = ncells+pmh%pc(1)%el(i)%nel
                 exit
-!              endif
+              endif
             endif
           enddo
         endif

@@ -599,7 +599,7 @@ subroutine save_vtu2(filename, pmh)
             cdfval(j)%val(1,1:nel), cdfval(j)%val(2,1:nel), (/(real(0,R8P),i=1,nel)/)) /= 0) &
             call error('Writing '//trim(cdfval(j)%name))
         elseif(size(cdfval(j)%val,1) == 3) then      
-          if (vtk_var_xml(nnod, trim(cdfval(j)%name), &
+          if (vtk_var_xml(nel, trim(cdfval(j)%name), &
             real(cdfval(j)%val(1,1:nel),R8P), real(cdfval(j)%val(2,1:nel),R8P), &
             real(cdfval(j)%val(3,1:nel),R8P)) /= 0) call error('Writing '//trim(cdfval(j)%name))
         else
