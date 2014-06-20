@@ -402,8 +402,17 @@ subroutine save_vtu2(filename, pmh)
       if(.not. FEDB(tp)%nver_eq_nnod) then
           lnn = FEDB(tp)%lnn
           ! Build vtk conectivity array
-          call set(connect, pack(reshape(pmh%pc(i)%el(j)%nn-1, (/1,pmh%pc(i)%el(j)%nel*lnn/)),.true.), &
-            &(/(k,k=tnvpc+1,tnvpc+pmh%pc(i)%el(j)%nel*lnn)/), fit=.false.)
+          if(tp == check_fe(.false., 20, 8, 12, 6)) then ! Hexahedron P2 needs node reordering
+          ! VTU HexaP2 nodes: [1,2,3,4,5,6,7,8,9,10,11,12,17,18,19,20,13,14,15,16]
+            call set(connect, &
+              & pack(reshape(pmh%pc(i)%el(j)%nn([1,2,3,4,5,6,7,8,9,10,11,12,17,18,19,20,13,14,15,16],:)-1,&
+              & (/1,pmh%pc(i)%el(j)%nel*lnn/)),.true.), &
+              & (/(k,k=tnvpc+1,tnvpc+pmh%pc(i)%el(j)%nel*lnn)/), fit=.false.)
+          else
+            ! Build vtk conectivity array
+            call set(connect, pack(reshape(pmh%pc(i)%el(j)%nn-1, (/1,pmh%pc(i)%el(j)%nel*lnn/)),.true.), &
+              &(/(k,k=tnvpc+1,tnvpc+pmh%pc(i)%el(j)%nel*lnn)/), fit=.false.)
+          endif
           ! Build vtk offset array
           call set(offset, (/(tnvpc+k*lnn, k=1,pmh%pc(i)%el(j)%nel)/) , &
             &(/(k,k=nel+1,nel+pmh%pc(i)%el(j)%nel)/), fit=.false.)
