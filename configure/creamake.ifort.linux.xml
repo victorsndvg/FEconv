@@ -29,4 +29,8 @@ source/gmsh
 ifort
 </compiler>
 
+<fflags>
+ -warn all -g -check all -traceback
+</fflags>
+
 </content>

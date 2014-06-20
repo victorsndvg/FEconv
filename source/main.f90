@@ -8,10 +8,18 @@ program feconv
 !-----------------------------------------------------------------------
 use module_convers, only: string
 use module_report, only: error
-use module_args, only: is_arg
+use module_args, only: is_arg, args_count, get_arg
 use module_feconv, only: convert
 implicit none
 character(10) :: last_update = '28/05/2014'
+integer :: i
+
+print*, 'PATATA!!!!!!!!!!!!!!!'
+
+print*, args_count()
+do i = 1, args_count()
+  print *, '--'//trim(get_arg(i))//'--'
+end do
 
 !read and store arguments
 if (command_argument_count() == 0) call error('(feconv) command line arguments not found; to show help information: feconv -h')

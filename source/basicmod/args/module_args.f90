@@ -86,10 +86,7 @@ end subroutine
 function args_count() result(res)
 integer :: res
 
-if (.not. allocated(args)) then
-  res = 0
-  return
-end if
+if (.not. allocated(args)) call set_args_from_command()
 res = size(args, 1)
 end function
 
