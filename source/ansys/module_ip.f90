@@ -197,6 +197,7 @@ subroutine load_ip(pmh, filenames, fieldnames, param)
           if(allocated(pmh%pc(1)%fi(idx)%val)) deallocate(pmh%pc(1)%fi(idx)%val)
           allocate(pmh%pc(1)%fi(idx)%val(compsperfield(k), n_points,1))
           pmh%pc(1)%fi(idx)%val = 0._real64
+          pmh%pc(1)%fi(idx)%val(:,:,1) = tfields(k)%val(:compsperfield(k),:)
         else
         ! Field over cells. 1,2 or 3 components allowed
           do i=1, size(pmh%pc(1)%el,1)

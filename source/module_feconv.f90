@@ -119,8 +119,8 @@ if (FLDB(id_mesh_ext(inext))%is_field_outside) then
       call set(outfield, get_post_arg('-of'), 1, fit=.true.)
       p = index( infield(1), '.', back=.true.);  infext =  infield(1)(p+1:len_trim( infield(1)))
       p = index( outfield(1), '.', back=.true.);  outfext =  outfield(1)(p+1:len_trim( outfield(1)))
-      if((id_mesh_ext(inext) /= id_field_ext(infext)) .or. (id_mesh_ext(outext) /= id_field_ext(outfext))) &
-        & call error("Inconsistent mesh and field extensions")
+!      if((id_mesh_ext(inext) /= id_field_ext(infext)) .or. (id_mesh_ext(outext) /= id_field_ext(outfext))) &
+!        & call error("Inconsistent mesh and field extensions")
     elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
       !there is not -if, there is not -of
       there_is_field = .false.
@@ -131,6 +131,7 @@ if (FLDB(id_mesh_ext(inext))%is_field_outside) then
       p = index(fieldfilename, '.', back=.true.)
       call set(outfield, trim(outmesh)//'__'//trim(fieldfilename(1:p-1))//'.'//trim(FLDB(id_mesh_ext(outext))%field_ext), 1, &
       &fit=.true.)
+      p = index( infield(1), '.', back=.true.);  infext =  infield(1)(p+1:len_trim( infield(1)))
     else
       !there is not -if, there is -of
       call error('(module_feconv/fe_conv) option -fi is mandatory to read external fields')
@@ -141,6 +142,7 @@ if (FLDB(id_mesh_ext(inext))%is_field_outside) then
       !there is -if, there is -of
       call set( infield, get_post_arg('-if'), 1, fit=.true.)
       call set(outfield, get_post_arg('-of'), 1, fit=.true.)
+      p = index( infield(1), '.', back=.true.);  infext =  infield(1)(p+1:len_trim( infield(1)))
     elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
       !there is not -if, there is not -of
       there_is_field = .false.
@@ -148,6 +150,7 @@ if (FLDB(id_mesh_ext(inext))%is_field_outside) then
       !there is -if, there is not -of
       call set( infield, get_post_arg('-if'), 1, fit=.true.)
       p = index(infield(1), '.', back=.true.); call set(outfield, trim(infield(1)(1:p-1)), 1, fit=.true.)
+      p = index( infield(1), '.', back=.true.);  infext =  infield(1)(p+1:len_trim( infield(1)))
     else
       !there is not -if, there is -of
       call error('(module_feconv/fe_conv) option -if is mandatory to read external fields')
@@ -159,6 +162,7 @@ elseif (FLDB(id_mesh_ext(outext))%is_field_outside) then
     !there is -if, there is -of
     call set( infield, get_post_arg('-if'), 1, fit=.true.)
     call set(outfield, get_post_arg('-of'), 1, fit=.true.)
+    p = index( outfield(1), '.', back=.true.);  outfext =  outfield(1)(p+1:len_trim( outfield(1)))
   elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
     !there is not -if, there is not -of
     there_is_field = .false.
@@ -170,6 +174,7 @@ elseif (FLDB(id_mesh_ext(outext))%is_field_outside) then
     !there is not -if, there is -of
     call set(infield, '*', 1, fit=.true.)
     call set(outfield, get_post_arg('-of'), 1, fit=.true.)
+    p = index( outfield(1), '.', back=.true.);  outfext =  outfield(1)(p+1:len_trim( outfield(1)))
   end if
 else
   !infield and outfield are both mesh internal
@@ -190,6 +195,8 @@ else
     call error('(module_feconv/fe_conv) option -fi is mandatory to read a specific field.')
   end if
 end if
+
+
   
 !si es oM, load aparte; si es iM, se engorda load
 !escritura, lo mismo
@@ -201,11 +208,6 @@ case('mfm')
   print '(a)', 'Loading MFM mesh file...'
   call load_mfm(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   print '(a)', 'Done!'
-  if(there_is_field) then
-    if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-    is_pmh = .true.
-    call load_mff(pmh, infield, outfield)
-  endif
 case('mum')
   print '(a)', 'Loading MUM mesh file...'
   call load_mum(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
@@ -220,11 +222,6 @@ case('msh')
   else !ANSYS
     print '(a)', 'Loading ANSYS mesh file...'
     call load_msh(infile, pmh); is_pmh = .true.
-    if(there_is_field) then
-      if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-      is_pmh = .true.
-      call load_ip(pmh, infield, outfield)
-    endif
   end if
   print '(a)', 'Done!'
 case('unv')
@@ -242,12 +239,6 @@ case('mphtxt')
 case('pf3')
   print '(a)', 'Loading FLUX mesh file...'
   call load_pf3(infile, pmh); is_pmh = .true.
-  print '(a)', 'Done!'
-  if(there_is_field) then
-    if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-    is_pmh = .true.
-    call load_dex(pmh, infield, outfield)
-  endif
 case('vtu')
   print '(a)', 'Loading MFM mesh file...'
   call load_vtu( infile, pmh); is_pmh = .true.
@@ -259,6 +250,23 @@ case('mesh')
 case default
   call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
 end select
+
+! Read field files
+if(there_is_field) then
+  if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  is_pmh = .true.
+  select case (trim(lcase(adjustlt(infext))))
+    case('mff')
+      call load_mff(pmh, infield, outfield)
+    case('muf')
+      call error('muf field extension not implemented yet!')
+    case('dex')
+      call load_dex(pmh, infield, outfield)
+    case('ip')
+      call load_ip(pmh, infield, outfield)
+  end select
+
+endif
 
 !extract (only for Lagrange P1 meshes)
 if (is_arg('-es')) then
@@ -332,11 +340,6 @@ end if
 !save mesh
 select case (trim(adjustlt(outext)))
 case('mfm')
-  if(there_is_field) then
-    if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-    is_pmh = .true.
-    call save_mff(pmh, infield, outfield, outpath)
-  endif
   print '(/a)', 'Saving MFM mesh file...'
   if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
   call save_mfm(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
@@ -371,11 +374,6 @@ case('pf3')
   if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   call save_pf3(outfile, pmh, infield, outfield, outpath)
   print '(a)', 'Done!'
-  if(there_is_field) then
-    if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-    is_pmh = .true.
-    call save_dex(pmh, infield, outfield, outpath)
-  endif
 case('msh')
   if (is_arg('-ff')) then !FreeFem++
     print '(/a)', 'Saving FreFem++ mesh file...'
@@ -398,6 +396,23 @@ case('pmh')
   call save_pmh(outfile, get_unit(), pmh)
   print '(a)', 'Done!'
 end select !case default, already checked before reading infile
+
+
+if(there_is_field) then
+  if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  is_pmh = .true.
+  select case (trim(lcase(adjustlt(outfext))))
+    case('mff')
+      call save_mff(pmh, infield, outfield, outpath)
+    case('muf')
+      call error('muf field extension not implemented yet!')
+    case('dex')
+      call save_dex(pmh, infield, outfield, outpath)
+    case('ip')
+      call error('ip field extension not implemented yet!')
+  end select
+
+endif
 end subroutine
 
 end module
