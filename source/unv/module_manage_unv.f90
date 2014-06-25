@@ -49,10 +49,11 @@ end subroutine
 !-----------------------------------------------------------------------
 ! read: read universal file
 !-----------------------------------------------------------------------
-subroutine read_unv(this, pmh, is_opt)
+subroutine read_unv(this, pmh, padval, is_opt)
 
   type(unv),      intent(in)    :: this   !universal object
   type(pmh_mesh), intent(inout) :: pmh    !mesh
+  real(real64),   intent(in)    :: padval !Field padding value
   logical,        intent(in)    :: is_opt !-is option
   integer                       :: maxdim !dimension detected
   integer, allocatable, dimension(:,:) :: els_loc!elements location in pmh structure
@@ -98,7 +99,7 @@ subroutine read_unv(this, pmh, is_opt)
     rewind(unit=this%unit, iostat=ios)
     if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
     do while (search_dataset_type(this,fgroup(i)) == 0) 
-      call read_2414(this%unit, pmh, n, nfield, els_loc, fgroup(i))
+      call read_2414(this%unit, pmh, n, nfield, els_loc, fgroup(i), padval)
 !      exit ! Not needed, reading multiple fields
     end do
   enddo

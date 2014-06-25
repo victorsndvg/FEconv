@@ -307,7 +307,7 @@ subroutine write_pf3_node_field(iu, pmh, infield, outfield, path, param)
 
   write(unit=iu, fmt=*, iostat = ios) ''
   write(unit=iu, fmt='(a,a50,a)', iostat = ios) &
-     & 'Table of the values of ',fieldname,' (Local values on the nodes of the region PIECE)'
+     & 'Table of the values of ',fieldname,' (Local values on the nodes all over the mesh)'
   write(unit=iu, fmt=*, iostat = ios) ncomp, tnnod, ' (Nb of components, nb of points)'
   write(unit=iu, fmt=*, iostat = ios) ''
   if (ios /= 0) call error('write/pf3/node/field # write error #'//trim(string(ios)))

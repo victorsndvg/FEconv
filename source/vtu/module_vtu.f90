@@ -355,7 +355,7 @@ end subroutine
 ! filename:   name of a VTU file
 ! pmh:    PMH structure storing the piecewise mesh
 !-----------------------------------------------------------------------
-subroutine save_vtu2(filename, pmh)
+subroutine save_vtu2(filename, pmh, padval)
 
   type cdfield
     character(len=maxpath)    :: name
@@ -363,8 +363,9 @@ subroutine save_vtu2(filename, pmh)
     real(real64), allocatable :: val(:,:)
   end type
 
-  character(len=*), intent(in)  :: filename
+  character(len=*),  intent(in) :: filename
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
+  real(real64),      intent(in) :: padval
   real(real64), allocatable     :: znod(:,:)
   integer, allocatable          :: connect(:), offset(:), celltypes(:)
   integer, allocatable          :: v_ref(:), e_ref(:), f_ref(:), el_ref(:)
@@ -456,6 +457,10 @@ subroutine save_vtu2(filename, pmh)
         do l=1, size(pmh%pc(i)%el(j)%fi,1)
           cdfval(l)%name = trim(pmh%pc(i)%el(j)%fi(l)%name)
           cdfval(l)%ncomp = size(pmh%pc(i)%el(j)%fi(l)%val,1)
+          if(.not. allocated(cdfval(l)%val)) then 
+            allocate(cdfval(l)%val(cdfval(l)%ncomp, nel+pmh%pc(i)%el(j)%nel))
+            cdfval(l)%val =  padval
+          endif
           do m=1, size(pmh%pc(i)%el(j)%fi(l)%val,1)
             call set(cdfval(l)%val, (/(pmh%pc(i)%el(j)%fi(l)%val(m,k,1), k=1,pmh%pc(i)%el(j)%nel)/) , &
               & [m], (/(k,k=nel+1,nel+pmh%pc(i)%el(j)%nel)/))
@@ -596,7 +601,7 @@ subroutine save_vtu2(filename, pmh)
       do j=1, size(cdfval,1)
         call info('    Writing cell field: '//trim(cdfval(j)%name))
         if(size(cdfval(j)%val,2)<nel) call add(cdfval(j)%val, &
-          & (/(0._real64,k=size(cdfval(j)%val,2),nel*size(cdfval(j)%val,1))/), &
+          & (/(padval,k=size(cdfval(j)%val,2),nel*size(cdfval(j)%val,1))/), &
           & (/(k,k=1,size(cdfval(j)%val,1))/), (/(k,k=size(cdfval(j)%val,2),nel)/))!,fit=(/.true.,.true./))
         call reduce(cdfval(j)%val, cdfval(j)%ncomp, nel)
 
@@ -912,7 +917,8 @@ subroutine read_vtu(filename, pmh)
     if(vtk_var_xml_list(pdfnames,i,'Node') == 0 ) then
       npdf = size(pdfnames,1) ! Number of pointdata fields
       do j=1, size(pdfnames,1)
-        if(lcase(pdfnames(j)) == 'vertex_ref') npdf = npdf -1
+        if(trim(lcase(pdfnames(j))) == 'vertex_ref' .or. &
+          & index(lcase(pdfnames(j)),'nrv_') /= 0) npdf = npdf -1
       enddo
       if(allocated(pmh%pc(i)%fi)) deallocate(pmh%pc(i)%fi)
       allocate(pmh%pc(i)%fi(npdf))
@@ -950,8 +956,10 @@ subroutine read_vtu(filename, pmh)
       allocate(cdfval(ncdf))
       ncdf = 0
       do j=1, size(cdfnames,1)
-        if(lcase(cdfnames(j)) == 'element_ref' .or. lcase(cdfnames(j)) == 'face_ref' .or. &
-           lcase(cdfnames(j)) == 'edge_ref') cycle
+        if(trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
+           trim(lcase(cdfnames(j))) == 'edge_ref') cycle
+        if(index(lcase(cdfnames(j)),'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
+           index(lcase(cdfnames(j)), 'nra_') /= 0) cycle
         if(vtk_var_xml_read('Cell',ncref,ncomp,trim(cdfnames(j)),temp,i) == 0 ) then
           call info('    Reading cell field: '//trim(cdfnames(j)))
           if(ncref == nc) then
@@ -964,6 +972,14 @@ subroutine read_vtu(filename, pmh)
         endif
         if(allocated(temp)) deallocate(temp)
       enddo
+    endif
+
+    ! deallocate cdfval if no fields found
+    if(ncdf == 0 .and. allocated(cdfval)) then
+      do j=1,size(cdfval,1)
+        if(allocated(cdfval(j)%val)) deallocate(cdfval(j)%val)
+      enddo
+      deallocate(cdfval)
     endif
 
     ! Initialize celldata field names and number of parameters
@@ -1006,6 +1022,7 @@ subroutine read_vtu(filename, pmh)
         ! Saves VTU fields in a PMH structure. Manage memory allocation
         if(allocated(cdfval)) then
           do l=1,size(cdfval,1)
+            if(.not. allocated(cdfval(l)%val)) cycle
             if(.not. allocated(pmh%pc(i)%el(j)%fi(l)%val)) then
               allocate(pmh%pc(i)%el(j)%fi(l)%val(1:size(cdfval(l)%val,1),DEFAULT_ALLOC,1))
             elseif(size(pmh%pc(i)%el(j)%fi(l)%val,2)<=pmh%pc(i)%el(j)%nel) then
@@ -1045,7 +1062,7 @@ subroutine read_vtu(filename, pmh)
     ! Memory deallocation
     if(allocated(cdfval)) then
       do j=1,size(cdfval,1)
-        deallocate(cdfval(j)%val)
+        if(allocated(cdfval(j)%val))deallocate(cdfval(j)%val)
       enddo
     endif
 

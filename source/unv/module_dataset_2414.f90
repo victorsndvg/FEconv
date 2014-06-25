@@ -278,13 +278,14 @@ contains
 !-----------------------------------------------------------------------
 ! read: read dataset 2411
 !-----------------------------------------------------------------------
-subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, param)
+subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, padval, param)
 integer,           intent(in) :: iu    !unit number for unvfile
 type(pmh_mesh), intent(inout) :: pmh   !PMH mesh
 integer,           intent(in) :: npc   !Piece number
 integer,        intent(inout) :: nfield   !Piece number
 integer, allocatable, dimension(:,:), intent(in) :: els_loc !Elements location ([elgroup, pos], element label)
 integer,           intent(in) :: dataset
+real(real64),      intent(in) :: padval
 real(real64), optional        :: param
 integer, dimension(6)         :: r9
 integer                       :: ios, counter, i, prev_nel
@@ -381,14 +382,13 @@ type(field), allocatable, dimension(:) :: auxfi
     endif
     if(.not. allocated(pmh%pc(npc)%fi(fidx)%val)) &
       & allocate(pmh%pc(npc)%fi(fidx)%val(ncomp,pmh%pc(npc)%nnod,nparam))
-      
+    pmh%pc(npc)%fi(fidx)%val = padval
     do
       if (is_dataset_delimiter(iu, back=.true.)) exit
     ! Node or element number. Record14
       read (unit=iu, fmt='(1I10)', iostat = ios) n_nod
       if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
     ! Data. Record15
-      val = 0._real64
       read (unit=iu, fmt=*, iostat = ios) pmh%pc(npc)%fi(fidx)%val(:,n_nod,nparam)
       if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
       counter  = counter + 1
@@ -429,6 +429,7 @@ type(field), allocatable, dimension(:) :: auxfi
           endif
           if(.not. allocated(elg%fi(fidx)%val)) &
             & allocate(elg%fi(fidx)%val(ncomp,elg%nel,nparam))
+          elg%fi(fidx)%val = padval
 
         elseif(fidx < size(elg%fi,1)) then
           fidx = size(elg%fi,1)+1
@@ -447,6 +448,7 @@ type(field), allocatable, dimension(:) :: auxfi
           endif
           if(.not. allocated(elg%fi(fidx)%val)) &
             & allocate(elg%fi(fidx)%val(ncomp,elg%nel,nparam))
+          elg%fi(fidx)%val = padval
         endif
 
       ! Data. Record15
@@ -458,7 +460,7 @@ type(field), allocatable, dimension(:) :: auxfi
 
 
   else
-    call error('dataset_2411/read, # Data at elements not implemented yet')
+    call error('dataset_2414/read, # Data at elements not implemented yet')
   endif
 
 end subroutine
