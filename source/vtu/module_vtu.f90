@@ -924,7 +924,8 @@ subroutine read_vtu(filename, pmh)
       allocate(pmh%pc(i)%fi(npdf))
       npdf = 0
       do j=1, size(pdfnames,1)
-        if(lcase(pdfnames(j)) == 'vertex_ref') cycle
+        if(lcase(pdfnames(j)) == 'vertex_ref' .or. &
+          & index(lcase(pdfnames(j)),'nrv_') /= 0) cycle
         if(vtk_var_xml_read('Node',nnref,ncomp,trim(pdfnames(j)),pdfval,i) == 0 ) then
           npdf = npdf +1
           if(nnref == nn) then
