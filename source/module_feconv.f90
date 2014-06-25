@@ -76,6 +76,7 @@ logical :: there_is_field
 !Variables for extratction
 integer,      allocatable :: submm(:,:), subnrv(:,:), subnra(:,:), subnrc(:,:), subnsd(:), globv(:), globel(:)
 real(real64), allocatable :: subz(:,:)
+real(real64)              :: padval
 
 !find infile and outfile at the end of the arguments
 nargs = args_count()
@@ -201,6 +202,15 @@ end if
 !si es oM, load aparte; si es iM, se engorda load
 !escritura, lo mismo
 
+
+! Sets the field padding value
+if (is_arg('-pad')) then
+ padval = dble(get_post_arg('-pad'))
+else
+ padval = 0._real64
+endif
+
+
 !read mesh
 is_pmh = .false.
 select case (trim(lcase(adjustlt(inext))))
@@ -226,7 +236,7 @@ case('msh')
   print '(a)', 'Done!'
 case('unv')
   print '(a)', 'Loading UNV mesh file...'
-  call load_unv(infile, pmh, is_arg('-is')); is_pmh = .true.
+  call load_unv(infile, pmh, padval, is_arg('-is')); is_pmh = .true.
   print '(a)', 'Done!'
 case('bdf')
   print '(a)', 'Loading MD Nastran input file...'
@@ -352,7 +362,7 @@ case('mum')
 case('vtu')
   print '(/a)', 'Saving VTU mesh file...'
   if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_vtu2(outfile, pmh)
+  call save_vtu2(outfile, pmh, padval)
   print '(a)', 'Done!'
 !case('vtu')
 !  print '(/a)', 'Saving VTU mesh file...'
