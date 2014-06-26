@@ -12,6 +12,7 @@ module module_pmh
 !   mfm2pmh: convert a MFM mesh into a PMH structure
 !   build_vertices: build vertex connectivities and coordinates from node information (P1, P2 only)
 !   build_node_coordinates: build node coordinates from vertex information
+!   cell2node: calculate a node field form a cell one
 !
 ! REMARKS:
 !   A mesh is divided into pieces 
@@ -76,7 +77,10 @@ integer, parameter, private :: Pc(32,4) = reshape([ &
 1, 2, 4, 5,  2, 3, 1, 6,  3, 4, 2, 7,  4, 1, 3, 8,  5, 8, 6, 1,  6, 5, 7, 2,  7, 6, 8, 3,  8, 7, 5, 4], [32, 4], order=[2,1])
 
 !Private procedures
-private :: swap, reorder_nodes_element_P2, QJ_pos, detDFT_pos, reorder_nodes_P2, positive_jacobian
+private :: swap, reorder_nodes_element_P2, QJ_pos, detDFT_pos, reorder_nodes_P2, positive_jacobian, &
+           cell2node_real_pmh, get_piece_num_fields, get_piece_max_top_dim
+
+interface cell2node;     module procedure cell2node_real_pmh;     end interface
 
 contains
 
@@ -1138,6 +1142,168 @@ logical :: res
 res = (a2(1)-a1(1))*(a3(2)-a1(2))*(a4(3)-a1(3)) + (a2(3)-a1(3))*(a3(1)-a1(1))*(a4(2)-a1(2)) & 
     + (a2(2)-a1(2))*(a3(3)-a1(3))*(a4(1)-a1(1)) - (a2(3)-a1(3))*(a3(2)-a1(2))*(a4(1)-a1(1)) &
     - (a2(2)-a1(2))*(a3(1)-a1(1))*(a4(3)-a1(3)) - (a2(1)-a1(1))*(a3(3)-a1(3))*(a4(2)-a1(2)) > 0
+end function
+
+!--------------------------------------------------------------------
+! cell2node: calculate a node fields from a cell fields
+!--------------------------------------------------------------------
+subroutine cell2node_real_pmh(pmh)
+  type(pmh_mesh), intent(inout) :: pmh
+  type(field), allocatable      :: tempfields(:)
+  integer, allocatable          :: cell4node(:,:)
+  integer :: n_nod_fi,n_cell_fi, maxtopdim
+  integer :: ip,ig,ifi,np
+  integer :: ncomp, lnn, nel, i, j, k, l
+
+  np = 1 ! Only in the first parammeter
+  print*, ''
+  call info('Converting every elementwise field as a nodewise ...')
+  ! walk over all pieces
+  do ip=1,size(pmh%pc,1)
+    associate(pc => pmh%pc(ip))
+      n_nod_fi = get_piece_num_fields(pc, 'node')
+      n_cell_fi = get_piece_num_fields(pc, 'cell')
+      maxtopdim = get_piece_max_top_dim(pc)
+
+      if(n_cell_fi == 0) cycle
+      ! Memory allocation for fields
+      if(allocated(cell4node)) deallocate(cell4node)
+      allocate(cell4node(n_cell_fi, pc%nnod))
+      if(n_nod_fi == 0 .and. .not. allocated(pc%fi)) then
+        allocate(pc%fi(n_cell_fi))
+      else
+        if(allocated(tempfields)) then
+          do i=1,size(tempfields,1)
+            if(allocated(tempfields(i)%val)) deallocate(tempfields(i)%val)
+          enddo
+          deallocate(tempfields)
+        endif
+        allocate(tempfields(n_nod_fi+n_cell_fi))
+        tempfields(1:n_nod_fi) = pc%fi(1:n_nod_fi)
+        call move_alloc(from=tempfields,to=pc%fi)
+      endif
+
+      cell4node = 0
+      ! walk over all element groups
+      do ig=1,size(pc%el,1)
+        associate(elg => pc%el(ig))
+          if(FEDB(elg%type)%tdim < maxtopdim) cycle
+          if(.not. allocated(elg%fi) .or. size(elg%fi,1) /= n_cell_fi) &
+            & call error('Wrong number of fields in piece '//trim(string(ip))//&
+              & ' group '//trim(string(ig)))
+          nel = elg%nel
+          lnn = FEDB(elg%type)%lnn
+    
+          do ifi=1, n_cell_fi
+            if(.not. allocated(elg%fi(ifi)%val)) &
+              & call error('Not allocated field '//trim(string(ifi))// &
+                & ' in piece '//trim(string(ip))//' group '//trim(string(ig)))
+            ncomp = size(elg%fi(ifi)%val,1)
+            ! Allocate field values, parameters and assign field name.
+            if(.not. allocated(pc%fi(n_nod_fi+ifi)%val)) then
+              allocate(pc%fi(n_nod_fi+ifi)%val(ncomp,pc%nnod,1))
+              pc%fi(n_nod_fi+ifi)%val = 0._real64
+              pc%fi(n_nod_fi+ifi)%name = trim(elg%fi(ifi)%name)
+              call info('  Field: '//trim(elg%fi(ifi)%name))
+              if(.not. allocated(pc%fi(n_nod_fi+ifi)%param)) allocate(pc%fi(n_nod_fi+ifi)%param(1))
+              pc%fi(n_nod_fi+ifi)%param(1) = elg%fi(ifi)%param(np)
+            endif
+            ! Calculate values at nodes
+            do k = 1, nel
+              do j = 1, lnn
+                if(FEDB(elg%type)%nver_eq_nnod) then
+                  i = elg%mm(j,k)
+                else
+                  i = elg%nn(j,k)
+                endif
+                cell4node(ifi,i) = cell4node(ifi,i) + 1
+                do l = 1, ncomp
+                  pc%fi(n_nod_fi+ifi)%val(l,i,np) = &
+                    & pc%fi(n_nod_fi+ifi)%val(l,i,np) + elg%fi(ifi)%val(l,k,np)
+                enddo
+              enddo
+            enddo
+            do j = 1, pc%nnod
+              do i = 1, ncomp
+                pc%fi(n_nod_fi+ifi)%val(i,j,1) = pc%fi(n_nod_fi+ifi)%val(i,j,1)/cell4node(ifi,j)
+              enddo
+            enddo
+          enddo
+          ! Deallocate cell fields
+          if(allocated(elg%fi)) then
+            do i=1,size(elg%fi,1)
+              if(allocated(elg%fi(i)%val)) deallocate(elg%fi(i)%val)
+              if(allocated(elg%fi(i)%param)) deallocate(elg%fi(i)%param)
+            enddo
+            deallocate(elg%fi)
+          endif
+        end associate
+      enddo
+    end associate
+  enddo
+
+end subroutine
+
+
+!--------------------------------------------------------------------
+! get_piece_num_fields: returns the number of fields at nodes or on cells or all
+!--------------------------------------------------------------------
+function get_piece_num_fields(pc, location) result(res)
+  type(piece),    intent(inout) :: pc
+  character(len=*), optional    :: location
+  integer                       :: res
+  integer                       :: fi_loc !1:node, 2:cell, 3:all
+  integer                       :: aux, i
+
+  res = 0
+  aux = 0
+  if(present(location)) then
+    if(trim(adjustl(location)) == 'node') then
+      fi_loc = 1 !node
+    elseif(trim(adjustl(location)) == 'cell') then
+      fi_loc = 2 !cell
+    else
+      fi_loc = 3 !all
+    endif
+  else
+    fi_loc = 3   !all
+  endif
+
+  ! Count node fields
+  if(fi_loc==1 .or. fi_loc==3) then
+    if(allocated(pc%fi)) then 
+      res = res+size(pc%fi,1)
+    endif
+  endif
+
+  ! Count cell fields
+  if(fi_loc==2 .or. fi_loc==3) then
+    if(allocated(pc%el)) then 
+      do i=1,size(pc%el,1)
+        if(allocated(pc%el(i)%fi)) aux = max(size(pc%el(i)%fi,1),aux)
+      enddo
+    endif
+    res = res + aux
+  endif
+  
+end function
+
+!--------------------------------------------------------------------
+! get_piece_max_top_dim: returns the maximum topological dimension
+!--------------------------------------------------------------------
+function get_piece_max_top_dim(pc) result(res)
+  type(piece),    intent(inout) :: pc
+  integer                       :: res
+  integer                       :: aux, i
+
+  res = 0
+
+  if(allocated(pc%el)) then
+    do i=1, size(pc%el,1)
+      res = max(FEDB(pc%el(i)%type)%tdim,res)
+    enddo
+  endif
+
 end function
 
 end module

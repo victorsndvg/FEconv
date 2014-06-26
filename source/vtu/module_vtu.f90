@@ -9,8 +9,8 @@ module module_vtu
 ! PUBLIC PROCEDURES:
 !   load_vtu: loads a VTU format file
 !   read_vtu: reads a mesh with fields in a VTU format file
-!   save_vtu: saves a mesh in a VTU format file from mfm (refs= nsd_*, nrc_*, nra_*,nrv_*)
-!   save_vtu2: saves a mesh and fields in a VTU format file from pmh
+!   save_vtu_mfm: saves a mesh in a VTU format file from mfm (refs= nsd_*, nrc_*, nra_*,nrv_*)
+!   save_vtu_pmh: saves a mesh and fields in a VTU format file from pmh
 !   type_cell: give the associated name of FE
 !-----------------------------------------------------------------------
 use module_compiler_dependant, only: real64
@@ -44,14 +44,17 @@ integer, parameter :: face_hexa(4,6) = reshape([1,4,3,2, 1,5,8,4, 1,2,6,5, 5,6,7
 
 
 !Private procedures
-private :: true64, save_w_field, search_multiple !save_w_field must change
+private :: true64, save_w_field, search_multiple, save_vtu_mfm, save_vtu_pmh !save_w_field must change
+
+interface  save_vtu; module procedure    save_vtu_mfm; end interface
+interface  save_vtu; module procedure    save_vtu_pmh; end interface
 
 contains
 
 !-----------------------------------------------------------------------
-! save_vtu: save mesh with references
+! save_vtu_mfm: save mesh with references
 !-----------------------------------------------------------------------
-subroutine save_vtu(filename, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+subroutine save_vtu_mfm(filename, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
 character(*), intent(in) :: filename
 integer,      intent(in) :: nel, nnod, nver, dim, lnv, lne, lnf, lnn
 integer,      intent(in) :: nn(:,:), mm(:,:), nrv(:,:), nra(:,:), nrc(:,:), nsd(:)
@@ -350,12 +353,12 @@ end subroutine
 
 
 !-----------------------------------------------------------------------
-! save_vtu2(filename, pmh): write VTU file
+! save_vtu_pmh(filename, pmh): write VTU file
 !-----------------------------------------------------------------------
 ! filename:   name of a VTU file
 ! pmh:    PMH structure storing the piecewise mesh
 !-----------------------------------------------------------------------
-subroutine save_vtu2(filename, pmh, padval)
+subroutine save_vtu_pmh(filename, pmh, padval)
 
   type cdfield
     character(len=maxpath)    :: name

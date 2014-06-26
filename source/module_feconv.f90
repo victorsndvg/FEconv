@@ -24,7 +24,7 @@ use module_unv, only: load_unv,save_unv
 use module_patran, only: load_patran
 use module_mfm, only: load_mfm, save_mfm
 use module_mum, only: load_mum, save_mum
-use module_vtu, only: save_vtu, save_vtu2, load_vtu, type_cell
+use module_vtu, only: save_vtu, load_vtu, type_cell
 use module_mphtxt, only: load_mphtxt,save_mphtxt
 use module_pf3, only: load_pf3,save_pf3
 !use module_tra, only: load_tra,save_tra
@@ -347,6 +347,11 @@ if (is_arg('-cm')) then
   call cuthill_mckee(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, z); is_pmh = .false.
 end if
 
+if (is_arg('-cn')) then
+  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  call cell2node(pmh)
+end if
+
 !save mesh
 select case (trim(adjustlt(outext)))
 case('mfm')
@@ -361,8 +366,11 @@ case('mum')
   print '(a)', 'Done!'
 case('vtu')
   print '(/a)', 'Saving VTU mesh file...'
-  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_vtu2(outfile, pmh, padval)
+  if (is_pmh) then
+    call save_vtu(outfile, pmh, padval)
+  else
+    call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+  endif
   print '(a)', 'Done!'
 !case('vtu')
 !  print '(/a)', 'Saving VTU mesh file...'
