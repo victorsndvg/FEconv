@@ -20,7 +20,9 @@ module module_alloc_real64_r2
 !   insert_col: insert a column in the array
 !   reduce: reduce the array
 !   insert_row_sorted: insert a row in a row-sorted array
+!   insert_col_sorted: insert a col in a col-sorted array
 !   find_row_sorted: find the position of a row in a row-sorted array
+!   find_col_sorted: find the position of a col in a col-sorted array
 !   sfind: subroutine to find all the occurrences of a value in an array
 !     Private functions under 'sfind' are:
 !     sfind_sca: find a scalar value in an array
@@ -63,7 +65,9 @@ interface           add_col; module procedure           add_col_prv; end interfa
 interface        insert_row; module procedure        insert_row_prv; end interface
 interface        insert_col; module procedure        insert_col_prv; end interface
 interface insert_row_sorted; module procedure insert_row_sorted_prv; end interface
+interface insert_col_sorted; module procedure insert_col_sorted_prv; end interface
 interface   find_row_sorted; module procedure   find_row_sorted_prv; end interface
+interface   find_col_sorted; module procedure   find_col_sorted_prv; end interface
 interface             sfind; module procedure         sfind_sca_prv; end interface
 interface             sfind; module procedure         sfind_vec_prv; end interface
 
@@ -317,17 +321,19 @@ end subroutine
 !-----------------------------------------------------------------------
 ! insert_row_sorted: insert a row in a row-sorted array
 !-----------------------------------------------------------------------
-subroutine insert_row_sorted_prv(v, val, used, fit)
+subroutine insert_row_sorted_prv(v, val, used, fit, pos)
 real(real64), allocatable             :: v(:,:)
 real(real64),           intent(in)    :: val(:)
 integer, optional, intent(inout) :: used
 logical, optional, intent(in)    :: fit(2)
-integer :: n, pos, a, b, anew, bnew, i, j
+integer, optional, intent(out)   :: pos
+integer :: n, a, b, anew, bnew, i, j,indx
 
 !v not allocated
 if (.not. allocated(v)) then
   call set_row(v, val, 1, fit)
   if (present(used)) used = 1
+  if (present(pos)) pos = indx
   return
 end if
 !number of existing rows
@@ -340,6 +346,7 @@ if (pos < 0) then
 ! insert and return
   call insert_row(v, val, -pos, maxrow=n, fit=fit)
   if (present(used)) used = n+1
+  if (present(pos)) pos = indx
   return
 end if
 a=1; b = n
@@ -363,11 +370,75 @@ do j = 2, size(val,1)
 !   insert and return
     call insert_row(v, val, pos, maxrow=n, fit=fit)
     if (present(used)) used = n+1
+    if (present(pos)) pos = indx
     return
   else
     pos = pos + a-1
   end if
 end do
+if (present(pos)) pos = indx
+end subroutine
+
+!-----------------------------------------------------------------------
+! insert_col_sorted: insert a col in a col-sorted array
+!-----------------------------------------------------------------------
+subroutine insert_col_sorted_prv(v, val, used, fit, pos)
+real(real64), allocatable        :: v(:,:)
+real(real64),      intent(in)    :: val(:)
+integer, optional, intent(inout) :: used
+logical, optional, intent(in)    :: fit(2)
+integer, optional, intent(out)   :: pos
+integer :: n, a, b, anew, bnew, i, j,indx
+
+!v not allocated
+if (.not. allocated(v)) then
+  indx = -1
+  call set_col(v, val, -indx, fit)
+  if (present(used)) used = 1
+  if (present(pos)) pos = indx
+  return
+end if
+!number of existing rows
+if (present(used)) then; n = used
+else;                    n = size(v,2)
+end if
+!search among the first vertices
+indx = bsearch(v(1,1:n), val(1), n)
+if (indx < 0) then
+! insert and return
+  call insert_col(v, val, -indx, maxcol=n, fit=fit) 
+  if (present(used)) used = n+1
+  if (present(pos)) pos = indx
+  return
+end if
+a=1; b = n
+do j = 2, size(val,1)
+! determine the left extreme of the interval where to search the j-th vertex
+  anew = indx
+  do i = indx-1, a, -1
+    if (v(j-1,i) /= v(j-1,indx)) exit
+    anew = i
+  end do
+! determine the right extreme of the interval where to search the j-th vertex
+  bnew = indx
+  do i = indx+1, b
+    if (v(j-1,i) /= v(j-1,indx)) exit
+    bnew = i
+  end do
+  a = anew; b = bnew
+  indx = bsearch(v(j,a:b), val(j), b-a+1)
+  if (indx < 0) then
+    indx = indx - a+1
+!   insert and return
+    call insert_col(v, val, -indx, maxcol=n, fit=fit)
+    if (present(used)) used = n+1
+    if (present(pos)) pos = indx
+    return
+  else
+    indx = indx + a-1
+  end if
+end do
+if (present(pos)) pos = indx
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -379,6 +450,8 @@ real(real64),           intent(in) :: val(:)
 integer, optional, intent(in) :: used
 integer :: n, pos, a, b, anew, bnew, i, j
 
+pos = -1
+if (.not. allocated(v)) return
 !number of existing rows
 if (present(used)) then; n = used
 else;                    n = size(v,1)
@@ -402,6 +475,45 @@ do j = 2, size(val,1)
   end do
   a = anew; b = bnew
   pos = bsearch(v(a:b,j), val(j), b-a+1)
+  if (pos <= 0) return
+  pos = pos + a-1
+end do
+end function
+
+!-----------------------------------------------------------------------
+! find_col_sorted: find the position of a col in a col-sorted array
+!-----------------------------------------------------------------------
+function find_col_sorted_prv(v, val, used) result(pos)
+real(real64), allocatable     :: v(:,:)
+real(real64),      intent(in) :: val(:)
+integer, optional, intent(in) :: used
+integer :: n, pos, a, b, anew, bnew, i, j
+
+pos = -1
+if (.not. allocated(v)) return
+!number of existing cols
+if (present(used)) then; n = used
+else;                    n = size(v,2)
+end if
+!search among the first vertices
+pos = bsearch(v(1,1:n), val(1), n)
+if (pos <= 0) return
+a=1; b = n
+do j = 2, size(val,1)
+! determine the left extreme of the interval where to search the j-th vertex
+  anew = pos
+  do i = pos-1, a, -1
+    if (v(j-1,i) /= v(j-1,pos)) exit
+    anew = i
+  end do
+! determine the right extreme of the interval where to search the j-th vertex
+  bnew = pos
+  do i = pos+1, b
+    if (v(j-1,i) /= v(j-1,pos)) exit
+    bnew = i
+  end do
+  a = anew; b = bnew
+  pos = bsearch(v(j,a:b), val(j), b-a+1)
   if (pos <= 0) return
   pos = pos + a-1
 end do

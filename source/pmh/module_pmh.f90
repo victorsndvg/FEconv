@@ -41,16 +41,17 @@ implicit none
 type field
   character(maxpath)        :: name 
   real(real64), allocatable :: param(:)   !nshot
+  real(real64), allocatable :: step(:)    !nshot
   real(real64), allocatable :: val(:,:,:) !ncomp x nnod x nshot
 end type
 
 type elgroup
-  integer              :: nel  = 0 !total number of elements
-  integer              :: type = 0 !element type (one of those defined in module_eltype)
-  integer, allocatable :: nn(:,:)  !global numbering of nodes
-  integer, allocatable :: mm(:,:)  !global numbering of vertices
-  integer, allocatable :: ref(:)   !reference numbering
-  type(field), allocatable :: fi(:)!Fields on elements
+  integer                  :: nel  = 0 !total number of elements
+  integer                  :: type = 0 !element type (one of those defined in module_eltype)
+  integer,     allocatable :: nn(:,:)  !global numbering of nodes
+  integer,     allocatable :: mm(:,:)  !global numbering of vertices
+  integer,     allocatable :: ref(:)   !reference numbering
+  type(field), allocatable :: fi(:)    !fields on elements
 end type
 
 type piece
@@ -59,7 +60,7 @@ type piece
   integer                    :: dim  = 0 !space dimension of the node/vertex coordinates
   real(real64),  allocatable :: z(:,:)   !vertex coordinates
   type(elgroup), allocatable :: el(:)    !element groups  
-  type(field), allocatable   :: fi(:)    !Fields on nodes
+  type(field),   allocatable :: fi(:)    !fields on nodes
 end type
 
 type pmh_mesh
