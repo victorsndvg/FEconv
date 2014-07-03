@@ -16,7 +16,7 @@ module module_unv
 use module_compiler_dependant, only: real64
 use module_os_dependant, only: maxpath
 use module_report, only: error, info
-use module_convers, only: string, int
+use module_convers, only: string, int, word_count, lcase
 use module_alloc, only: sfind
 use module_set, only: sunique
 use module_args, only: is_arg, get_post_arg
@@ -31,28 +31,30 @@ contains
 !-----------------------------------------------------------------------
 ! load_unv: read a UNV file
 !-----------------------------------------------------------------------
-subroutine load_unv(unvfile, pmh,  padval, is_opt)
+subroutine load_unv(unvfile, pmh,  padval, is_opt, ca_opt)
  character(len=*), intent(in) :: unvfile
  type(pmh_mesh),intent(inout) :: pmh
  real(real64),     intent(in) :: padval
  logical,          intent(in) :: is_opt
+ logical,          intent(in) :: ca_opt
  type(unv)                    :: u
 
   !inital settings
   call report_option('level', 'stdout')
   !process universal file
   call open_unv(u, unvfile)
-  call read_unv(u, pmh,  padval, is_opt)
+  call read_unv(u, pmh,  padval, is_opt, ca_opt)
   call build_vertices(pmh)
 end subroutine
 
 !-----------------------------------------------------------------------
 ! save_unv: save a PMH structure into a UNV file
 !-----------------------------------------------------------------------
-subroutine save_unv(filename, iu, pmh)
+subroutine save_unv(filename, iu, pmh, ca_opt)
   character(*),   intent(in) :: filename !mesh filename
   integer,        intent(in) :: iu       !file unit
   type(pmh_mesh), intent(in) :: pmh      !pmh structure
+  logical,        intent(in) :: ca_opt
 
   integer :: i, ipp, ip, ig, ios, prev_nel, prev_coord, j, k, idesc, l, ir
   integer, allocatable :: piece2save(:), unique_ref(:), k_ref(:)
@@ -77,7 +79,7 @@ subroutine save_unv(filename, iu, pmh)
   open (unit = iu, file = filename, form = 'formatted', position = 'rewind', iostat = ios)
   if (ios /= 0) call error('(module_unv/save_unv) unable to open file; error number '//trim(string(ios)))
 
-   call info('Writin coordinates ...')
+   call info('Writing coordinates ...')
   !save coordinates
   write(iu,'(I6)') -1
   write(iu,'(I6)') 2411
@@ -182,7 +184,7 @@ subroutine save_unv(filename, iu, pmh)
   write(iu,'(I6)') -1
 
 
-   call info('Writin references ...')  
+   call info('Writing references ...')  
   !save groups
   write(iu,'(I6)') -1
   write(iu,'(I6)') 2467
@@ -214,7 +216,7 @@ subroutine save_unv(filename, iu, pmh)
   write(iu,'(I6)') -1
 
   !save fields
-  call write_unv_fields(iu, pmh, piece2save)
+  call write_unv_fields(iu, pmh, piece2save, ca_opt)
 
   close(iu)
 
@@ -223,10 +225,11 @@ end subroutine
 !-----------------------------------------------------------------------
 ! save_unv: save a PMH field into a UNV file
 !-----------------------------------------------------------------------
-subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
+subroutine write_unv_fields(iu, pmh, piece2save, ca_opt, dataset, nparam)
   integer,         intent(in) :: iu       !file unit
   type(pmh_mesh),  intent(in) :: pmh      !pmh mesh structure
   integer,         intent(in) :: piece2save(:)
+  logical,         intent(in) :: ca_opt   !Code Aster option
   integer,optional,intent(in) :: dataset
   integer,optional,intent(in) :: nparam
   integer                     :: prev_coord
@@ -252,9 +255,10 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
   do i = 1,size(piece2save,1)
     associate(pc => pmh%pc(piece2save(i)))
       if(allocated(pc%fi) .and. (ds==2414 .or. ds==55)) then
+        if(ca_opt) ds = 55  ! Code Aster option forces to write dataset 55
         ! Node fields
         do j = 1,size(pc%fi,1)
-          call info('Writin node field: '//trim(adjustl(pc%fi(j)%name)))
+          call info('Writing node field: '//trim(adjustl(pc%fi(j)%name)))
           counter = counter + 1
           ncomp = size(pc%fi(j)%val,1)
           if(ncomp == 1) then
@@ -281,7 +285,14 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
           write(iu,*) 'NONE'                                    ! Record7: ID line 4 (2414)
           write(iu,*) 'NONE'                                    ! Record8: ID line 5 (2414)
           ! Model type, Analysis type, Data characteristic, Result type, Data type, Number of data values for data component
-          write(iu,'(6I10)') 0,0,dc,9999,4,ncomp                ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp (2414)
+          ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp (2414)
+          if(ca_opt .and. &
+            & is_ca_field_type(pc%fi(j)%name)) then
+            write(iu,'(6I10)') &
+              & get_ca_field_record9(pc%fi(j)%name, (/0,0,dc,1000+counter,4,ncomp/))
+          else
+            write(iu,'(6I10)') 0,0,dc,1000+counter,4,ncomp
+          endif
           if(ds == 2414) then
             write(iu,'(8I10)') (/(0,m=1,8)/)                    ! Record10: Integer analysis type speciic data (1-8) (2414)
             write(iu,'(8I10)') (/(0,m=1,2)/)                    ! Record11: Integer analysis type speciic data (9-10) (2414)
@@ -305,8 +316,9 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
         if(FEDB(pc%el(j)%type)%tdim == 0) cycle
 
         if(allocated(pc%el(j)%fi) .and. (ds==2414 .or. ds==57)) then
+          if(ca_opt) ds = 57
           do k=1, size(pc%el(j)%fi,1)
-            call info('Writin cell field: '//trim(adjustl(pc%el(j)%fi(k)%name)))
+            call info('Writing cell field: '//trim(adjustl(pc%el(j)%fi(k)%name)))
             counter = counter + 1
             ncomp = size(pc%el(j)%fi(k)%val,1)
 
@@ -336,7 +348,14 @@ subroutine write_unv_fields(iu, pmh, piece2save, dataset, nparam)
             write(iu,*) 'NONE'                                    ! Record7: ID line 4 (2414)
             write(iu,*) 'NONE'                                    ! Record8: ID line 5 (2414)
             ! Model type, Analysis type, Data characteristic, Result type, Data type, Number of data values for data component
-            write(iu,'(6I10)') 0,0,dc,9999,4,ncomp                ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp (2414)
+            ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp ( Default, 2414)
+            if((ca_opt) .and. &
+              & is_ca_field_type(pc%el(j)%fi(k)%name)) then
+              write(iu,'(6I10)') &
+                & get_ca_field_record9(pc%el(j)%fi(k)%name, (/0,0,dc,1000+counter,4,ncomp/))
+            else
+              write(iu,'(6I10)') 0,0,dc,1000+counter,4,ncomp        
+            endif
             if(ds == 2414) then
               write(iu,'(8I10)') (/(0,m=1,8)/)                    ! Record10: Integer analysis type speciic data (1-8) (2414)
               write(iu,'(8I10)') (/(0,m=1,2)/)                    ! Record11: Integer analysis type speciic data (9-10) (2414)

@@ -266,6 +266,7 @@ module module_dataset_2414
 use module_COMPILER_DEPENDANT, only: real64
 use module_ALLOC
 use module_dataset
+use module_convers, only:string
 use module_pmh, only: pmh_mesh, field
 use module_fe_database_pmh, only: FEDB
 implicit none
@@ -278,20 +279,21 @@ contains
 !-----------------------------------------------------------------------
 ! read: read dataset 2411
 !-----------------------------------------------------------------------
-subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, padval, param)
-integer,           intent(in) :: iu    !unit number for unvfile
-type(pmh_mesh), intent(inout) :: pmh   !PMH mesh
-integer,           intent(in) :: npc   !Piece number
-integer,        intent(inout) :: nfield   !Piece number
+subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, ca_opt, padval, param)
+integer,               intent(in) :: iu    !unit number for unvfile
+type(pmh_mesh),     intent(inout) :: pmh   !PMH mesh
+integer,               intent(in) :: npc   !Piece number
+integer,            intent(inout) :: nfield   !Piece number
 integer, allocatable, dimension(:,:), intent(in) :: els_loc !Elements location ([elgroup, pos], element label)
-integer,           intent(in) :: dataset
-real(real64),      intent(in) :: padval
-real(real64), optional        :: param
+integer,               intent(in) :: dataset
+logical,               intent(in) :: ca_opt
+real(real64),          intent(in) :: padval
+real(real64), optional,intent(in) :: param
 integer, dimension(6)         :: r9
 integer                       :: ios, counter, i, prev_nel
-integer                       :: lbl, dloc, ncomp, fidx, nparam, n_nod, n_el, iexp
+integer                       :: lbl, dloc, ncomp, fidx, nparam, n_nod, n_el, iexp, n_nod_el
 character(len=maxpath) :: name, aux
-real(real64), allocatable, dimension(:) :: val
+real(real64), allocatable, dimension(:) :: val, tempval
 type(field), allocatable, dimension(:) :: auxfi
 
   ! Single param
@@ -309,12 +311,14 @@ type(field), allocatable, dimension(:) :: auxfi
   elseif(dataset == 55) then
     nfield = nfield + 1
     lbl = nfield
-    name = 'field'//trim(string(nfield))
+    write(name,fmt='(I10.10)') nfield
+    name = 'field'//trim(name)
     dloc = 1 ! Data at nodes
   elseif(dataset == 57 .or. dataset == 56) then
     nfield = nfield + 1
     lbl = nfield
-    name = 'field'//trim(string(nfield))
+    write(name,fmt='(I10.10)') nfield
+    name = 'field'//trim(name)
     dloc = 2 ! Data at elements
   else
     call error('dataset_2414/read, # Dataset '//trim(string(dataset))//' not allowed')
@@ -344,12 +348,22 @@ type(field), allocatable, dimension(:) :: auxfi
     call error('dataset_2414/read, # Wrong data characteristic')
   endif
 
+  ! Change fieldname with de Code Aster option
+  if(ca_opt) then ! Option Code aster
+    if(is_ca_field_type(string(r9))) then
+      name = get_ca_field_name(string(r9), name)
+    endif
+  endif
+
   if(allocated(val)) deallocate(val); allocate(val(ncomp))
+  if(allocated(tempval)) deallocate(tempval); allocate(tempval(ncomp))
+  val = 0._real64
+  tempval = 0._real64
 
   if(r9(5) == 5) call error('dataset_2414/read, # Complex data not supported') ! Compex data
 
   ! Integer analysis specific data. Record10 & record11
-  read (unit=iu, fmt=*, iostat = ios) aux; if (ios /= 0) call error('dataset_2414/read')
+  read (unit=iu, fmt='(6I10)', iostat = ios) r9; if (ios /= 0) call error('dataset_2414/read')
   read (unit=iu, fmt=*, iostat = ios) aux; if (ios /= 0) call error('dataset_2414/read')
 
   if(dataset == 2414) then
@@ -359,17 +373,18 @@ type(field), allocatable, dimension(:) :: auxfi
   endif
 
   if(dloc == 1) then ! Data at nodes
-    call info('Reading node field: '//trim(adjustl(name)))
     ! PMH field structure allocation
     if(.not. allocated(pmh%pc(npc)%fi)) then
       fidx = 1
       allocate(pmh%pc(npc)%fi(fidx))
+      call info('Reading node field: '//trim(adjustl(name)))
     else
       fidx = size(pmh%pc(npc)%fi,1)+1
       if(allocated(auxfi)) deallocate(auxfi)
       allocate(auxfi(fidx))
       auxfi(1:size(pmh%pc(npc)%fi,1)) = pmh%pc(npc)%fi(:)
       call move_alloc(from=auxfi, to=pmh%pc(npc)%fi)
+      call info('Reading node field: '//trim(adjustl(name)))
     endif
     ! PMH Field structure: name, param and values initilization
     pmh%pc(npc)%fi(fidx)%name = trim(adjustl(name))
@@ -397,23 +412,22 @@ type(field), allocatable, dimension(:) :: auxfi
     if(pmh%pc(npc)%nnod /= counter) call error('dataset_2414/read, # Wrong number of values')
 
   elseif(dloc == 2) then ! Data at elements
-    call info('Reading cell field: '//trim(adjustl(name)))
     fidx = 0
     do
       prev_nel = 0
       if (is_dataset_delimiter(iu, back=.true.)) exit
       ! Node or element number. Record14
-      read (unit=iu, fmt='(2I10)', iostat = ios) n_el, iexp
+      read (unit=iu, fmt='(3I10)', iostat = ios) n_el, iexp, n_nod_el
       if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
       ! Count elements in previous groups
       do i=1, els_loc(1,n_el)-1
         if(FEDB(pmh%pc(npc)%el(i)%type)%tdim>0) prev_nel = prev_nel + pmh%pc(npc)%el(i)%nel
       enddo
       ! 1:data for all nodes, 2:data ofr only 1st node
-      if((dataset == 57 .or. dataset == 56) .and. iexp /= 2) then
-        call info('  Data present for all nodes not supported. Skipped!') 
-        exit
-      endif
+!      if((dataset == 57 .or. dataset == 56) .and. iexp /= 2) then
+!        call info('  Data present for all nodes not supported. Skipped!') 
+!        exit
+!      endif
       associate(elg => pmh%pc(npc)%el(els_loc(1,n_el)))
         if(.not. allocated(elg%fi)) then
           fidx = 1
@@ -430,7 +444,7 @@ type(field), allocatable, dimension(:) :: auxfi
           if(.not. allocated(elg%fi(fidx)%val)) &
             & allocate(elg%fi(fidx)%val(ncomp,elg%nel,nparam))
           elg%fi(fidx)%val = padval
-
+          call info('Reading cell field: '//trim(adjustl(name)))
         elseif(fidx < size(elg%fi,1)) then
           fidx = size(elg%fi,1)+1
           if(allocated(auxfi)) deallocate(auxfi)
@@ -449,12 +463,24 @@ type(field), allocatable, dimension(:) :: auxfi
           if(.not. allocated(elg%fi(fidx)%val)) &
             & allocate(elg%fi(fidx)%val(ncomp,elg%nel,nparam))
           elg%fi(fidx)%val = padval
+          call info('Reading cell field: '//trim(adjustl(name)))
         endif
-
       ! Data. Record15
-        read (unit=iu, fmt=*, iostat = ios) elg%fi(fidx)%val(:,n_el-prev_nel,nparam)
-        if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
-
+        if((dataset == 57 .or. dataset == 56) .and. iexp == 2) then ! 2: Data present for only 1st node
+          read (unit=iu, fmt=*, iostat = ios) elg%fi(fidx)%val(:,n_el-prev_nel,nparam)
+          if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
+        elseif((dataset == 57 .or. dataset == 56) .and. iexp == 1) then ! 1: Data present for all nodes
+          val = 0._real64
+          do i=1,n_nod_el
+            read (unit=iu, fmt=*, iostat = ios) tempval
+            if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
+            val = val + tempval
+          enddo
+          elg%fi(fidx)%val(:,n_el-prev_nel,nparam) = val/n_nod_el
+        else
+          read (unit=iu, fmt=*, iostat = ios) elg%fi(fidx)%val(:,n_el-prev_nel,nparam)
+          if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
+        endif
       end associate
     end do
 
@@ -464,5 +490,167 @@ type(field), allocatable, dimension(:) :: auxfi
   endif
 
 end subroutine
+
+!-----------------------------------------------------------------------
+! is_ca_field_type(): returns true if input string is a field type identifier
+! Field identifiers (record6 (55-56-57) or record9 (2414) are a list of 8I10.
+!-----------------------------------------------------------------------
+function is_ca_field_type(str) result(res)
+  character(len=*), intent(in) :: str
+  logical                      :: res
+  integer                      :: ios, ints(6)
+
+  res = .false.
+  if( trim(adjustl(lcase(str))) == 'depl' .or. &
+    & trim(adjustl(lcase(str))) == 'vite' .or. &
+    & trim(adjustl(lcase(str))) == 'acce' .or. &
+    & trim(adjustl(lcase(str))) == 'temp' .or. &
+    & trim(adjustl(lcase(str))) == 'vari_elno' .or. &
+    & trim(adjustl(lcase(str))) == 'epsa_elno' .or. &
+    & trim(adjustl(lcase(str))) == 'sief_elno' .or. &
+    & trim(adjustl(lcase(str))) == 'pres' ) then
+    res = .true.
+  else
+    if(word_count(str) == 6) then
+      read(unit=str, fmt='(6I10)', iostat = ios) ints
+      if(ios == 0) res = .true.
+    endif
+  endif
+
+end function
+
+!-----------------------------------------------------------------------
+! get_ca_field_type(): returns true if input string is a field type identifier
+! Field identifiers (record6 (55-56-57) or record9 (2414) are a list of 8I10.
+!-----------------------------------------------------------------------
+function get_ca_field_name(str, inname) result(fname)
+  character(len=*),          intent(in) :: str
+  character(len=*),optional, intent(in) :: inname
+  character(len=maxpath)                :: fname
+  integer                               :: ios, ints(6)
+
+  if(.true.) then ! Code aster flag
+    select case(trim(adjustl(lcase(str))))
+      case('depl') ! Displacement Code Aster field
+        fname = 'DEPL'; return
+      case('vite')      ! Velocity Code Aster field
+        fname = 'VITE'; return
+      case('acce')      ! Acceleration Code Aster field
+        fname = 'ACCE'; return
+      case('temp')      ! Temperature Code Aster field
+        fname = 'TEMP'; return
+      case('vari_elno') ! VARI_ELNO Code Aster field
+        fname = 'VARI_ELNO'; return
+      case('epse_elno') ! EPSA_ELNO Code Aster field
+        fname = 'EPSA_ELNO'; return
+      case('sief_elno') ! SIEF_ELNO Code Aster field
+        fname = 'SIEF_ELNO'; return
+      case('pres')      ! Pressure Code Aster field
+        fname = 'PRES'; return
+      case DEFAULT
+        if(word_count(str) == 6) then
+          read(unit=str, fmt=*, iostat = ios) ints
+          if(ios == 0) then
+            if(    all(ints == (/1,4,3, 8,2,6/))) then ! Displacement Code Aster field
+              if(present(inname)) &
+                & call info('  Field name '//trim(inname)//' changed to '//'DEPL')
+              fname = 'DEPL'; return
+            elseif(all(ints == (/1,4,3,11,2,6/))) then ! Velocity Code Aster field
+              if(present(inname)) &
+                & call info('  Field name '//trim(inname)//' changed to '//'VITE')
+              fname = 'VITE'; return
+            elseif(all(ints == (/1,4,3,12,2,6/))) then ! Acceleration Code Aster field
+              if(present(inname)) &
+                & call info('  Field name '//trim(inname)//' changed to '//'ACCE')
+              fname = 'ACCE'; return
+            elseif(all(ints == (/2,4,1, 5,2,1/))) then ! Temperature Code Aster field
+              if(present(inname)) &
+                & call info('  Field name '//trim(inname)//' changed to '//'TEMP')
+              fname = 'TEMP'; return
+            elseif(all(ints == (/1,4,3, 0,2,6/))) then ! VARI_ELNO Code Aster field
+              if(present(inname)) &
+                & call info('  Field name '//trim(inname)//' changed to '//'VARI_ELNO')
+              fname = 'VARI_ELNO'; return
+            elseif(all(ints == (/1,4,4, 3,2,6/))) then ! EPSA_ELNO Code Aster field
+              if(present(inname)) &
+                & call info('  Field name '//trim(inname)//' changed to '//'EPSA_ELNO')
+              fname = 'EPSA_ELNO'; return
+            elseif(all(ints == (/1,4,4, 2,2,6/))) then ! SIEF_ELNO Code Aster field
+              if(present(inname)) &
+                & call info('  Field name '//trim(inname)//' changed to '//'SIEF_ELNO')
+              fname = 'SIEF_ELNO'; return
+            elseif(all(ints == (/1,4,1,15,2,1/))) then ! Pressure Code Aster field
+              if(present(inname)) &
+                & call info('  Field name '//trim(inname)//' changed to '//'PRES')
+              fname = 'PRES'; return
+            else
+              if(present(inname)) then
+                fname = inname; return
+              else
+                fname = trim(adjustl(str)); return;
+              endif
+            end if
+          endif
+        endif
+    end select
+  end if
+
+end function
+
+!-----------------------------------------------------------------------
+! get_ca_field_record9(): returns true if input string is a field type identifier
+! Field identifiers (record6 (55-56-57) or record9 (2414) are a list of 8I10.
+!-----------------------------------------------------------------------
+function get_ca_field_record9(str, inrecord) result(ints)
+  character(len=*),          intent(in) :: str
+  integer,optional, intent(in)          :: inrecord(6)
+  integer                               :: ints(6)
+  integer                               :: ios
+
+  if(.true.) then ! Code aster flag
+    select case(trim(adjustl(lcase(str))))
+      case('depl') ! Displacement Code Aster field
+        ints = (/1,4,3, 8,2,6/); return
+      case('vite')      ! Velocity Code Aster field
+        ints = (/1,4,3,11,2,6/); return
+      case('acce')      ! Acceleration Code Aster field
+        ints = (/1,4,3,12,2,6/); return
+      case('temp')      ! Temperature Code Aster field
+        ints = (/2,4,1, 5,2,1/); return
+      case('vari_elno') ! VARI_ELNO Code Aster field
+        ints = (/1,4,3, 0,2,6/); return
+      case('epsa_elno') ! EPSA_ELNO Code Aster field
+        ints = (/1,4,4, 3,2,6/); return
+      case('sief_elno') ! SIEF_ELNO Code Aster field
+        ints = (/1,4,4, 2,2,6/); return
+      case('pres')      ! Pressure Code Aster field
+        ints = (/1,4,1,15,2,1/); return
+      case DEFAULT
+        if(word_count(str) == 6) then
+          read(unit=str, fmt=*, iostat = ios) ints
+          if(ios == 0) then
+            if( all(ints == (/1,4,3, 8,2,6/)) .or. &  ! Displacement Code Aster field
+              & all(ints == (/1,4,3,11,2,6/)) .or. &  ! Velocity Code Aster field
+              & all(ints == (/1,4,3,12,2,6/)) .or. &  ! Acceleration Code Aster field
+              & all(ints == (/2,4,1, 5,2,1/)) .or. &  ! Temperature Code Aster field
+              & all(ints == (/1,4,3, 0,2,6/)) .or. &  ! VARI_ELNO Code Aster field
+              & all(ints == (/1,4,4, 3,2,6/)) .or. &  ! EPSA_ELNO Code Aster field
+              & all(ints == (/1,4,4, 2,2,6/)) .or. &  ! SIEF_ELNO Code Aster field
+              & all(ints == (/1,4,1,15,2,1/))) then   ! Pressure Code Aster field
+              return
+            else
+              if(present(inrecord)) then
+                ints = inrecord; return
+              else
+                ints = (/0,0,0,0,0,0/)
+              endif
+            end if
+          endif
+        endif
+    end select
+  end if
+
+end function
+
 
 end module
