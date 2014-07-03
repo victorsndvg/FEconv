@@ -40,21 +40,26 @@ subroutine load_dex(pmh, filenames, fieldnames, param)
 !  integer                                   :: ncomp, totcomp, maxtdim
 
 
-
-  if(size(filenames,1) /= size(fieldnames,1)) &
+  if(allocated(fieldnames) .and. size(filenames,1) /= size(fieldnames,1)) &
     call error('load_dex/ Filenames and fieldnames dimension must agree')
 
   do j=1, size(filenames,1)
     filename = trim(filenames(j))
-    fieldname = trim(fieldnames(j))
     iu = get_unit()
     !open file
 
     open (unit=iu, file=filename, form='formatted', status='old', position='rewind', iostat=ios)
     if (ios /= 0) call error('load/open, #'//trim(string(ios)))
   
-    !try read field name
-    read(unit=iu, fmt=*, iostat=ios) aux,aux,aux,aux,aux,aux,aux
+    !try read field name. 
+    read(unit=iu, fmt=*, iostat=ios) aux,aux,aux,aux,aux,aux,fieldname
+    if(allocated(fieldnames)) then
+      if(trim(adjustl(fieldnames(j)))/=trim(adjustl(fieldname))) then
+        call info('Field "'//trim(adjustl(fieldnames(j)))//'" not in: '//trim(adjustl(filenames(j)))//'! Skipped')
+        cycle
+      endif
+    endif
+    
     if (ios /= 0) call error('load/open, #'//trim(string(ios)))
     !try read number of real, number of components and number of points
     read(unit=iu, fmt=*, iostat=ios) aux,aux,nb_real,aux,aux,nb_comp,aux,aux,nb_point
@@ -82,7 +87,7 @@ subroutine load_dex(pmh, filenames, fieldnames, param)
           call move_alloc(from=tempfields, to=pmh%pc(1)%fi)
         endif
         idx = size(pmh%pc(1)%fi,1)
-        call info('Reading node field from: '//trim(adjustl(filenames(j))))
+        call info('Reading node field "'//trim(adjustl(fieldname))//'" from: '//trim(adjustl(filenames(j))))
         pmh%pc(1)%fi(idx)%name = trim(filename)
         if(allocated(pmh%pc(1)%fi(idx)%param)) deallocate(pmh%pc(1)%fi(idx)%param)
         allocate(pmh%pc(1)%fi(idx)%param(1))      
@@ -106,11 +111,11 @@ subroutine load_dex(pmh, filenames, fieldnames, param)
 end subroutine
 
 
-subroutine save_dex(pmh, infield, outfield, path, param)
+subroutine save_dex(pmh, infieldname, outfieldname, outfieldfile, param)
   type(pmh_mesh),            intent(inout) :: pmh      !PMH mesh
-  character(*), allocatable, intent(in) :: infield(:)  ! In field names
-  character(*), allocatable, intent(in) :: outfield(:) ! Out field names
-  character(*),              intent(in) :: path !file names
+  character(*), allocatable, intent(in) :: infieldname(:)  ! In field names
+  character(*), allocatable, intent(in) :: outfieldname(:)  ! Out field names
+  character(*), allocatable, intent(in) :: outfieldfile(:) ! Out field file name
   real(real64), optional,    intent(in) :: param 
   real(real64),allocatable              :: znod(:,:)
   character(len=maxpath)                :: filename !file names
@@ -118,16 +123,21 @@ subroutine save_dex(pmh, infield, outfield, path, param)
   integer                               :: iu, ios, fidx
   logical                               :: all_f, all_P1
 
-  if(size(infield,1) /= size(outfield,1)) &
-    call error('load_dex/ Filenames and fieldnames dimension must agree')
+
+  if(size(infieldname,1) /= size(outfieldfile,1)) &
+    call error('save_dex/ Filenames and in fieldnames dimension must agree')
+
+  if(allocated(outfieldname) .and. (size(infieldname,1) /= size(outfieldname,1))) &
+    call error('save_dex/ In and out fieldnames dimension must agree')
 
   all_f = .false.
 
-  if(size(infield,1) == 1) all_f = (trim(infield(1)) == '*')
-  if(size(infield,1) == 1 .and. size(outfield,1) == 1) all_f = .true.
+!  if(size(infieldname,1) == 1) all_f = (trim(infieldname(1)) == '*')
+!  if(size(infieldname,1) == 1 .and. size(outfieldfile,1) == 1) all_f = .true.
 
-  do fidx=1, size(infield,1)
-    filename = trim(path)//trim(outfield(fidx))
+  do fidx=1, size(infieldname,1)
+    filename = trim(outfieldfile(fidx))
+    call fix_filename(filename)
 
     pi = 1
     mtdim = 0
@@ -138,13 +148,12 @@ subroutine save_dex(pmh, infield, outfield, path, param)
         if(allocated(znod)) deallocate(znod)
         call build_node_coordinates(pmh%pc(i), i, all_P1, znod)
         do j=1, size(pmh%pc(i)%fi,1)
-          if(trim(infield(fidx)) == trim(pmh%pc(i)%fi(j)%name) .or. all_f) then
+          if(trim(infieldname(fidx)) == trim(pmh%pc(i)%fi(j)%name) .or. all_f) then
             if(.not. allocated(pmh%pc(i)%fi(j)%val)) &
-               &call error("save_dex/ Point field "//trim(infield(fidx))//": not allocated")
-            call fix_filename(pmh%pc(i)%fi(j)%name)
-            if(all_f .and. trim(infield(1)) == '*') &
-              & filename = trim(path)//trim(outfield(1))//'__'//trim(pmh%pc(i)%fi(j)%name)//'.dex'
-            call info('Writing node field to: '//trim(adjustl(filename)))
+               &call error("save_dex/ Point field "//trim(infieldname(fidx))//": not allocated")
+!            call fix_filename(pmh%pc(i)%fi(j)%name)
+!            if(all_f .and. trim(infieldname(1)) == '*') &
+!              & filename = trim(path)//trim(outfieldfile(1))//'__'//trim(pmh%pc(i)%fi(j)%name)//'.dex'
             if(present(param)) then
               do k=1, size(pmh%pc(i)%fi(j)%param,1)
                 if((pmh%pc(i)%fi(j)%param(k)-param)<pmh%ztol) pi = k
@@ -159,8 +168,15 @@ subroutine save_dex(pmh, infield, outfield, path, param)
             if (ios /= 0) call error('save_dex/header, #'//trim(string(ios)))
 
             ! Header
-            write(unit=iu, fmt=*, iostat = ios) &
-              & '# NAME = PIECE'//trim(string(i))// ' FORMULA = '//trim(adjustl(pmh%pc(i)%fi(j)%name))
+            if(allocated(outfieldname)) then
+              call info('Writing node field "'//trim(adjustl(outfieldname(fidx)))//'" to: '//trim(adjustl(filename)))
+              write(unit=iu, fmt=*, iostat = ios) &
+                & '# NAME = PIECE'//trim(string(i))// ' FORMULA = '//trim(adjustl(outfieldname(fidx)))
+            else
+              call info('Writing node field "'//trim(adjustl(pmh%pc(i)%fi(j)%name))//'" to: '//trim(adjustl(filename)))
+              write(unit=iu, fmt=*, iostat = ios) &
+                & '# NAME = PIECE'//trim(string(i))// ' FORMULA = '//trim(adjustl(pmh%pc(i)%fi(j)%name))
+            endif
             if (ios /= 0) call error('save_dex/header, #'//trim(string(ios)))
             write(unit=iu, fmt=*, iostat = ios) &
               & 'NB_REAL = '//trim(string(1))// ' NB_COMP = '//trim(string(size(pmh%pc(i)%fi(j)%val,1)))//&
@@ -188,9 +204,9 @@ subroutine save_dex(pmh, infield, outfield, path, param)
       endif
 
     enddo
-
-  
   enddo
+
+print*, 'Done!'
 end subroutine
 
 subroutine fix_filename(filename)

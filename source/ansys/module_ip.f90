@@ -42,14 +42,14 @@ subroutine load_ip(pmh, filenames, fieldnames, param)
   logical                                   :: is_vector_comp
   type(tempfield), allocatable              :: tfields(:)
 
-  if(size(filenames,1) /= size(fieldnames,1)) &
-    call error('load_ip/ Filenames and fieldnames dimension must agree')
+!  if(size(filenames,1) /= size(fieldnames,1)) &
+!    call error('load_ip/ Filenames and fieldnames dimension must agree')
 
   do j=1, size(filenames,1)
 
     if(size(pmh%pc,1) == 1) then
       filename = trim(filenames(j))
-      fieldname = trim(fieldnames(j))
+!      fieldname = trim(fieldnames(j))
       iu = get_unit()
 
       call info('Reading fields from: '//trim(adjustl(filenames(j))))
