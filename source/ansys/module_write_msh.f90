@@ -284,7 +284,7 @@ type(pmh_mesh), intent(in) :: pmh
 integer,     intent(inout) :: maxref
 real(real64), allocatable, optional, intent(in) :: z(:,:)
 integer :: i, ipp, ip, ig, k, j, l, res, max_tdim, nv, nsv, pos, zone, nedges
-integer :: numfaces, ini, ios
+integer :: numfaces, ini, ios, tempref
 integer, allocatable :: piece2save(:), nver_piece(:), nel_piece(:)
 integer, allocatable ::  refs(:), new_refs(:), aux_refs(:), ie_zones(:)
 character(maxpath) :: str,zone_ch,ini_ch,end_ch,eltype_ch, aux,aux2
@@ -345,18 +345,29 @@ do ipp = 1, size(piece2save,1)
         ! Renumber references
         if(allocated(aux_refs)) deallocate(aux_refs)
         aux_refs = sort(unique(elg%ref))
-        do k = 1, size(aux_refs)
-          maxref = maxref + 1
-          call set(new_refs, maxref, aux_refs(k))
-        enddo
+        aux_refs = pack(aux_refs,aux_refs/=0) ! Remove reference 0
+        if(allocated(aux_refs) .and. size(aux_refs,1)>0) then
+          do k = 1, size(aux_refs)
+            maxref = maxref + 1
+            call set(new_refs, maxref, aux_refs(k))
+          enddo
+        else
+          maxref = maxref+1
+        endif
         do k = 1, elg%nel
            nv = FEDB(elg%type)%lnv
-          call set(auxsver(nv)%tmp, [sort(nver_piece(ipp-1) + elg%mm(:,k)), new_refs(elg%ref(k))], &
+          ! If reference is 0
+          if(elg%ref(k)==0) then 
+            tempref = maxref
+          else
+            tempref = new_refs(elg%ref(k))
+          endif
+          call set(auxsver(nv)%tmp, [sort(nver_piece(ipp-1) + elg%mm(:,k)), tempref], &
                & [(i, i=1,nv+3)], fit=.true.)
           call insert_row_sorted(auxsver(nv)%mmr, auxsver(nv)%tmp, used=auxsver(nv)%n, fit=[.false.,.true.],pos=pos)
 !Nuevo
           sver(nv)%n = auxsver(nv)%n
-          call insert_row(sver(nv)%mmr, [nver_piece(ipp-1) + elg%mm(:,k), new_refs(elg%ref(k)),0,0],&
+          call insert_row(sver(nv)%mmr, [nver_piece(ipp-1) + elg%mm(:,k), tempref,0,0],&
             & abs(pos), maxrow=sver(nv)%n, fit=[.false.,.true.])
         enddo
       end if
@@ -370,14 +381,25 @@ do ipp = 1, size(piece2save,1)
         ! Renumber references
         if(allocated(aux_refs)) deallocate(aux_refs)
         aux_refs = sort(unique(elg%ref))
-        do k = 1, size(aux_refs)
-          maxref = maxref + 1
-          call set(new_refs, maxref, aux_refs(k))
-        enddo
+        aux_refs = pack(aux_refs,aux_refs/=0) ! Remove reference 0
+        if(allocated(aux_refs) .and. size(aux_refs,1)>0) then
+          do k = 1, size(aux_refs)
+            maxref = maxref + 1
+            call set(new_refs, maxref, aux_refs(k))
+          enddo
+        else
+          maxref = maxref+1
+        endif
         if (FEDB(elg%type)%f_type > 0) nsv = FEDB(FEDB(elg%type)%f_type)%lnv !vertices per face (tetr and hexa)
         do k = 1, elg%nel
           do j = 1, FEDB(elg%type)%lnf
             if (FEDB(elg%type)%f_type == 0) nsv = VF_WEDG(j) !vertices per face (wedge)
+            ! If reference is 0
+            if(elg%ref(k)==0) then 
+              tempref = maxref
+            else
+              tempref = new_refs(elg%ref(k))
+            endif
             call set(auxsver(nsv)%tmp, [sort(nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(1:nsv,j),k)), 0], &
                  & [(i, i=1,nsv+3)], fit=.true.)
             call insert_row_sorted(auxsver(nsv)%mmr, auxsver(nsv)%tmp(1:nsv), used=auxsver(nsv)%n, fit=[.false.,.true.], pos=pos) !ref not saved
@@ -385,7 +407,7 @@ do ipp = 1, size(piece2save,1)
             if(pos<0) then
 !Nuevo
               call insert_row(sver(nsv)%mmr, &
-                & [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k),new_refs(elg%ref(k)), nel_piece(ipp)+k], &
+                & [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k),tempref, nel_piece(ipp)+k], &
                 & -pos, maxrow=sver(nsv)%n, fit=[.false.,.true.])
 !              call set(sver(nsv)%mmr, new_refs(elg%ref(k)), -pos, nsv+1, fit=[.true.,.true.])
 !              call set(sver(nsv)%mmr, nel_piece(ipp)+k, -pos, nsv+2, fit=[.true.,.true.])
@@ -409,13 +431,24 @@ print*, '!',nsv,'-', j,k, '-',sver(nsv)%mmr(pos,nsv+2:nsv+3),'-'
         ! Renumber references
         if(allocated(aux_refs)) deallocate(aux_refs)
         aux_refs = sort(unique(elg%ref))
-        do k = 1, size(aux_refs)
-          maxref = maxref + 1
-          call set(new_refs, maxref, aux_refs(k))
-        enddo
+        aux_refs = pack(aux_refs,aux_refs/=0) ! Remove reference 0
+        if(allocated(aux_refs) .and. size(aux_refs,1)>0) then
+          do k = 1, size(aux_refs)
+            maxref = maxref + 1
+            call set(new_refs, maxref, aux_refs(k))
+          enddo
+        else
+          maxref = maxref+1
+        endif
         if (FEDB(elg%type)%e_type > 0) nsv = FEDB(FEDB(elg%type)%e_type)%lnv !vertices per edge
         do k = 1, elg%nel
           do j = 1, FEDB(elg%type)%lne
+            ! If reference is 0
+            if(elg%ref(k)==0) then 
+              tempref = maxref
+            else
+              tempref = new_refs(elg%ref(k))
+            endif
             call set(auxsver(2)%tmp, &
             & [sort(nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%edge(:,j),k)), 0], &
             & [(i, i=1,nsv+3)], .true.)
@@ -425,7 +458,7 @@ print*, '!',nsv,'-', j,k, '-',sver(nsv)%mmr(pos,nsv+2:nsv+3),'-'
             if(pos<0) then
 !Nuevo
               call insert_row(sver(nsv)%mmr, &
-                [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%edge(:,j),k), new_refs(elg%ref(k)), nel_piece(ipp)+k], &
+                [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%edge(:,j),k), tempref, nel_piece(ipp)+k], &
                 & -pos, maxrow=sver(nsv)%n, fit=[.false.,.true.]) !ref not saved
 !              call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+2, fit=[.true.,.true.])
             else
