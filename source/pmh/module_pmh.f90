@@ -25,7 +25,7 @@ module module_pmh
 !   Variable z always contains vertex coordinates (nodes coordinates can be deduced from z and the element type)
 !   Global numbering starts at 1 for elements, vertices and nodes
 !-----------------------------------------------------------------------
-use module_compiler_dependant, only: real64
+use module_compiler_dependant, only: real64, output_unit
 use module_os_dependant, only: maxpath
 use module_report, only: error, info
 use module_convers, only: string, int, dble
@@ -34,6 +34,7 @@ use module_args, only: is_arg, get_post_arg
 use module_feed, only: feed, empty
 use module_fe_database_pmh, only : FEDB, check_fe, VF_WEDG
 use module_set, only: unique
+use module_files, only: get_unit
 implicit none
 
 !Types
@@ -88,14 +89,24 @@ contains
 !-----------------------------------------------------------------------
 ! save_pmh: save pmh
 !-----------------------------------------------------------------------
-subroutine save_pmh(filename, iu, pmh)
+subroutine save_pmh(filename, pmh, with_values)
 character(*),   intent(in) :: filename !mesh filename
-integer,        intent(in) :: iu       !file unit
 type(pmh_mesh), intent(in) :: pmh      !pmh structure
+logical, optional          :: with_values
+integer                    :: iu       !file unit
+logical :: wv
 integer :: i, j, k, ip, ig, ios
 
-open (unit=iu, file=filename, form='formatted', position='rewind', iostat=ios)
-if (ios /= 0) call error('module_pmh/save_pmh: open error #'//trim(string(ios)))
+wv = .true.
+if (present(with_values)) wv = with_values
+
+if(wv) then
+  iu = get_unit()
+  open (unit=iu, file=filename, form='formatted', position='rewind', iostat=ios)
+  if (ios /= 0) call error('module_pmh/save_pmh: open error #'//trim(string(ios)))
+else
+  iu = output_unit
+endif
 write(iu, '(a/)') '<?xml version="1.0" encoding="UTF-8" ?>'
 write(iu, '(a)') '<pmh>'
 do ip = 1, size(pmh%pc,1)
@@ -103,9 +114,11 @@ do ip = 1, size(pmh%pc,1)
   write(iu, '(4x,a)') '<nnod> '//trim(string(pmh%pc(ip)%nnod))//' </nnod>'
   write(iu, '(4x,a)') '<nver> '//trim(string(pmh%pc(ip)%nver))//' </nver>'
   write(iu, '(4x,a)')  '<dim> '//trim(string(pmh%pc(ip)%dim))//' </dim>'
-  write(iu, '(4x,a)') '<z>'
-  do k = 1, pmh%pc(ip)%nver; do j = 1, pmh%pc(ip)%dim; call feed(iu, string(pmh%pc(ip)%z(j,k))); end do; end do; call empty(iu)
-  write(iu, '(4x,a)') '</z>'
+  if(wv) then
+    write(iu, '(4x,a)') '<z>'
+    do k = 1, pmh%pc(ip)%nver; do j = 1, pmh%pc(ip)%dim; call feed(iu, string(pmh%pc(ip)%z(j,k))); end do; end do; call empty(iu)
+    write(iu, '(4x,a)') '</z>'
+  endif
   do ig = 1, size(pmh%pc(ip)%el,1)
     associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
       write(iu, '(4x,a)') '<element_group name="'//trim(string(ig))//'">'
@@ -115,24 +128,114 @@ do ip = 1, size(pmh%pc,1)
       write(iu,    '(a)') trim(FEDB(elg%type)%desc)
       write(iu, '(6x,a)') '</desc>'
 
-      if (allocated(elg%nn)) then
-        write(iu, '(6x,a)') '<nn>'
-        do k = 1, elg%nel; do i = 1, FEDB(tp)%lnn; call feed(iu, string(elg%nn(i,k))); end do; end do; call empty(iu)
-        write(iu, '(6x,a)') '</nn>'
-      end if
-      write(iu, '(6x,a)') '<mm>'
-      do k = 1, elg%nel; do i = 1, FEDB(tp)%lnv; call feed(iu, string(elg%mm(i,k))); end do; end do; call empty(iu)
-      write(iu, '(6x,a)') '</mm>'
-      write(iu, '(6x,a)') '<ref>'
-      do k = 1, elg%nel; call feed(iu, string(elg%ref(k))); end do; call empty(iu)
-      write(iu, '(6x,a)') '</ref>'
+      if(wv) then
+        if (allocated(elg%nn)) then
+          write(iu, '(6x,a)') '<nn>'
+          do k = 1, elg%nel; do i = 1, FEDB(tp)%lnn; call feed(iu, string(elg%nn(i,k))); end do; end do; call empty(iu)
+          write(iu, '(6x,a)') '</nn>'
+        end if
+        write(iu, '(6x,a)') '<mm>'
+        do k = 1, elg%nel; do i = 1, FEDB(tp)%lnv; call feed(iu, string(elg%mm(i,k))); end do; end do; call empty(iu)
+        write(iu, '(6x,a)') '</mm>'
+        write(iu, '(6x,a)') '<ref>'
+        do k = 1, elg%nel; call feed(iu, string(elg%ref(k))); end do; call empty(iu)
+        write(iu, '(6x,a)') '</ref>'
+      endif
       write(iu, '(4x,a)') '</element_group>'
     end associate
   end do
   write(iu, '(2x,a)') '</piece>'
 end do
 write(iu, '(a)') '</pmh>'
-close(iu)
+if(wv) close(iu)
+end subroutine
+
+
+!-----------------------------------------------------------------------
+! save_pmh: save pmh
+!-----------------------------------------------------------------------
+subroutine save_pmh2(filename, pmh, with_values)
+character(*),   intent(in) :: filename !mesh filename
+type(pmh_mesh), intent(in) :: pmh      !pmh structure
+logical, optional          :: with_values
+integer                    :: iu       !file unit
+logical :: wv
+integer :: i, j, k, ip, ig, ifi, ios
+
+wv = .true.
+if (present(with_values)) wv = with_values
+
+if(wv) then
+  iu = get_unit()
+  open (unit=iu, file=filename, form='formatted', position='rewind', iostat=ios)
+  if (ios /= 0) call error('module_pmh/save_pmh: open error #'//trim(string(ios)))
+else
+  iu = output_unit
+endif
+write(iu, '(a/)') '<?xml version="1.0" encoding="UTF-8" ?>'
+write(iu, '(a)') '<pmh>'
+do ip = 1, size(pmh%pc,1)
+  write(iu, '(2x,a)') '<piece name="'//trim(string(ip))//&
+                         & '" nnod="'//trim(string(pmh%pc(ip)%nnod))//&
+                         & '" nver="'//trim(string(pmh%pc(ip)%nver))//&
+                         & '" dim="'//trim(string(pmh%pc(ip)%dim))//'">'
+  if(wv) then
+    write(iu, '(4x,a)') '<z>'
+    do k = 1, pmh%pc(ip)%nver; do j = 1, pmh%pc(ip)%dim; call feed(iu, string(pmh%pc(ip)%z(j,k))); end do; end do; call empty(iu)
+    write(iu, '(4x,a)') '</z>'
+  endif
+  if(allocated(pmh%pc(ip)%fi)) then
+    do ifi=1, size(pmh%pc(ip)%fi,1)
+      if(.not. allocated(pmh%pc(ip)%fi(ifi)%val)) cycle
+      write(iu, '(4x,a)') '<field name="'//trim(pmh%pc(ip)%fi(ifi)%name)//&
+                             & '" ncomp="'//trim(string(size(pmh%pc(ip)%fi(ifi)%val,1)))//&
+                             & '" nshot="'//trim(string(size(pmh%pc(ip)%fi(ifi)%val,3)))//'">'
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Valores del campo
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       write(iu, '(4x,a)') '</field>'
+    enddo
+  endif
+  do ig = 1, size(pmh%pc(ip)%el,1)
+    associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+      write(iu, '(4x,a)') '<element_group name="'//trim(string(ig))//&
+                                     & '" nel="'//trim(string(elg%nel))//&
+                                     & '" type="'//trim(string(elg%type))//'">'
+      write(iu, '(6x,a)') '<desc> '//trim(FEDB(elg%type)%desc)//' </desc>'
+
+      if(wv) then
+        if (allocated(elg%nn)) then
+          write(iu, '(6x,a)') '<nn>'
+          do k = 1, elg%nel; do i = 1, FEDB(tp)%lnn; call feed(iu, string(elg%nn(i,k))); end do; end do; call empty(iu)
+
+          write(iu, '(6x,a)') '</nn>'
+        end if
+        write(iu, '(6x,a)') '<mm>'
+        do k = 1, elg%nel; do i = 1, FEDB(tp)%lnv; call feed(iu, string(elg%mm(i,k))); end do; end do; call empty(iu)
+        write(iu, '(6x,a)') '</mm>'
+        write(iu, '(6x,a)') '<ref>'
+        do k = 1, elg%nel; call feed(iu, string(elg%ref(k))); end do; call empty(iu)
+        write(iu, '(6x,a)') '</ref>'
+      endif
+      if(allocated(elg%fi)) then
+        do ifi=1, size(elg%fi,1)
+          if(.not. allocated(elg%fi(ifi)%val)) cycle
+          write(iu, '(6x,a)') '<field name="'//trim(elg%fi(ifi)%name)//&
+                             & '" ncomp="'//trim(string(size(elg%fi(ifi)%val,1)))//&
+                             & '" nshot="'//trim(string(size(elg%fi(ifi)%val,3)))//'">'
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Valores del campo
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          write(iu, '(6x,a)') '</field>'
+        enddo
+      endif
+      write(iu, '(4x,a)') '</element_group>'
+    end associate
+  end do
+  write(iu, '(2x,a)') '</piece>'
+end do
+write(iu, '(a)') '</pmh>'
+if(wv) close(iu)
 end subroutine
 
 !-----------------------------------------------------------------------
