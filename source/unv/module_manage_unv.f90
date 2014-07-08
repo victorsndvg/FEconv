@@ -49,13 +49,15 @@ end subroutine
 !-----------------------------------------------------------------------
 ! read: read universal file
 !-----------------------------------------------------------------------
-subroutine read_unv(this, pmh, padval, is_opt, ca_opt)
+subroutine read_unv(this, pmh, padval, is_opt, infield, ca_opt)
 
-  type(unv),      intent(in)    :: this   !universal object
-  type(pmh_mesh), intent(inout) :: pmh    !mesh
-  real(real64),   intent(in)    :: padval !Field padding value
-  logical,        intent(in)    :: is_opt !-is option
-  logical,        intent(in)    :: ca_opt !-ca Code Aster option
+  type(unv),                    intent(in) :: this   !universal object
+  type(pmh_mesh),            intent(inout) :: pmh    !mesh
+  real(real64),                 intent(in) :: padval !Field padding value
+  logical,                      intent(in) :: is_opt !-is option
+  character(len=*),allocatable, intent(in) :: infield(:) ! Input field names
+  logical,                      intent(in) :: ca_opt !-ca Code Aster option
+
   integer                       :: maxdim !dimension detected
   integer, allocatable, dimension(:,:) :: els_loc!elements location in pmh structure
   integer :: ios, n, j, i, pgroup(6), fgroup(4),nfield
@@ -100,7 +102,7 @@ subroutine read_unv(this, pmh, padval, is_opt, ca_opt)
     rewind(unit=this%unit, iostat=ios)
     if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
     do while (search_dataset_type(this,fgroup(i)) == 0) 
-      call read_2414(this%unit, pmh, n, nfield, els_loc, fgroup(i), ca_opt,  padval )
+      call read_2414(this%unit, pmh, n, nfield, els_loc, fgroup(i), infield, ca_opt,  padval )
 !      exit ! Not needed, reading multiple fields
     end do
   enddo

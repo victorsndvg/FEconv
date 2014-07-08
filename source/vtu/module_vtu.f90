@@ -358,7 +358,7 @@ end subroutine
 ! filename:   name of a VTU file
 ! pmh:    PMH structure storing the piecewise mesh
 !-----------------------------------------------------------------------
-subroutine save_vtu_pmh(filename, pmh, padval)
+subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval)
 
   type cdfield
     character(len=maxpath)    :: name
@@ -366,17 +366,32 @@ subroutine save_vtu_pmh(filename, pmh, padval)
     real(real64), allocatable :: val(:,:)
   end type
 
-  character(len=*),  intent(in) :: filename
-  type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
-  real(real64),      intent(in) :: padval
+  character(len=*),              intent(in) :: filename
+  type(pmh_mesh),             intent(inout) :: pmh ! pmh_mesh
+  character(len=*),allocatable,  intent(in) :: infield(:)
+  character(len=*),allocatable,  intent(in) :: outfield(:)
+  real(real64),                  intent(in) :: padval
+
+  character(len=maxpath)        :: fieldname
   real(real64), allocatable     :: znod(:,:)
   integer, allocatable          :: connect(:), offset(:), celltypes(:)
   integer, allocatable          :: v_ref(:), e_ref(:), f_ref(:), el_ref(:)
   integer, allocatable          :: uref(:), aux_ref(:)
   type(cdfield), allocatable    :: cdfval(:)
+
   integer :: i, j, k, l, m
   integer :: nnod, nel, tp, lnn, lnv, tnvpc, maxtopdim, nparam
   logical :: all_P1
+
+
+
+  if(allocated(outfield)) then
+    if(allocated(infield)) then
+      if(size(outfield,1) /= size(infield,1)) call error('Number of input/output field names must agree.')
+    elseif(size(outfield,1) /= get_piece_num_fields(pmh%pc(i))) then
+      call error('Number of field names must agree with the number of fields.')
+    endif
+  endif
 
   call VTU_open(trim(filename)) 
   ! Loop in pieces
@@ -526,18 +541,31 @@ subroutine save_vtu_pmh(filename, pmh, padval)
     endif
 
     do j=1, size(pmh%pc(i)%fi,1)
-      call info('    Writing node field: '//trim(pmh%pc(i)%fi(j)%name))
+      if(allocated(outfield)) then
+        if(allocated(infield)) then
+          do k=1,size(infield,1)
+            if(trim(pmh%pc(i)%fi(j)%name) == infield(k)) fieldname = outfield(k)
+          enddo
+        elseif(size(outfield,1) == get_piece_num_fields(pmh%pc(i))) then
+          fieldname = outfield(k)
+        else
+          call error('Number of field names must agree with the number of fields.')
+        endif
+      else
+       fieldname = trim(pmh%pc(i)%fi(j)%name)
+      endif
+      call info('    Writing node field: '//trim(fieldname))
       if(size(pmh%pc(i)%fi(j)%val,1) == 1) then
-        if (vtk_var_xml(nnod, trim(pmh%pc(i)%fi(j)%name), pmh%pc(i)%fi(j)%val(1,1:nnod,nparam)) /= 0) &
-          call error('Writing '//trim(pmh%pc(i)%fi(j)%name))
+        if (vtk_var_xml(nnod, trim(fieldname), pmh%pc(i)%fi(j)%val(1,1:nnod,nparam)) /= 0) &
+          call error('Writing '//trim(fieldname))
       elseif(size(pmh%pc(i)%fi(j)%val,1) == 2) then      
-        if (vtk_var_xml(nnod, trim(pmh%pc(i)%fi(j)%name), &
+        if (vtk_var_xml(nnod, trim(fieldname), &
           pmh%pc(i)%fi(j)%val(1,1:nnod,nparam), pmh%pc(i)%fi(j)%val(2,1:nnod,nparam), (/(real(0,R8P),i=1,nnod)/)) /= 0) &
-          call error('Writing '//trim(pmh%pc(i)%fi(j)%name))
+          call error('Writing '//trim(fieldname))
       elseif(size(pmh%pc(i)%fi(j)%val,1) == 3) then      
-        if (vtk_var_xml(nnod, trim(pmh%pc(i)%fi(j)%name), &
+        if (vtk_var_xml(nnod, trim(fieldname), &
           real(pmh%pc(i)%fi(j)%val(1,1:nnod,nparam),R8P), real(pmh%pc(i)%fi(j)%val(2,1:nnod,nparam),R8P), &
-          real(pmh%pc(i)%fi(j)%val(3,1:nnod,nparam),R8P)) /= 0) call error('Writing '//trim(pmh%pc(i)%fi(j)%name))
+          real(pmh%pc(i)%fi(j)%val(3,1:nnod,nparam),R8P)) /= 0) call error('Writing '//fieldname)
       else
         call info('      Vector field with '// &
           & trim(string(size(pmh%pc(i)%fi(j)%val,1)))//' components not supported. Skipped!')
@@ -602,23 +630,34 @@ subroutine save_vtu_pmh(filename, pmh, padval)
 
     if(allocated(cdfval)) then
       do j=1, size(cdfval,1)
-        call info('    Writing cell field: '//trim(cdfval(j)%name))
+        if(allocated(outfield)) then
+          if(allocated(infield)) then
+            do k=1,size(infield,1)
+              if(trim(cdfval(j)%name) == infield(k)) fieldname = outfield(k)
+            enddo
+          elseif(size(outfield,1) == get_piece_num_fields(pmh%pc(i))) then
+            fieldname = outfield(k)
+          endif
+        else
+          fieldname = trim(cdfval(j)%name)
+        endif
+        call info('    Writing cell field: '//trim(fieldname))
         if(size(cdfval(j)%val,2)<nel) call add(cdfval(j)%val, &
           & (/(padval,k=size(cdfval(j)%val,2),nel*size(cdfval(j)%val,1))/), &
           & (/(k,k=1,size(cdfval(j)%val,1))/), (/(k,k=size(cdfval(j)%val,2),nel)/))!,fit=(/.true.,.true./))
         call reduce(cdfval(j)%val, cdfval(j)%ncomp, nel)
 
         if(size(cdfval(j)%val,1) == 1) then
-          if (vtk_var_xml(nel, trim(cdfval(j)%name), cdfval(j)%val(1,1:nel)) /= 0) &
-            call error('Writing '//trim(cdfval(j)%name))
+          if (vtk_var_xml(nel, trim(fieldname), cdfval(j)%val(1,1:nel)) /= 0) &
+            call error('Writing '//trim(fieldname))
         elseif(size(cdfval(j)%val,1) == 2) then      
-          if (vtk_var_xml(nel, trim(cdfval(j)%name), &
+          if (vtk_var_xml(nel, trim(fieldname), &
             cdfval(j)%val(1,1:nel), cdfval(j)%val(2,1:nel), (/(real(0,R8P),i=1,nel)/)) /= 0) &
-            call error('Writing '//trim(cdfval(j)%name))
+            call error('Writing '//trim(fieldname))
         elseif(size(cdfval(j)%val,1) == 3) then      
-          if (vtk_var_xml(nel, trim(cdfval(j)%name), &
+          if (vtk_var_xml(nel, trim(fieldname), &
             real(cdfval(j)%val(1,1:nel),R8P), real(cdfval(j)%val(2,1:nel),R8P), &
-            real(cdfval(j)%val(3,1:nel),R8P)) /= 0) call error('Writing '//trim(cdfval(j)%name))
+            real(cdfval(j)%val(3,1:nel),R8P)) /= 0) call error('Writing '//trim(fieldname))
         else
           call error('Vector field with '//trim(string(size(cdfval(j)%val,1)))//' components not supported!')
         endif
@@ -1032,18 +1071,25 @@ subroutine read_vtu(filename, pmh, fieldnames)
     uct = uniqueI1P(cell_type)
     if(allocated(pmh%pc(i)%el)) deallocate(pmh%pc(i)%el)
     allocate(pmh%pc(i)%el(size(uct,1)))
-
     if(allocated(cdfval)) then
       do j=1, size(uct,1)
         ncdf = 0
         allocate(pmh%pc(i)%el(j)%fi(size(cdfval,1)))
-        do l=1, size(cdfval,1)
+        do l=1, size(cdfnames,1)
+          if(lcase(cdfnames(l)) == 'element_ref' .or. lcase(cdfnames(l)) == 'face_ref' .or. &
+             lcase(cdfnames(l)) == 'edge_ref') cycle
+          ! if -in option is present, discard unselected fields
+          if(allocated(fieldnames)) then
+            ffound = .false.
+            do k=1, size(fieldnames,1)
+              if(trim(adjustl(cdfnames(l))) == trim(adjustl(fieldnames(k)))) ffound = .true.
+            enddo
+            if(.not. ffound) cycle
+          endif
           ncdf = ncdf + 1
-          if(lcase(cdfnames(j)) == 'element_ref' .or. lcase(cdfnames(j)) == 'face_ref' .or. &
-             lcase(cdfnames(j)) == 'edge_ref') cycle
-          pmh%pc(i)%el(j)%fi(l)%name = trim(cdfnames(ncdf))
-          allocate(pmh%pc(i)%el(j)%fi(l)%param(1))
-          pmh%pc(i)%el(j)%fi(l)%param(1) = 0
+          pmh%pc(i)%el(j)%fi(ncdf)%name = trim(cdfnames(l))
+          allocate(pmh%pc(i)%el(j)%fi(ncdf)%param(1))
+          pmh%pc(i)%el(j)%fi(ncdf)%param(1) = 0
         enddo
       enddo
       if(allocated(cdfnames)) deallocate(cdfnames)

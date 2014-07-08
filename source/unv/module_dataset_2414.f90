@@ -279,22 +279,24 @@ contains
 !-----------------------------------------------------------------------
 ! read: read dataset 2411
 !-----------------------------------------------------------------------
-subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, ca_opt, padval, param)
-integer,               intent(in) :: iu    !unit number for unvfile
-type(pmh_mesh),     intent(inout) :: pmh   !PMH mesh
-integer,               intent(in) :: npc   !Piece number
-integer,            intent(inout) :: nfield   !Piece number
-integer, allocatable, dimension(:,:), intent(in) :: els_loc !Elements location ([elgroup, pos], element label)
-integer,               intent(in) :: dataset
-logical,               intent(in) :: ca_opt
-real(real64),          intent(in) :: padval
-real(real64), optional,intent(in) :: param
-integer, dimension(6)         :: r9
-integer                       :: ios, counter, i, prev_nel
-integer                       :: lbl, dloc, ncomp, fidx, nparam, n_nod, n_el, iexp, n_nod_el
-character(len=maxpath) :: name, aux
-real(real64), allocatable, dimension(:) :: val, tempval
-type(field), allocatable, dimension(:) :: auxfi
+subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, padval,  param)
+ integer,               intent(in) :: iu    !unit number for unvfile
+ type(pmh_mesh),     intent(inout) :: pmh   !PMH mesh
+ integer,               intent(in) :: npc   !Piece number
+ integer,            intent(inout) :: nfield   !Piece number
+ integer, allocatable,  intent(in) :: els_loc(:,:) !Elements location ([elgroup, pos], element label)
+ integer,               intent(in) :: dataset
+ character(len=*),allocatable, intent(in) :: infield(:) ! Input field names
+ logical,               intent(in) :: ca_opt
+ real(real64),          intent(in) :: padval
+ real(real64), optional,intent(in) :: param
+ integer, dimension(:)             :: r9(6),r10(8)
+ integer                           :: ios, counter, i, prev_nel
+ integer :: lbl, dloc, ncomp, fidx, nparam, n_nod, n_el, iexp, n_nod_el
+ character(len=maxpath) :: name, aux
+ real(real64), allocatable, dimension(:) :: val, tempval
+ type(field), allocatable, dimension(:) :: auxfi
+ logical :: found = .true.
 
   ! Single param
   nparam = 1
@@ -363,7 +365,7 @@ type(field), allocatable, dimension(:) :: auxfi
   if(r9(5) == 5) call error('dataset_2414/read, # Complex data not supported') ! Compex data
 
   ! Integer analysis specific data. Record10 & record11
-  read (unit=iu, fmt='(6I10)', iostat = ios) r9; if (ios /= 0) call error('dataset_2414/read')
+  read (unit=iu, fmt='(8I10)', iostat = ios) r10; if (ios /= 0) call error('dataset_2414/read')
   read (unit=iu, fmt=*, iostat = ios) aux; if (ios /= 0) call error('dataset_2414/read')
 
   if(dataset == 2414) then
@@ -372,19 +374,36 @@ type(field), allocatable, dimension(:) :: auxfi
     read (unit=iu, fmt=*, iostat = ios) aux; if (ios /= 0) call error('dataset_2414/read')
   endif
 
+  ! If allocated input field names
+  if(allocated(infield)) then
+    found = .false.
+    ! Check if field is in file
+    do i=1, size(infield,1)
+      if(trim(adjustl(infield(i))) == trim(adjustl(name))) found = .true.
+    enddo
+    ! If field not in field names list, skip.
+    if(.not. found) then
+      do
+        if (is_dataset_delimiter(iu, back=.false.)) return
+        read (unit=iu, fmt=*, iostat = ios) aux
+        if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
+      enddo
+    endif
+  endif
+
   if(dloc == 1) then ! Data at nodes
     ! PMH field structure allocation
     if(.not. allocated(pmh%pc(npc)%fi)) then
       fidx = 1
       allocate(pmh%pc(npc)%fi(fidx))
-      call info('Reading node field: '//trim(adjustl(name)))
+      call info('Reading node field "'//trim(adjustl(name))//'" with record6/9: '//trim(string(r9)))
     else
       fidx = size(pmh%pc(npc)%fi,1)+1
       if(allocated(auxfi)) deallocate(auxfi)
       allocate(auxfi(fidx))
       auxfi(1:size(pmh%pc(npc)%fi,1)) = pmh%pc(npc)%fi(:)
       call move_alloc(from=auxfi, to=pmh%pc(npc)%fi)
-      call info('Reading node field: '//trim(adjustl(name)))
+      call info('Reading node field "'//trim(adjustl(name))//'" with record6/9: '//trim(string(r9)))
     endif
     ! PMH Field structure: name, param and values initilization
     pmh%pc(npc)%fi(fidx)%name = trim(adjustl(name))
@@ -444,7 +463,7 @@ type(field), allocatable, dimension(:) :: auxfi
           if(.not. allocated(elg%fi(fidx)%val)) &
             & allocate(elg%fi(fidx)%val(ncomp,elg%nel,nparam))
           elg%fi(fidx)%val = padval
-          call info('Reading cell field: '//trim(adjustl(name)))
+          call info('Reading cell field "'//trim(adjustl(name))//'" with record6/9: '//trim(string(r9)))
         elseif(fidx < size(elg%fi,1)) then
           fidx = size(elg%fi,1)+1
           if(allocated(auxfi)) deallocate(auxfi)
@@ -463,7 +482,7 @@ type(field), allocatable, dimension(:) :: auxfi
           if(.not. allocated(elg%fi(fidx)%val)) &
             & allocate(elg%fi(fidx)%val(ncomp,elg%nel,nparam))
           elg%fi(fidx)%val = padval
-          call info('Reading cell field: '//trim(adjustl(name)))
+         call info('Reading cell field "'//trim(adjustl(name))//'" with record6/9: '//trim(string(r9)))
         endif
       ! Data. Record15
         if((dataset == 57 .or. dataset == 56) .and. iexp == 2) then ! 2: Data present for only 1st node

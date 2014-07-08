@@ -88,7 +88,7 @@ subroutine load_dex(pmh, filenames, fieldnames, param)
         endif
         idx = size(pmh%pc(1)%fi,1)
         call info('Reading node field "'//trim(adjustl(fieldname))//'" from: '//trim(adjustl(filenames(j))))
-        pmh%pc(1)%fi(idx)%name = trim(filename)
+        pmh%pc(1)%fi(idx)%name = trim(fieldname)
         if(allocated(pmh%pc(1)%fi(idx)%param)) deallocate(pmh%pc(1)%fi(idx)%param)
         allocate(pmh%pc(1)%fi(idx)%param(1))      
         if(present(param)) then 
@@ -124,33 +124,45 @@ subroutine save_dex(pmh, infieldname, outfieldname, outfieldfile, param)
   logical                               :: all_f, all_P1
 
 
-  if(size(infieldname,1) /= size(outfieldfile,1)) &
+  if(allocated(infieldname) .and. size(infieldname,1) /= size(outfieldfile,1)) &
     call error('save_dex/ Filenames and in fieldnames dimension must agree')
 
-  if(allocated(outfieldname) .and. (size(infieldname,1) /= size(outfieldname,1))) &
-    call error('save_dex/ In and out fieldnames dimension must agree')
+  if(allocated(outfieldname) .and. allocated(infieldname) .and. &
+    & (size(infieldname,1) /= size(outfieldname,1))) &
+    & call error('save_dex/ In and out fieldnames dimension must agree ("-in" and "-on" options)')
 
   all_f = .false.
 
 !  if(size(infieldname,1) == 1) all_f = (trim(infieldname(1)) == '*')
 !  if(size(infieldname,1) == 1 .and. size(outfieldfile,1) == 1) all_f = .true.
 
-  do fidx=1, size(infieldname,1)
-    filename = trim(outfieldfile(fidx))
-    call fix_filename(filename)
+!  do fidx=1, size(outfieldfile,1)
+  fidx = 1
 
     pi = 1
     mtdim = 0
 
     do i=1, size(pmh%pc,1)
+      if(allocated(outfieldfile)) then
+        if(size(outfieldfile,1) /= get_piece_num_fields(pmh%pc(i), 'node')) &
+          call error('Number of field file names and node fields must agree')
+      endif
       ! Point data
       if(allocated(pmh%pc(i)%fi)) then
         if(allocated(znod)) deallocate(znod)
         call build_node_coordinates(pmh%pc(i), i, all_P1, znod)
         do j=1, size(pmh%pc(i)%fi,1)
-          if(trim(infieldname(fidx)) == trim(pmh%pc(i)%fi(j)%name) .or. all_f) then
+          filename = trim(outfieldfile(fidx))
+          if(allocated(infieldname)) then
+            do k=1,size(infieldname)
+              if(trim(adjustl(infieldname(k))) == trim(adjustl(pmh%pc(i)%fi(j)%name))) &
+                & filename = trim(adjustl(outfieldfile(k)))
+            enddo
+          endif
+          call fix_filename(filename)
+          if(.true.) then !(trim(infieldname(fidx)) == trim(pmh%pc(i)%fi(j)%name) .or. all_f) then
             if(.not. allocated(pmh%pc(i)%fi(j)%val)) &
-               &call error("save_dex/ Point field "//trim(infieldname(fidx))//": not allocated")
+               &call error("save_dex/ Point field "//trim(pmh%pc(i)%fi(j)%name)//": not allocated")
 !            call fix_filename(pmh%pc(i)%fi(j)%name)
 !            if(all_f .and. trim(infieldname(1)) == '*') &
 !              & filename = trim(path)//trim(outfieldfile(1))//'__'//trim(pmh%pc(i)%fi(j)%name)//'.dex'
@@ -168,7 +180,16 @@ subroutine save_dex(pmh, infieldname, outfieldname, outfieldfile, param)
             if (ios /= 0) call error('save_dex/header, #'//trim(string(ios)))
 
             ! Header
-            if(allocated(outfieldname)) then
+            if(allocated(outfieldname) .and. allocated(infieldname)) then
+              do k=1,size(outfieldname,1)
+                if (trim(adjustl(pmh%pc(i)%fi(j)%name)) == infieldname(k)) then
+                  call info('Writing node field "'//trim(adjustl(outfieldname(k)))//'" to: '//trim(adjustl(filename)))
+                  write(unit=iu, fmt=*, iostat = ios) &
+                    & '# NAME = PIECE'//trim(string(i))// ' FORMULA = '//trim(adjustl(outfieldname(k)))
+                  exit
+                endif
+              enddo
+            elseif(allocated(outfieldname)) then
               call info('Writing node field "'//trim(adjustl(outfieldname(fidx)))//'" to: '//trim(adjustl(filename)))
               write(unit=iu, fmt=*, iostat = ios) &
                 & '# NAME = PIECE'//trim(string(i))// ' FORMULA = '//trim(adjustl(outfieldname(fidx)))
@@ -198,13 +219,14 @@ subroutine save_dex(pmh, infieldname, outfieldname, outfieldfile, param)
                 if (ios /= 0) call error('save_dex/nodes, #'//trim(string(ios)))
               enddo
             endif
+            fidx = fidx + 1 
             close(iu)
           endif
         enddo
       endif
 
     enddo
-  enddo
+!  enddo
 
 print*, 'Done!'
 end subroutine

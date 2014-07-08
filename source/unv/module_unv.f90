@@ -20,7 +20,7 @@ use module_convers, only: string, int, word_count, lcase
 use module_alloc, only: sfind
 use module_set, only: sunique
 use module_args, only: is_arg, get_post_arg
-use module_pmh, only: pmh_mesh, build_vertices, build_node_coordinates
+use module_pmh
 use module_fe_database_pmh, only: FEDB, check_fe
 use module_manage_unv
 use module_mesh
@@ -31,11 +31,12 @@ contains
 !-----------------------------------------------------------------------
 ! load_unv: read a UNV file
 !-----------------------------------------------------------------------
-subroutine load_unv(unvfile, pmh,  padval, is_opt, ca_opt)
+subroutine load_unv(unvfile, pmh,  padval, is_opt, infield, ca_opt)
  character(len=*), intent(in) :: unvfile
  type(pmh_mesh),intent(inout) :: pmh
  real(real64),     intent(in) :: padval
  logical,          intent(in) :: is_opt
+ character(len=*), allocatable, intent(in) :: infield(:)
  logical,          intent(in) :: ca_opt
  type(unv)                    :: u
 
@@ -43,17 +44,19 @@ subroutine load_unv(unvfile, pmh,  padval, is_opt, ca_opt)
   call report_option('level', 'stdout')
   !process universal file
   call open_unv(u, unvfile)
-  call read_unv(u, pmh,  padval, is_opt, ca_opt)
+  call read_unv(u, pmh,  padval, is_opt, infield, ca_opt)
   call build_vertices(pmh)
 end subroutine
 
 !-----------------------------------------------------------------------
 ! save_unv: save a PMH structure into a UNV file
 !-----------------------------------------------------------------------
-subroutine save_unv(filename, iu, pmh, ca_opt)
+subroutine save_unv(filename, iu, pmh, infield, outfield, ca_opt)
   character(*),   intent(in) :: filename !mesh filename
   integer,        intent(in) :: iu       !file unit
   type(pmh_mesh), intent(in) :: pmh      !pmh structure
+  character(len=*), allocatable, intent(in) :: infield(:) !List of input field names
+  character(len=*), allocatable, intent(in) :: outfield(:) !List of output field names
   logical,        intent(in) :: ca_opt
 
   integer :: i, ipp, ip, ig, ios, prev_nel, prev_coord, j, k, idesc, l, ir
@@ -216,7 +219,7 @@ subroutine save_unv(filename, iu, pmh, ca_opt)
   write(iu,'(I6)') -1
 
   !save fields
-  call write_unv_fields(iu, pmh, piece2save, ca_opt)
+  call write_unv_fields(iu, pmh, piece2save, infield, outfield, ca_opt)
 
   close(iu)
 
@@ -225,10 +228,12 @@ end subroutine
 !-----------------------------------------------------------------------
 ! save_unv: save a PMH field into a UNV file
 !-----------------------------------------------------------------------
-subroutine write_unv_fields(iu, pmh, piece2save, ca_opt, dataset, nparam)
+subroutine write_unv_fields(iu, pmh, piece2save, infield, outfield, ca_opt, dataset, nparam)
   integer,         intent(in) :: iu       !file unit
   type(pmh_mesh),  intent(in) :: pmh      !pmh mesh structure
   integer,         intent(in) :: piece2save(:)
+  character(len=*),allocatable, intent(in) :: infield(:) ! List of input field names
+  character(len=*),allocatable, intent(in) :: outfield(:) ! List of output field names
   logical,         intent(in) :: ca_opt   !Code Aster option
   integer,optional,intent(in) :: dataset
   integer,optional,intent(in) :: nparam
@@ -236,6 +241,7 @@ subroutine write_unv_fields(iu, pmh, piece2save, ca_opt, dataset, nparam)
   integer                     :: prev_nel
   integer                     :: i, j, k, l, m
   integer                     :: counter, ds, ncomp, dc, np
+  character(len=maxpath)            :: fieldname
 
   if(present(dataset)) then
     ds = dataset
@@ -250,16 +256,39 @@ subroutine write_unv_fields(iu, pmh, piece2save, ca_opt, dataset, nparam)
   endif
 
 
+
   prev_coord = 0; prev_nel = 0; counter = 0
 
   do i = 1,size(piece2save,1)
     associate(pc => pmh%pc(piece2save(i)))
+      ! Check if exits imposed field names
+      if(allocated(outfield)) then
+        if(allocated(infield)) then
+          if(size(infield,1) /= size(outfield,1)) &
+            & call error('Number of input and output field names must agree.')
+        else
+          if(size(outfield,1) /= get_piece_num_fields(pc)) &
+            & call error('Number of output field names must agree with number of fields.')
+        endif
+      endif
       if(allocated(pc%fi) .and. (ds==2414 .or. ds==55)) then
         if(ca_opt) ds = 55  ! Code Aster option forces to write dataset 55
         ! Node fields
         do j = 1,size(pc%fi,1)
-          call info('Writing node field: '//trim(adjustl(pc%fi(j)%name)))
           counter = counter + 1
+          fieldname =  trim(adjustl(pc%fi(j)%name))
+          ! Check if exits imposed field names
+          if(allocated(outfield)) then
+            if(allocated(infield)) then
+              do k=1,size(infield,1)
+                if(trim(adjustl(pc%fi(j)%name))==trim(adjustl(infield(k)))) &
+                  & fieldname = trim(adjustl(outfield(k))) 
+              enddo
+            else
+              fieldname = trim(adjustl(outfield(k)))
+            endif
+          endif
+          call info('Writing node field: '//trim(adjustl(fieldname)))
           ncomp = size(pc%fi(j)%val,1)
           if(ncomp == 1) then
             dc = 1 ! Scalar
@@ -276,10 +305,10 @@ subroutine write_unv_fields(iu, pmh, piece2save, ca_opt, dataset, nparam)
           write(iu,'(1I6)') ds                                  ! Dataset
           if(ds == 2414) then
             write(iu,'(1I10)') counter                          ! Record1: Analysis dataset label (2414)
-            write(iu,*) trim(adjustl(pc%fi(j)%name))            ! Record2: Analysis dataset name (2414)
+            write(iu,*) trim(adjustl(fieldname))            ! Record2: Analysis dataset name (2414)
             write(iu,'(1I10)') 1                                ! Record3: Dataset location. 1:Data at nodes, 2:Data on elements (2414)
           endif
-          write(iu,*) trim(adjustl(pc%fi(j)%name))              ! Record4: ID line 1 (2414)
+          write(iu,*) trim(adjustl(fieldname))              ! Record4: ID line 1 (2414)
           write(iu,*) 'Double precission floating point'        ! Record5: ID line 2 (2414)
           write(iu,*) 'NONE'                                    ! Record6: ID line 3 (2414)
           write(iu,*) 'NONE'                                    ! Record7: ID line 4 (2414)
@@ -318,8 +347,20 @@ subroutine write_unv_fields(iu, pmh, piece2save, ca_opt, dataset, nparam)
         if(allocated(pc%el(j)%fi) .and. (ds==2414 .or. ds==57)) then
           if(ca_opt) ds = 57
           do k=1, size(pc%el(j)%fi,1)
-            call info('Writing cell field: '//trim(adjustl(pc%el(j)%fi(k)%name)))
             counter = counter + 1
+            fieldname =  trim(adjustl(pc%el(j)%fi(k)%name))
+            ! Check if exits imposed field names
+            if(allocated(outfield)) then
+              if(allocated(infield)) then
+                do l=1,size(infield,1)
+                  if(trim(adjustl(pc%el(j)%fi(k)%name))==trim(adjustl(infield(l)))) &
+                    & fieldname = trim(adjustl(outfield(l))) 
+                enddo
+              else
+                fieldname = trim(adjustl(outfield(counter)))
+              endif
+            endif
+            call info('Writing cell field: '//trim(adjustl(fieldname)))
             ncomp = size(pc%el(j)%fi(k)%val,1)
 
             if(ncomp == 1) then
@@ -339,10 +380,10 @@ subroutine write_unv_fields(iu, pmh, piece2save, ca_opt, dataset, nparam)
             write(iu,'(1I6)') ds                                  ! Dataset
             if(ds == 2414) then
               write(iu,'(1I10)') counter                          ! Record1: Analysis dataset label (2414)
-              write(iu,*) trim(adjustl(pc%el(j)%fi(k)%name))      ! Record2: Analysis dataset name (2414)
+              write(iu,*) trim(adjustl(fieldname))      ! Record2: Analysis dataset name (2414)
               write(iu,'(1I10)') 2                                ! Record3: Dataset location. 1:Data at nodes, 2:Data on elements (2414)
             endif
-            write(iu,*) trim(adjustl(pc%el(j)%fi(k)%name))        ! Record4: ID line 1 (2414)
+            write(iu,*) trim(adjustl(fieldname))        ! Record4: ID line 1 (2414)
             write(iu,*) 'Double precission floating point'        ! Record5: ID line 2 (2414)
             write(iu,*) 'NONE'                                    ! Record6: ID line 3 (2414)
             write(iu,*) 'NONE'                                    ! Record7: ID line 4 (2414)
@@ -350,9 +391,9 @@ subroutine write_unv_fields(iu, pmh, piece2save, ca_opt, dataset, nparam)
             ! Model type, Analysis type, Data characteristic, Result type, Data type, Number of data values for data component
             ! Record9: Unknown, Unknown, dc, User defined, Double precission, ncomp ( Default, 2414)
             if((ca_opt) .and. &
-              & is_ca_field_type(pc%el(j)%fi(k)%name)) then
+              & is_ca_field_type(fieldname)) then
               write(iu,'(6I10)') &
-                & get_ca_field_record9(pc%el(j)%fi(k)%name, (/0,0,dc,1000+counter,4,ncomp/))
+                & get_ca_field_record9(fieldname, (/0,0,dc,1000+counter,4,ncomp/))
             else
               write(iu,'(6I10)') 0,0,dc,1000+counter,4,ncomp        
             endif

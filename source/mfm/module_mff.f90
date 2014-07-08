@@ -136,50 +136,39 @@ print '(a)', 'Done!'
 end subroutine
 
 
-subroutine save_mff(pmh, infieldname, outfieldname, outfield, path, param)
+subroutine save_mff(pmh, outfield, path, param)
   type(pmh_mesh),            intent(inout) :: pmh      !PMH mesh
-  character(*), allocatable, intent(in) :: infieldname(:)  ! In field names
-  character(*), allocatable, intent(in) :: outfieldname(:)  ! In field names
-  character(*), allocatable, intent(in) :: outfield(:) ! Out field names
-  character(*),              intent(in) :: path !file names
+  character(*), allocatable, intent(in) :: outfield(:) ! Out field file names
+  character(*),              intent(in) :: path        !path
   real(real64), optional,    intent(in) :: param 
-  character(len=maxpath)                :: filename !file names
+  character(len=maxpath)                :: filename    !file names
   integer                               :: i,j,k,l,m,pi,mtdim
   integer                               :: iu, ios, fidx
   logical                               :: all_f
 
 
-  if(size(infieldname,1) /= size(outfield,1)) &
-    call error('save_mff/ Filenames and fieldnames dimension must agree')
 
-  if(allocated(outfieldname) .and. size(infieldname,1) /= size(outfieldname,1)) &
-    call error('save_mff/ In and out fieldnames dimension must agree')
+   if(.not. allocated(outfield)) call error('You must specify field with -of option')
 
-  all_f = .false.
+  fidx = 1 ! field number
+!  do fidx=1, 
 
-!  if(size(infield,1) == 1) all_f = (trim(infield(1)) == '*')
-!  if(size(infield,1) == 1 .and. size(outfield,1) == 1) all_f = .true.
-
-  do fidx=1, size(infieldname,1)
-    filename = trim(path)//trim(outfield(fidx))
 
     pi = 1
     mtdim = 0
     do i=1, size(pmh%pc,1)
+      if(allocated(outfield)) then
+        if(size(outfield,1) /= get_piece_num_fields(pmh%pc(i))) &
+          call error('Number of field file names and fields must agree')
+      endif
       ! Point data
       if(allocated(pmh%pc(i)%fi)) then
         do j=1, size(pmh%pc(i)%fi,1)
-          if(trim(infieldname(fidx)) == trim(pmh%pc(i)%fi(j)%name) .or. all_f) then
+          if(.true.) then ! Name control (?). Not used in mff
+            filename = trim(path)//trim(outfield(fidx))
             if(.not. allocated(pmh%pc(i)%fi(j)%val)) &
-               &call error("save_mff/ Point field "//trim(infieldname(fidx))//": not allocated")
-!            call fix_filename(pmh%pc(i)%fi(j)%name)
-!            if(all_f .and. trim(infield(1)) == '*') &
-!              & filename = trim(path)//trim(outfield(1))//'__'//trim(pmh%pc(i)%fi(j)%name)//'.mff'
-            if(allocated(outfieldname)) then
-              call info('Writing node field "'//trim(adjustl(outfieldname(fidx)))//' "to: '//trim(adjustl(filename)))
-            else
-              call info('Writing node field "'//trim(adjustl(infieldname(fidx)))//' "to: '//trim(adjustl(filename)))
-            endif
+               &call error("save_mff/ Point field "//trim(pmh%pc(i)%fi(j)%name)//": not allocated")
+            call info('Writing node field "'//trim(adjustl(pmh%pc(i)%fi(j)%name))//'" to: '//trim(adjustl(filename)))
             if(present(param)) then
               do k=1, size(pmh%pc(i)%fi(j)%param,1)
                 if((pmh%pc(i)%fi(j)%param(k)-param)<pmh%ztol) pi = k
@@ -198,6 +187,7 @@ subroutine save_mff(pmh, infieldname, outfieldname, outfield, path, param)
   !            enddo
             enddo
             close(iu)
+            fidx = fidx + 1 
           endif
         enddo
       endif
@@ -208,17 +198,11 @@ subroutine save_mff(pmh, infieldname, outfieldname, outfield, path, param)
       do j=1, size(pmh%pc(i)%el,1)
         if(mtdim == FEDB(pmh%pc(i)%el(j)%type)%tdim .and. allocated(pmh%pc(i)%el(j)%fi)) then
           do k=1,size(pmh%pc(i)%el(j)%fi,1)
-            if(trim(infieldname(fidx)) == trim(pmh%pc(i)%el(j)%fi(k)%name)) then
+            if(.true.) then ! Name control(?). Not used in mff
+              filename = trim(path)//trim(outfield(fidx))
               if(.not. allocated(pmh%pc(i)%el(j)%fi(k)%val)) &
-                & call error("save_mff/ Cell field "//trim(infieldname(fidx))//": not allocated")
-!              call fix_filename(pmh%pc(i)%el(j)%fi(k)%name)
-!              if(all_f .and. trim(infield(1)) == '*') &
-!                & filename = trim(path)//trim(outfield(1))//'__'//trim(pmh%pc(i)%el(j)%fi(k)%name)//'.mff'
-              if(allocated(outfieldname)) then
-                call info('Writing cell field "'//trim(adjustl(outfieldname(fidx)))//' "to: '//trim(adjustl(filename)))
-              else
-                call info('Writing cell field "'//trim(adjustl(infieldname(fidx)))//' "to: '//trim(adjustl(filename)))
-              endif
+                & call error("save_mff/ Cell field "//trim(pmh%pc(i)%el(j)%fi(k)%name)//": not allocated")
+              call info('Writing cell field "'//trim(adjustl(pmh%pc(i)%el(j)%fi(k)%name))//'" to: '//trim(adjustl(filename)))
               if(present(param)) then
                 do l=1, size(pmh%pc(i)%el(j)%fi(l)%param,1)
                   if((pmh%pc(i)%el(j)%fi(k)%param(l)-param)<pmh%ztol) pi = k
@@ -236,13 +220,15 @@ subroutine save_mff(pmh, infieldname, outfieldname, outfield, path, param)
                   & (pmh%pc(i)%el(j)%fi(k)%val(m,l,pi), m=1, size(pmh%pc(i)%el(j)%fi(k)%val,1) )
                 if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
 !                enddo
-              enddo            
+              enddo   
+              close(iu)   
+              fidx = fidx + 1      
             endif
           enddo
         endif
       enddo
     enddo
-  enddo
+!  enddo
 
 print '(a)', 'Done!'
 

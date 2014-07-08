@@ -80,7 +80,7 @@ integer, parameter, private :: Pc(32,4) = reshape([ &
 
 !Private procedures
 private :: swap, reorder_nodes_element_P2, QJ_pos, detDFT_pos, reorder_nodes_P2, positive_jacobian, &
-           cell2node_real_pmh, get_piece_num_fields, get_piece_max_top_dim
+           cell2node_real_pmh, get_piece_max_top_dim
 
 interface cell2node;     module procedure cell2node_real_pmh;     end interface
 
@@ -164,6 +164,8 @@ integer :: i, j, k, ip, ig, ifi, ios
 
 wv = .true.
 if (present(with_values)) wv = with_values
+
+if(.not. wv) call info('Filename: '//trim(adjustl(filename)))
 
 if(wv) then
   iu = get_unit()
@@ -1353,7 +1355,7 @@ end subroutine
 ! get_piece_num_fields: returns the number of fields at nodes or on cells or all
 !--------------------------------------------------------------------
 function get_piece_num_fields(pc, location) result(res)
-  type(piece),    intent(inout) :: pc
+  type(piece),       intent(in) :: pc
   character(len=*), optional    :: location
   integer                       :: res
   integer                       :: fi_loc !1:node, 2:cell, 3:all

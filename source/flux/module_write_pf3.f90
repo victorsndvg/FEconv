@@ -265,36 +265,48 @@ subroutine write_pf3_node_field(iu, pmh, infield, outfield, path, param)
   singlefield = .false.
   exists = .false.
 
-  if(.not. allocated(infield)) return
+!  if(.not. allocated(infield)) return
 
-  if(size(outfield,1)/=1) then
-    call info('You must specify only one output field. Field will not be saved.')
-    return
+  if(allocated(infield)) then
+    if(size(infield,1) /= 1) then
+      call info('Only one field can be saved in PF3 file.')
+      return
+    endif
+    elseif(allocated(outfield)) then
+      if(size(outfield,1) /= 1) then
+        call info('Only one field can be saved in PF3 file.')
+        return
+      endif
   endif
-  if(size(infield,1) == 1 .and. size(outfield,1) == 1) singlefield = .true.
+
+  singlefield = .true.
   tnnod = 0
 
   do i=1, size(pmh%pc,1)
+    if(.not. allocated(infield) .and. get_piece_num_fields(pmh%pc(i), 'node') /= 1) return
     if(allocated(pmh%pc(i)%fi)) then
       do j=1, size(pmh%pc(i)%fi,1)
-        if(trim(infield(1)) == trim(pmh%pc(i)%fi(j)%name) .or. trim(outfield(1)) == '*') then
-          if(.not. allocated(pmh%pc(i)%fi(j)%val)) call error('write/pf3/node/field # Not allocated!')
-          if(present(param)) then
-            do k=1,size(pmh%pc(i)%fi(j)%param)
-              if(pmh%pc(i)%fi(j)%param(k)-param<pmh%ztol) pindex = k
-            enddo
-          else
-            pindex = 1
-          endif
-          if(trim(outfield(1)) == '*') then
-            fieldname = trim(pmh%pc(i)%fi(j)%name)
-          else
-            fieldname = trim(outfield(1))
-          endif
-          tnnod = tnnod + pmh%pc(i)%nnod
-          ncomp = size(pmh%pc(i)%fi(j)%val,1)
-          exists = .true.
+
+        if(.not. allocated(infield) .and. get_piece_num_fields(pmh%pc(i), 'node') /= 1) return
+        if(allocated(infield)) then
+          if(trim(infield(1)) /= trim(pmh%pc(i)%fi(j)%name)) cycle
         endif
+        if(.not. allocated(pmh%pc(i)%fi(j)%val)) call error('write/pf3/node/field # Not allocated!')
+        if(present(param)) then
+          do k=1,size(pmh%pc(i)%fi(j)%param)
+            if(pmh%pc(i)%fi(j)%param(k)-param<pmh%ztol) pindex = k
+          enddo
+        else
+          pindex = 1
+        endif
+        if(.not. allocated(outfield)) then
+          fieldname = trim(pmh%pc(i)%fi(j)%name)
+        else
+          fieldname = trim(outfield(1))
+        endif
+        tnnod = tnnod + pmh%pc(i)%nnod
+        ncomp = size(pmh%pc(i)%fi(j)%val,1)
+        exists = .true.
       enddo
     endif
   enddo
@@ -315,13 +327,15 @@ subroutine write_pf3_node_field(iu, pmh, infield, outfield, path, param)
   do i=1, size(pmh%pc,1)
     if(allocated(pmh%pc(i)%fi)) then
       do j=1, size(pmh%pc(i)%fi,1)
-        if(trim(infield(1)) == trim(pmh%pc(i)%fi(j)%name) .or. outfield(1) == '*') then
-          if(.not. allocated(pmh%pc(i)%fi(j)%val)) call error('write/pf3/node/field # Not allocated!')
-          do k=1, size(pmh%pc(i)%fi(j)%val,2)
-            write(unit=iu, fmt='(a)', iostat = ios) trim(string(pmh%pc(i)%fi(j)%val(:,k,pindex)))
-            if (ios /= 0) call error('write/pf3/node/field # write error #'//trim(string(ios)))
-          enddo
+        if(.not. allocated(infield) .and. get_piece_num_fields(pmh%pc(i), 'node') /= 1) return
+        if(allocated(infield)) then
+          if(trim(infield(1)) /= trim(pmh%pc(i)%fi(j)%name)) cycle
         endif
+        if(.not. allocated(pmh%pc(i)%fi(j)%val)) call error('write/pf3/node/field # Not allocated!')
+        do k=1, size(pmh%pc(i)%fi(j)%val,2)
+          write(unit=iu, fmt='(a)', iostat = ios) trim(string(pmh%pc(i)%fi(j)%val(:,k,pindex)))
+          if (ios /= 0) call error('write/pf3/node/field # write error #'//trim(string(ios)))
+        enddo
       enddo
     endif
   enddo
