@@ -11,7 +11,7 @@ module module_alloc
 !integer arrays
 use module_alloc_int_r1
 use module_alloc_int_r2
-!!use module_alloc_int_r2_alloc
+use module_alloc_int_r3
 
 !real arrays
 !!use module_alloc_real_r1
@@ -21,11 +21,11 @@ use module_alloc_int_r2
 !real64 arrays
 use module_alloc_real64_r1
 use module_alloc_real64_r2
-!use module_alloc_real64_r2_alloc
+use module_alloc_real64_r3
 
 !character arrays
 use module_alloc_char_r1
-!use module_alloc_char_r2
+use module_alloc_char_r2
 !use module_alloc_char_r2_alloc
 
 !logical arrays

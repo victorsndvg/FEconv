@@ -1291,22 +1291,22 @@ function pmh2vtkcelltype(pmhtype) result(res)
 
 end function
 
-!-----------------------------------------------------------------------
-! PRIVATE PROCEDURES
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-! search_multiple: search the smallest value of 2 to the power of a that is bigger than b
-! 2^n*a > b  <=>  n > log2(b/a)
-!-----------------------------------------------------------------------
-integer function search_multiple(a,b)
-integer, intent(in) :: a, b
-
-if (b > a) then 
-  search_multiple = int(2**real(ceiling(log(real(b)/a)/log(2.)))*a)
-else 
-  search_multiple = a
-end if
-end function 
+!!-----------------------------------------------------------------------
+!! PRIVATE PROCEDURES
+!!-----------------------------------------------------------------------
+!!-----------------------------------------------------------------------
+!! search_multiple: search the smallest value of 2 to the power of a that is bigger than b
+!! 2^n*a > b  <=>  n > log2(b/a)
+!!-----------------------------------------------------------------------
+!integer function search_multiple(a,b)
+!integer, intent(in) :: a, b
+!
+!if (b > a) then 
+!  search_multiple = int(2**real(ceiling(log(real(b)/a)/log(2.)))*a)
+!else 
+!  search_multiple = a
+!end if
+!end function 
 
 
 end module
