@@ -291,8 +291,11 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
  real(real64),          intent(in) :: padval
  real(real64), optional,intent(in) :: param
  integer, dimension(:)             :: r9(6),r10(8)
+ real(real64), dimension(:)        :: r12(6)
  integer                           :: ios, counter, i, prev_nel
- integer :: lbl, dloc, ncomp, fidx, nparam, n_nod, n_el, iexp, n_nod_el
+ integer                           :: nparam
+ real(real64)                      :: paramval
+ integer :: lbl, dloc, ncomp, fidx, n_nod, n_el, iexp, n_nod_el,nval
  character(len=maxpath) :: name, aux
  real(real64), allocatable, dimension(:) :: val, tempval
  type(field), allocatable, dimension(:) :: auxfi
@@ -300,6 +303,7 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
 
   ! Single param
   nparam = 1
+  paramval = 0._real64
   counter = 0
 
   if(dataset == 2414) then 
@@ -336,6 +340,8 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
   read (unit=iu, fmt='(6I10)', iostat = ios) r9
     if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
 
+  if(r9(2) == 3 .or. r9(2) == 3 .or. r9(2) == 7) call error('dataset_2414/read, # Multivaluated parameter not supported') ! Multiple values for param
+
   if(r9(3) == 0) then
     ncomp = 0
   elseif(r9(3) == 1) then
@@ -357,22 +363,28 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
     endif
   endif
 
+
+  if(r9(5) == 5 .or. r9(5) == 6) call error('dataset_2414/read, # Complex data not supported') ! Compex data
+
+  if(dataset == 2414) then
+  ! Integer analysis specific data. Record10 & record11
+    read (unit=iu, fmt='(8I10)', iostat = ios) r10; if (ios /= 0) call error('dataset_2414/read')
+    read (unit=iu, fmt=*, iostat = ios) aux; if (ios /= 0) call error('dataset_2414/read')
+  ! Real analysis specific data. Record12 & record13
+    read (unit=iu, fmt=*, iostat = ios) aux; if (ios /= 0) call error('dataset_2414/read')
+    read (unit=iu, fmt=*, iostat = ios) aux; if (ios /= 0) call error('dataset_2414/read')
+  else
+  ! Integer analysis specific data. Record7 & record8
+    read (unit=iu, fmt='(8I10)', iostat = ios) r10; if (ios /= 0) call error('dataset_2414/read')
+    read (unit=iu, fmt='(6E13.5)', iostat = ios) r12; if (ios /= 0) call error('dataset_2414/read')
+    nparam = r10(4)+1
+    paramval = r12(1)
+  endif
+
   if(allocated(val)) deallocate(val); allocate(val(ncomp))
   if(allocated(tempval)) deallocate(tempval); allocate(tempval(ncomp))
   val = 0._real64
   tempval = 0._real64
-
-  if(r9(5) == 5) call error('dataset_2414/read, # Complex data not supported') ! Compex data
-
-  ! Integer analysis specific data. Record10 & record11
-  read (unit=iu, fmt='(8I10)', iostat = ios) r10; if (ios /= 0) call error('dataset_2414/read')
-  read (unit=iu, fmt=*, iostat = ios) aux; if (ios /= 0) call error('dataset_2414/read')
-
-  if(dataset == 2414) then
-  ! Real analysis specific data. Record12 & record13
-    read (unit=iu, fmt=*, iostat = ios) aux; if (ios /= 0) call error('dataset_2414/read')
-    read (unit=iu, fmt=*, iostat = ios) aux; if (ios /= 0) call error('dataset_2414/read')
-  endif
 
   ! If allocated input field names
   if(allocated(infield)) then
@@ -398,25 +410,37 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
       allocate(pmh%pc(npc)%fi(fidx))
       call info('Reading node field "'//trim(adjustl(name))//'" with record6/9: '//trim(string(r9)))
     else
-      fidx = size(pmh%pc(npc)%fi,1)+1
-      if(allocated(auxfi)) deallocate(auxfi)
-      allocate(auxfi(fidx))
-      auxfi(1:size(pmh%pc(npc)%fi,1)) = pmh%pc(npc)%fi(:)
-      call move_alloc(from=auxfi, to=pmh%pc(npc)%fi)
-      call info('Reading node field "'//trim(adjustl(name))//'" with record6/9: '//trim(string(r9)))
+      found = .false.
+      do i=1, size(pmh%pc(npc)%fi,1)
+        if(trim(adjustl(pmh%pc(npc)%fi(i)%name)) == trim(adjustl(name))) then
+          fidx = i
+          found = .true.
+        endif
+      enddo
+      if(.not. found) then
+        nparam = 1
+        fidx = size(pmh%pc(npc)%fi,1)+1
+        if(allocated(auxfi)) deallocate(auxfi)
+        allocate(auxfi(fidx))
+        auxfi(1:size(pmh%pc(npc)%fi,1)) = pmh%pc(npc)%fi(:)
+        call move_alloc(from=auxfi, to=pmh%pc(npc)%fi)
+        call info('Reading node field "'//trim(adjustl(name))//'" with record6/9: '//trim(string(r9)))
+      else
+        call info('  Reading shot "'//trim(string(nparam))//'" with parameter: '//trim(string(paramval)))
+      endif
     endif
     ! PMH Field structure: name, param and values initilization
     pmh%pc(npc)%fi(fidx)%name = trim(adjustl(name))
-    if(.not. allocated(pmh%pc(npc)%fi(fidx)%param)) &
-      & allocate(pmh%pc(npc)%fi(fidx)%param(nparam))
+
     if(present(param)) then
-      pmh%pc(npc)%fi(fidx)%param(nparam) = param
+      call set(pmh%pc(npc)%fi(fidx)%param,param,nparam,fit=.true.)
     else
-      pmh%pc(npc)%fi(fidx)%param(nparam) = 0._real64
+      call set(pmh%pc(npc)%fi(fidx)%param,paramval,nparam,fit=.true.)
     endif
-    if(.not. allocated(pmh%pc(npc)%fi(fidx)%val)) &
-      & allocate(pmh%pc(npc)%fi(fidx)%val(ncomp,pmh%pc(npc)%nnod,nparam))
-    pmh%pc(npc)%fi(fidx)%val = padval
+
+    call set(pmh%pc(npc)%fi(fidx)%val, (/(padval,i=1,pmh%pc(npc)%nnod*ncomp)/), &
+      & (/(i,i=1,ncomp)/), (/(i,i=1,pmh%pc(npc)%nnod)/), (/nparam/), fit=[.true.,.true.,.true.])
+
     do
       if (is_dataset_delimiter(iu, back=.true.)) exit
     ! Node or element number. Record14
@@ -430,68 +454,83 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
 
     if(pmh%pc(npc)%nnod /= counter) call error('dataset_2414/read, # Wrong number of values')
 
-  elseif(dloc == 2) then ! Data at elements
+  elseif(dloc == 2 .or. dloc == 3) then ! Data at elements
     fidx = 0
     do
       prev_nel = 0
       if (is_dataset_delimiter(iu, back=.true.)) exit
       ! Node or element number. Record14
-      read (unit=iu, fmt='(3I10)', iostat = ios) n_el, iexp, n_nod_el
+      read (unit=iu, fmt='(4I10)', iostat = ios) n_el, iexp, n_nod_el, nval
+
+      if(nval/=0) then
+        n_nod_el = n_nod_el*(nval/6) ! Number of rows with values
+      endif
+
       if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
       ! Count elements in previous groups
       do i=1, els_loc(1,n_el)-1
         if(FEDB(pmh%pc(npc)%el(i)%type)%tdim>0) prev_nel = prev_nel + pmh%pc(npc)%el(i)%nel
       enddo
-      ! 1:data for all nodes, 2:data ofr only 1st node
-!      if((dataset == 57 .or. dataset == 56) .and. iexp /= 2) then
-!        call info('  Data present for all nodes not supported. Skipped!') 
-!        exit
-!      endif
+
       associate(elg => pmh%pc(npc)%el(els_loc(1,n_el)))
-        if(.not. allocated(elg%fi)) then
+        ! Check if field is a serie
+        found = .false.
+        if(allocated(elg%fi)) then
+          do i=1, size(elg%fi,1)
+            if(trim(adjustl(elg%fi(i)%name)) == trim(adjustl(name))) then
+              fidx = i
+              found = .true.
+            endif
+          enddo
+        endif
+
+        if(.not. found .and. .not. allocated(elg%fi)) then
           fidx = 1
+          nparam = 1
           allocate(elg%fi(fidx))
           ! PMH Field structure: name, param and values initilization
           elg%fi(fidx)%name = trim(adjustl(name))
-          if(.not. allocated(elg%fi(fidx)%param)) &
-            & allocate(elg%fi(fidx)%param(nparam))
-          if(present(param)) then
-            elg%fi(fidx)%param(nparam) = param
-          else
-            elg%fi(fidx)%param(nparam) = 0._real64
-          endif
-          if(.not. allocated(elg%fi(fidx)%val)) &
-            & allocate(elg%fi(fidx)%val(ncomp,elg%nel,nparam))
-          elg%fi(fidx)%val = padval
           call info('Reading cell field "'//trim(adjustl(name))//'" with record6/9: '//trim(string(r9)))
-        elseif(fidx < size(elg%fi,1)) then
+          if(.not. allocated(elg%fi(fidx)%param)) allocate(elg%fi(fidx)%param(nparam))
+          if(.not. allocated(elg%fi(fidx)%val)) allocate(elg%fi(fidx)%val(ncomp,elg%nel,nparam))
+          elg%fi(fidx)%param(nparam) = paramval
+          elg%fi(fidx)%val(:,:,nparam) = padval
+        elseif(.not. found .and. (fidx == 0 .or. fidx > size(elg%fi,1))) then
           fidx = size(elg%fi,1)+1
+          nparam = 1
           if(allocated(auxfi)) deallocate(auxfi)
-          allocate(auxfi(fidx))
-          auxfi(1:fidx-1) = elg%fi(:)
-          call move_alloc(from=auxfi, to=elg%fi)
+          call move_alloc(from=elg%fi, to=auxfi)
+          allocate(elg%fi(fidx))
+          elg%fi(1:fidx-1) = auxfi(:)
+          if(allocated(auxfi)) deallocate(auxfi)
           ! PMH Field structure: name, param and values initilization
           elg%fi(fidx)%name = trim(adjustl(name))
-          if(.not. allocated(elg%fi(fidx)%param)) &
-            & allocate(elg%fi(fidx)%param(nparam))
-          if(present(param)) then
-            elg%fi(fidx)%param(nparam) = param
-          else
-            elg%fi(fidx)%param(nparam) = 0._real64
-          endif
-          if(.not. allocated(elg%fi(fidx)%val)) &
-            & allocate(elg%fi(fidx)%val(ncomp,elg%nel,nparam))
-          elg%fi(fidx)%val = padval
-         call info('Reading cell field "'//trim(adjustl(name))//'" with record6/9: '//trim(string(r9)))
+          call info('Reading cell field "'//trim(adjustl(name))//'" with record6/9: '//trim(string(r9)))
+          if(.not. allocated(elg%fi(fidx)%param)) allocate(elg%fi(fidx)%param(nparam))
+          if(.not. allocated(elg%fi(fidx)%val)) allocate(elg%fi(fidx)%val(ncomp,elg%nel,nparam))
+          elg%fi(fidx)%param(nparam) = paramval
+          elg%fi(fidx)%val(:,:,nparam) = padval
         endif
+
+        if(nparam > size(elg%fi(fidx)%param,1) .or. nparam > size(elg%fi(fidx)%val,3)) then
+          if(found) call info('  Reading shot "'//trim(string(nparam))//'" with parameter: '//trim(string(paramval)))
+          if(present(param)) then
+            call set(elg%fi(fidx)%param,param,nparam,fit=.true.)
+          else
+            call set(elg%fi(fidx)%param,paramval,nparam,fit=.true.)
+          endif
+          call set(elg%fi(fidx)%val, (/(padval,i=1,elg%nel*ncomp)/), &
+            & (/(i,i=1,ncomp)/), (/(i,i=1,elg%nel)/), (/nparam/), fit=[.true.,.true.,.true.])
+        endif
+
       ! Data. Record15
         if((dataset == 57 .or. dataset == 56) .and. iexp == 2) then ! 2: Data present for only 1st node
           read (unit=iu, fmt=*, iostat = ios) elg%fi(fidx)%val(:,n_el-prev_nel,nparam)
           if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
-        elseif((dataset == 57 .or. dataset == 56) .and. iexp == 1) then ! 1: Data present for all nodes
+        elseif(((dataset == 57 .or. dataset == 56) .and. iexp == 1) .or. dloc == 3) then ! 1: Data present for all nodes
           val = 0._real64
           do i=1,n_nod_el
-            read (unit=iu, fmt=*, iostat = ios) tempval
+            read (unit=iu, fmt='('//trim(string(ncomp))//'E13.5)', iostat = ios) tempval
             if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
             val = val + tempval
           enddo
@@ -503,7 +542,6 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
       end associate
     end do
 
-
   else
     call error('dataset_2414/read, # Data at elements not implemented yet')
   endif
@@ -512,7 +550,7 @@ end subroutine
 
 !-----------------------------------------------------------------------
 ! is_ca_field_type(): returns true if input string is a field type identifier
-! Field identifiers (record6 (55-56-57) or record9 (2414) are a list of 8I10.
+! Field identifiers (record6 (55-56-57) or record9 (2414) are a list of 6I10.
 !-----------------------------------------------------------------------
 function is_ca_field_type(str) result(res)
   character(len=*), intent(in) :: str
@@ -539,14 +577,19 @@ function is_ca_field_type(str) result(res)
 end function
 
 !-----------------------------------------------------------------------
-! get_ca_field_type(): returns true if input string is a field type identifier
-! Field identifiers (record6 (55-56-57) or record9 (2414) are a list of 8I10.
+! get_ca_field_type(): returns Code Aster field name if input string is a field type identifier
+! Field identifiers (record6 (55-56-57) or record9 (2414) are a list of 6I10.
 !-----------------------------------------------------------------------
-function get_ca_field_name(str, inname) result(fname)
+function get_ca_field_name(str, inname, verbose) result(fname)
   character(len=*),          intent(in) :: str
   character(len=*),optional, intent(in) :: inname
+  logical,         optional, intent(in) :: verbose
   character(len=maxpath)                :: fname
+  logical                               :: vbs
   integer                               :: ios, ints(6)
+
+  vbs = .false.
+  if(present(verbose)) vbs=verbose
 
   if(.true.) then ! Code aster flag
     select case(trim(adjustl(lcase(str))))
@@ -571,35 +614,35 @@ function get_ca_field_name(str, inname) result(fname)
           read(unit=str, fmt=*, iostat = ios) ints
           if(ios == 0) then
             if(    all(ints == (/1,4,3, 8,2,6/))) then ! Displacement Code Aster field
-              if(present(inname)) &
+              if(vbs .and. present(inname)) &
                 & call info('  Field name '//trim(inname)//' changed to '//'DEPL')
               fname = 'DEPL'; return
             elseif(all(ints == (/1,4,3,11,2,6/))) then ! Velocity Code Aster field
-              if(present(inname)) &
+              if(vbs .and. present(inname)) &
                 & call info('  Field name '//trim(inname)//' changed to '//'VITE')
               fname = 'VITE'; return
             elseif(all(ints == (/1,4,3,12,2,6/))) then ! Acceleration Code Aster field
-              if(present(inname)) &
+              if(vbs .and. present(inname)) &
                 & call info('  Field name '//trim(inname)//' changed to '//'ACCE')
               fname = 'ACCE'; return
             elseif(all(ints == (/2,4,1, 5,2,1/))) then ! Temperature Code Aster field
-              if(present(inname)) &
+              if(vbs .and. present(inname)) &
                 & call info('  Field name '//trim(inname)//' changed to '//'TEMP')
               fname = 'TEMP'; return
             elseif(all(ints == (/1,4,3, 0,2,6/))) then ! VARI_ELNO Code Aster field
-              if(present(inname)) &
+              if(vbs .and. present(inname)) &
                 & call info('  Field name '//trim(inname)//' changed to '//'VARI_ELNO')
               fname = 'VARI_ELNO'; return
             elseif(all(ints == (/1,4,4, 3,2,6/))) then ! EPSA_ELNO Code Aster field
-              if(present(inname)) &
+              if(vbs .and. present(inname)) &
                 & call info('  Field name '//trim(inname)//' changed to '//'EPSA_ELNO')
               fname = 'EPSA_ELNO'; return
             elseif(all(ints == (/1,4,4, 2,2,6/))) then ! SIEF_ELNO Code Aster field
-              if(present(inname)) &
+              if(vbs .and. present(inname)) &
                 & call info('  Field name '//trim(inname)//' changed to '//'SIEF_ELNO')
               fname = 'SIEF_ELNO'; return
             elseif(all(ints == (/1,4,1,15,2,1/))) then ! Pressure Code Aster field
-              if(present(inname)) &
+              if(vbs .and. present(inname)) &
                 & call info('  Field name '//trim(inname)//' changed to '//'PRES')
               fname = 'PRES'; return
             else
@@ -617,8 +660,8 @@ function get_ca_field_name(str, inname) result(fname)
 end function
 
 !-----------------------------------------------------------------------
-! get_ca_field_record9(): returns true if input string is a field type identifier
-! Field identifiers (record6 (55-56-57) or record9 (2414) are a list of 8I10.
+! get_ca_field_record9(): returns field type identifies if input string is a code aster field name
+! Field identifiers (record6 (55-56-57) or record9 (2414) are a list of 6I10.
 !-----------------------------------------------------------------------
 function get_ca_field_record9(str, inrecord) result(ints)
   character(len=*),          intent(in) :: str
