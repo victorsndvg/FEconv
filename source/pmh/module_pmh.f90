@@ -1258,7 +1258,7 @@ subroutine cell2node_real_pmh(pmh)
   type(field), allocatable      :: tempfields(:)
   integer, allocatable          :: cell4node(:,:)
   integer :: n_nod_fi,n_cell_fi, maxtopdim
-  integer :: ip,ig,ifi,np
+  integer :: ip,ig,ifi,np, nshots
   integer :: ncomp, lnn, nel, i, j, k, l
 
   np = 1 ! Only in the first parammeter
@@ -1305,14 +1305,15 @@ subroutine cell2node_real_pmh(pmh)
               & call error('Not allocated field '//trim(string(ifi))// &
                 & ' in piece '//trim(string(ip))//' group '//trim(string(ig)))
             ncomp = size(elg%fi(ifi)%val,1)
+            nshots = size(elg%fi(ifi)%param,1)
             ! Allocate field values, parameters and assign field name.
             if(.not. allocated(pc%fi(n_nod_fi+ifi)%val)) then
-              allocate(pc%fi(n_nod_fi+ifi)%val(ncomp,pc%nnod,1))
+              allocate(pc%fi(n_nod_fi+ifi)%val(ncomp,pc%nnod,nshots))
               pc%fi(n_nod_fi+ifi)%val = 0._real64
               pc%fi(n_nod_fi+ifi)%name = trim(elg%fi(ifi)%name)
               call info('  Field: '//trim(elg%fi(ifi)%name))
-              if(.not. allocated(pc%fi(n_nod_fi+ifi)%param)) allocate(pc%fi(n_nod_fi+ifi)%param(1))
-              pc%fi(n_nod_fi+ifi)%param(1) = elg%fi(ifi)%param(np)
+              if(.not. allocated(pc%fi(n_nod_fi+ifi)%param)) allocate(pc%fi(n_nod_fi+ifi)%param(nshots))
+              pc%fi(n_nod_fi+ifi)%param(1:nshots) = elg%fi(ifi)%param(1:nshots)
             endif
             ! Calculate values at nodes
             do k = 1, nel
@@ -1323,15 +1324,15 @@ subroutine cell2node_real_pmh(pmh)
                   i = elg%nn(j,k)
                 endif
                 cell4node(ifi,i) = cell4node(ifi,i) + 1
-                do l = 1, ncomp
-                  pc%fi(n_nod_fi+ifi)%val(l,i,np) = &
-                    & pc%fi(n_nod_fi+ifi)%val(l,i,np) + elg%fi(ifi)%val(l,k,np)
+                do np = 1, nshots
+                  pc%fi(n_nod_fi+ifi)%val(:,i,np) = &
+                    & pc%fi(n_nod_fi+ifi)%val(:,i,np) + elg%fi(ifi)%val(:,k,np)
                 enddo
               enddo
             enddo
             do j = 1, pc%nnod
-              do i = 1, ncomp
-                pc%fi(n_nod_fi+ifi)%val(i,j,1) = pc%fi(n_nod_fi+ifi)%val(i,j,1)/cell4node(ifi,j)
+              do np = 1, nshots
+                pc%fi(n_nod_fi+ifi)%val(:,j,np) = pc%fi(n_nod_fi+ifi)%val(:,j,np)/cell4node(ifi,j)
               enddo
             enddo
           enddo
