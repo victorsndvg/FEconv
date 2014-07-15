@@ -304,6 +304,7 @@ subroutine write_pf3_node_field(iu, pmh, infield, outfield, path, param)
         else
           fieldname = trim(outfield(1))
         endif
+        call replace(fieldname, ' ', '_')
         tnnod = tnnod + pmh%pc(i)%nnod
         ncomp = size(pmh%pc(i)%fi(j)%val,1)
         exists = .true.

@@ -118,7 +118,7 @@ subroutine save_dex(pmh, infieldname, outfieldname, outfieldfile, param)
   character(*), allocatable, intent(in) :: outfieldfile(:) ! Out field file name
   real(real64), optional,    intent(in) :: param 
   real(real64),allocatable              :: znod(:,:)
-  character(len=maxpath)                :: filename !file names
+  character(len=maxpath)                :: filename, fieldname !file names
   integer                               :: i,j,k,l,m,pi,mtdim
   integer                               :: iu, ios, fidx
   logical                               :: all_f, all_P1
@@ -183,22 +183,22 @@ subroutine save_dex(pmh, infieldname, outfieldname, outfieldfile, param)
             if(allocated(outfieldname) .and. allocated(infieldname)) then
               do k=1,size(outfieldname,1)
                 if (trim(adjustl(pmh%pc(i)%fi(j)%name)) == infieldname(k)) then
-                  call info('Writing node field "'//trim(adjustl(outfieldname(k)))//'" to: '//trim(adjustl(filename)))
-                  write(unit=iu, fmt=*, iostat = ios) &
-                    & '# NAME = PIECE'//trim(string(i))// ' FORMULA = '//trim(adjustl(outfieldname(k)))
+                  fieldname = trim(adjustl(outfieldname(k)))
                   exit
                 endif
               enddo
             elseif(allocated(outfieldname)) then
-              call info('Writing node field "'//trim(adjustl(outfieldname(fidx)))//'" to: '//trim(adjustl(filename)))
-              write(unit=iu, fmt=*, iostat = ios) &
-                & '# NAME = PIECE'//trim(string(i))// ' FORMULA = '//trim(adjustl(outfieldname(fidx)))
+              fieldname = trim(adjustl(outfieldname(fidx)))
             else
-              call info('Writing node field "'//trim(adjustl(pmh%pc(i)%fi(j)%name))//'" to: '//trim(adjustl(filename)))
-              write(unit=iu, fmt=*, iostat = ios) &
-                & '# NAME = PIECE'//trim(string(i))// ' FORMULA = '//trim(adjustl(pmh%pc(i)%fi(j)%name))
+              fieldname = trim(adjustl(pmh%pc(i)%fi(j)%name))
             endif
+            call fix_filename(fieldname)
+
+            call info('Writing node field "'//trim(adjustl(fieldname))//'" to: '//trim(adjustl(filename)))
+            write(unit=iu, fmt=*, iostat = ios) &
+              & '# NAME = PIECE'//trim(string(i))// ' FORMULA = '//trim(adjustl(fieldname))
             if (ios /= 0) call error('save_dex/header, #'//trim(string(ios)))
+
             write(unit=iu, fmt=*, iostat = ios) &
               & 'NB_REAL = '//trim(string(1))// ' NB_COMP = '//trim(string(size(pmh%pc(i)%fi(j)%val,1)))//&
               & ' NB_POINT = '//trim(string(size(pmh%pc(i)%fi(j)%val,2)))//' #'
