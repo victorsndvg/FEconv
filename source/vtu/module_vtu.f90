@@ -567,8 +567,11 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval)
           real(pmh%pc(i)%fi(j)%val(1,1:nnod,nparam),R8P), real(pmh%pc(i)%fi(j)%val(2,1:nnod,nparam),R8P), &
           real(pmh%pc(i)%fi(j)%val(3,1:nnod,nparam),R8P)) /= 0) call error('Writing '//fieldname)
       else
-        call info('      Vector field with '// &
-          & trim(string(size(pmh%pc(i)%fi(j)%val,1)))//' components not supported. Skipped!')
+!        call info('      Vector field with '// &
+!          & trim(string(size(pmh%pc(i)%fi(j)%val,1)))//' components not supported. Skipped!')
+        if( vtk_var_xml(nnod,size(pmh%pc(i)%fi(j)%val,1),trim(fieldname),&
+          & reshape(transpose(pmh%pc(i)%fi(j)%val(:,1:nnod,nparam)),(/nnod, size(pmh%pc(i)%fi(j)%val,1)/)) ) /= 0) &
+            & call error('Writing '//fieldname)
       endif
     enddo
 
@@ -659,7 +662,10 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval)
             real(cdfval(j)%val(1,1:nel),R8P), real(cdfval(j)%val(2,1:nel),R8P), &
             real(cdfval(j)%val(3,1:nel),R8P)) /= 0) call error('Writing '//trim(fieldname))
         else
-          call error('Vector field with '//trim(string(size(cdfval(j)%val,1)))//' components not supported!')
+          if( vtk_var_xml(nel, size(cdfval(j)%val,1), trim(fieldname),&
+            & reshape(transpose(cdfval(j)%val(:,:)),(/nel, size(cdfval(j)%val,1)/)) ) /= 0) &
+              & call error('Writing '//fieldname)
+!          call error('Vector field with '//trim(string(size(cdfval(j)%val,1)))//' components not supported!')
         endif
       enddo
     endif 
