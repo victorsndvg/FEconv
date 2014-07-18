@@ -13,6 +13,9 @@ module module_pmh
 !   build_vertices: build vertex connectivities and coordinates from node information (P1, P2 only)
 !   build_node_coordinates: build node coordinates from vertex information
 !   cell2node: calculate a node field form a cell one
+!   get_field_num_shots: returns the number of shots giving a field name
+!   get_num_shots: returns an array with the number of shots of all fields
+
 !
 ! REMARKS:
 !   A mesh is divided into pieces 
@@ -191,7 +194,7 @@ do ip = 1, size(pmh%pc,1)
       if(.not. allocated(pmh%pc(ip)%fi(ifi)%val)) cycle
       write(iu, '(4x,a)') '<field name="'//trim(pmh%pc(ip)%fi(ifi)%name)//&
                              & '" ncomp="'//trim(string(size(pmh%pc(ip)%fi(ifi)%val,1)))//&
-                             & '" nshot="'//trim(string(size(pmh%pc(ip)%fi(ifi)%val,3)))//'">'
+                             & '" nshot="'//trim(string(size(pmh%pc(ip)%fi(ifi)%param,1)))//'">'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Valores del campo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -224,7 +227,7 @@ do ip = 1, size(pmh%pc,1)
           if(.not. allocated(elg%fi(ifi)%val)) cycle
           write(iu, '(6x,a)') '<field name="'//trim(elg%fi(ifi)%name)//&
                              & '" ncomp="'//trim(string(size(elg%fi(ifi)%val,1)))//&
-                             & '" nshot="'//trim(string(size(elg%fi(ifi)%val,3)))//'">'
+                             & '" nshot="'//trim(string(size(elg%fi(ifi)%param,1)))//'">'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Valores del campo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1412,5 +1415,80 @@ function get_piece_max_top_dim(pc) result(res)
   endif
 
 end function
+
+!--------------------------------------------------------------------
+! get_field_num_shots: returns the number of shots for a given fieldname
+!--------------------------------------------------------------------
+function get_field_num_shots(pmh,fieldname) result(res)
+  type(pmh_mesh),    intent(in) :: pmh
+  character(len=*),  intent(in) :: fieldname
+  integer                       :: res
+  integer                       :: ip, ig, ifi
+
+  res = 0
+
+  do ip=1,size(pmh%pc) 
+    ! node fields 
+    if(allocated(pmh%pc(ip)%fi)) then
+      do ifi=1, size(pmh%pc(ip)%fi,1)
+        if(trim(adjustl(pmh%pc(ip)%fi(ifi)%name)) == trim(adjustl(fieldname))) then
+          res = size(pmh%pc(ip)%fi(ifi)%param,1)
+          return
+        endif
+      enddo
+    endif
+
+    ! cell fields
+    if(allocated(pmh%pc(ip)%el)) then
+      do ig=1,size(pmh%pc(ip)%el,1)
+        if(allocated(pmh%pc(ip)%el(ig)%fi)) then
+          do ifi=1, size(pmh%pc(ip)%el(ig)%fi,1)
+            if(trim(adjustl(pmh%pc(ip)%el(ig)%fi(ifi)%name)) == trim(adjustl(fieldname))) then
+              res = size(pmh%pc(ip)%el(ig)%fi(ifi)%param,1)
+              return
+            endif
+          enddo
+        endif
+      enddo
+    endif
+
+  enddo
+
+end function
+
+!--------------------------------------------------------------------
+! get_num_shots: returns an array with the number of shots of all fields
+!--------------------------------------------------------------------
+function get_num_shots(pmh) result(res)
+  type(pmh_mesh),    intent(in) :: pmh
+  integer, allocatable          :: res(:)
+  integer                       :: ip, ig, ifi, nfield
+
+  nfield = 0
+  do ip=1,size(pmh%pc) 
+    ! node fields 
+    if(allocated(pmh%pc(ip)%fi)) then
+      do ifi=1, size(pmh%pc(ip)%fi,1)
+        nfield = nfield + 1
+        call set(res, size(pmh%pc(ip)%fi(ifi)%param,1), nfield, fit=.true.)
+      enddo
+    endif
+
+    ! cell fields
+    if(allocated(pmh%pc(ip)%el)) then
+      do ig=1,size(pmh%pc(ip)%el,1)
+        if(allocated(pmh%pc(ip)%el(ig)%fi)) then
+          do ifi=1, size(pmh%pc(ip)%el(ig)%fi,1)
+            nfield = nfield + 1
+            call set(res, size(pmh%pc(ip)%el(ig)%fi(ifi)%param,1), nfield, fit=.true.)
+          enddo
+        endif
+      enddo
+    endif
+
+  enddo
+
+end function
+
 
 end module
