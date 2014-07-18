@@ -83,8 +83,10 @@ real(real64)              :: padval
 nargs = args_count()
 
  if(is_arg('-l')) then
-   infile = get_arg(nargs); p = index( infile, '.', back=.true.); &
-       & inmesh =  infile(1:p-1);  inext =  lcase(infile(p+1:len_trim( infile)))
+   infile = get_post_arg('-l')
+   p = index( infile, '.', back=.true.)
+   inmesh =  infile(1:p-1)
+   inext =  lcase(infile(p+1:len_trim( infile)))
  else
    infile = get_arg(nargs-1); p = index( infile, '.', back=.true.); &
        & inmesh =  infile(1:p-1);  inext =  lcase(infile(p+1:len_trim( infile)))
