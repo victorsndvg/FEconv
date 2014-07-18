@@ -108,8 +108,8 @@ if(.not. is_arg('-l')) then
 endif
 
 !check isoparametric option, for UNV only
-if (trim(adjustlt(inext)) /= 'unv' .and. is_arg('-is')) call error('(module_feconv/fe_conv) only UNV input files can '//&
-&'manage -is option.')
+!if (trim(adjustlt(inext)) /= 'unv' .and. is_arg('-is')) call error('(module_feconv/fe_conv) only UNV input files can '//&
+!&'manage -is option.')
 !options for mesh transformation (-l1, -l2, -rt, -nd and -cm) are incompatible with fields (-if, -of)
 if ( (is_arg('-l1') .or. is_arg('-l2') .or. is_arg('-rt') .or. is_arg('-nd') .or. is_arg('-cm')) .and. &
      (is_arg('-if') .or. is_arg('-of')) ) call error('(module_feconv/fe_conv) options for mesh transformation (-l1, -l2, '//&
@@ -445,7 +445,7 @@ case('msh')
   print '(a)', 'Done!'
 case('unv')
   print '(a)', 'Loading UNV mesh file...'
-  call load_unv(infile, pmh, padval, is_arg('-is'), infieldname, is_arg('-ca')); is_pmh = .true.
+  call load_unv(infile, pmh, padval, infieldname, is_arg('-ca')); is_pmh = .true.
   print '(a)', 'Done!'
 case('bdf')
   print '(a)', 'Loading MD Nastran input file...'

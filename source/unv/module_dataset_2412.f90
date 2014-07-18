@@ -64,7 +64,7 @@ use module_fe_database_pmh, only:FEDB, check_fe
 implicit none
 
 !Private procedures
-private :: check_and_set, reorder_nodes, find_prv, swap
+private :: check_and_set, reorder_nodes, reorder_nodes_pmh, find_prv, swap
 
 contains
 
@@ -74,126 +74,111 @@ contains
 !-----------------------------------------------------------------------
 ! read: read dataset 2412
 !-----------------------------------------------------------------------
-subroutine read_2412(iu, pc, maxdim, els_loc, is_opt)
+subroutine read_2412(iu, pc, maxdim, els_loc)
+integer,              intent(in)    :: iu           !unit number for unvfile
+type(piece),          intent(inout) :: pc           !piece
+integer,              intent(inout) :: maxdim       !maximum founded dimension
+integer, allocatable, intent(out)   :: els_loc(:,:) !([elgroup, pos], element label)
+integer :: ios, Field1, Field2, F3, F4, F5, Field6, F1, F2, i, d, gcounter
+integer, allocatable :: nn(:) , elsingroup(:)
+type(piece) :: auxpiece
+logical :: fit(2)
 
-  integer,                                intent(in) :: iu     !unit number for unvfile
-  type(piece),                         intent(inout) :: pc  !piece
-  integer,                             intent(inout) :: maxdim !maximum founded dimension
-  integer, allocatable, dimension(:,:),  intent(out) :: els_loc ! ([elgroup, pos], element label)
-  logical,                                intent(in) :: is_opt !-is option
-  integer, allocatable, dimension(:)                 :: elsingroup
-  type(piece)                                        :: auxpiece
-  integer :: ios, Field1, Field2, F3, F4, F5, Field6, F1, F2, i, d, gcounter
-  integer, allocatable, dimension(:) :: nn !node numbers
-  logical :: fit(2)
+call info('Reading mesh connectivities...')
+maxdim = 0
+gcounter = 1
+if(.not. allocated(elsingroup)) allocate(elsingroup(size(FE_DB,1)))
+elsingroup = 0
+call FE_DB_init() !initialize FE database
 
-  call info('Reading mesh connectivities ...')
-
-  maxdim = 0
-  gcounter = 1
-  if(.not. allocated(elsingroup)) allocate(elsingroup(size(FE_DB,1)))
-  elsingroup = 0
-  call FE_DB_init() !initialize FE database
-!  if(.not. allocated(m))  call error('dataset_2412/read, mesh(es) not allocated')
-  do
-    if (is_dataset_delimiter(iu, back=.true.)) exit
-
-!   Record 1
-    read (unit=iu, fmt='(6I10)', iostat = ios) &
-    Field1, & !element label
-    Field2, & !fe descriptor id
-    F3,     & !physical property table number
-    F4,     & !material property table number
-    F5,     & !color
-    Field6    !number of nodes on element
+do
+  if (is_dataset_delimiter(iu, back=.true.)) exit
+  !record 1
+  read (unit=iu, fmt='(6I10)', iostat = ios) &
+  Field1, & !element label
+  Field2, & !fe descriptor id
+  F3,     & !physical property table number
+  F4,     & !material property table number
+  F5,     & !color
+  Field6    !number of nodes on element
+  if (ios /= 0) call error('dataset_2412/read, #'//trim(string(ios)))
+  !check whether the FE is in the database
+  if (len_trim(FE_DB(Field2)%desc)==0) &
+  call error('dataset_2412/read, fe descriptor id '//trim(string(Field2))//' not implemented')
+  d = FE_DB(Field2)%DIM
+  maxdim = max(maxdim, d)
+  !assign element group by element type
+  if(elsingroup(Field2) == 0) then
+    elsingroup(Field2) = gcounter
+    gcounter = gcounter + 1
+  endif
+  !allocate pc%el 
+  if(.not. allocated(pc%el)) then 
+    allocate(pc%el(elsingroup(Field2)))
+    pc%el(elsingroup(Field2))%type = &
+    & check_fe(FE_DB(Field2)%LNN==FE_DB(Field2)%LNV, FE_DB(Field2)%LNN, &
+    & FE_DB(Field2)%LNV, FE_DB(Field2)%LNE, FE_DB(Field2)%LNF)
+    call info('  Element type: '//trim(FEDB(pc%el(elsingroup(Field2))%type)%desc))
+  endif
+  !extend pc%el
+  if(size(pc%el,1) < elsingroup(Field2)) then
+    if(allocated(auxpiece%el)) deallocate(auxpiece%el)
+    allocate(auxpiece%el(elsingroup(Field2)))
+    auxpiece%el(1:size(pc%el,1)) = pc%el(:)
+    call move_alloc(from=auxpiece%el,to=pc%el)
+    pc%el(elsingroup(Field2))%type = &
+    & check_fe(FE_DB(Field2)%LNN==FE_DB(Field2)%LNV, FE_DB(Field2)%LNN, &
+    & FE_DB(Field2)%LNV, FE_DB(Field2)%LNE, FE_DB(Field2)%LNF)
+    call info('  Element type: '//trim(FEDB(pc%el(elsingroup(Field2))%type)%desc))
+  endif
+  
+  !record 2:  *** FOR BEAM ELEMENTS ONLY ***
+  if (FE_DB(Field2)%Beam) then
+    read (unit=iu, fmt='(3I10)', iostat = ios) &
+    F1, & !beam orientation node number
+    F2, & !beam fore-end cross section number
+    F3    !beam  aft-end cross section number
     if (ios /= 0) call error('dataset_2412/read, #'//trim(string(ios)))
+  end if
+  !record 2 (FOR NON-BEAM ELEMENTS) or 3 (FOR BEAM ELEMENTS ONLY)
+  call alloc(nn, FE_DB(Field2)%LNN)
+  read (unit=iu, fmt='(8I10)', iostat = ios) &
+  (nn(i), i = 1, FE_DB(Field2)%LNN) !Fields 1-n    -- node labels defining element
+  !call reorder_nodes_pmh(pc%z, pc%el(elsingroup(Field2))%type, nn, is_opt)
+  fit = [.true., .false.]
+  pc%el(elsingroup(Field2))%nel = pc%el(elsingroup(Field2))%nel + 1
+  call set_col(pc%el(elsingroup(Field2))%nn, nn, pc%el(elsingroup(Field2))%nel, fit)
+  call set_col(els_loc, [elsingroup(Field2), pc%el(elsingroup(Field2))%nel], Field1, fit)
+  if (ios /= 0) call error('dataset_2412/read, #'//trim(string(ios)))
+end do
 
-!   check whether the FE is in the database
-    if (len_trim(FE_DB(Field2)%desc)==0) &
-    call error('dataset_2412/read, fe descriptor id '//trim(string(Field2))//' not implemented')
-    d = FE_DB(Field2)%DIM
-    maxdim = max(maxdim, d)
-
-    ! Assign element group by element type
-    if(elsingroup(Field2) == 0) then
-      elsingroup(Field2) = gcounter
-      gcounter = gcounter + 1
-    endif
-
-    ! Allocate pc%el 
-    if(.not. allocated(pc%el)) then 
-      allocate(pc%el(elsingroup(Field2)))
-      pc%el(elsingroup(Field2))%type = &
-        & check_fe(FE_DB(Field2)%LNN==FE_DB(Field2)%LNV, FE_DB(Field2)%LNN, &
-        & FE_DB(Field2)%LNV, FE_DB(Field2)%LNE, FE_DB(Field2)%LNF)
-      call info('  Element type: '//trim(FEDB(pc%el(elsingroup(Field2))%type)%desc))
-    endif
-
-    ! Extend pc%el
-    if(size(pc%el,1) < elsingroup(Field2)) then
-      if(allocated(auxpiece%el)) deallocate(auxpiece%el)
-      allocate(auxpiece%el(elsingroup(Field2)))
-      auxpiece%el(1:size(pc%el,1)) = pc%el(:)
-      call move_alloc(from=auxpiece%el,to=pc%el)
-      pc%el(elsingroup(Field2))%type = &
-        & check_fe(FE_DB(Field2)%LNN==FE_DB(Field2)%LNV, FE_DB(Field2)%LNN, &
-        & FE_DB(Field2)%LNV, FE_DB(Field2)%LNE, FE_DB(Field2)%LNF)
-      call info('  Element type: '//trim(FEDB(pc%el(elsingroup(Field2))%type)%desc))
-    endif
-    
-!   Record 2:  *** FOR BEAM ELEMENTS ONLY ***
-    if (FE_DB(Field2)%Beam) then
-      read (unit=iu, fmt='(3I10)', iostat = ios) &
-      F1, & !beam orientation node number
-      F2, & !beam fore-end cross section number
-      F3    !beam  aft-end cross section number
-      if (ios /= 0) call error('dataset_2412/read, #'//trim(string(ios)))
-    end if
-
-!   Record 2 (FOR NON-BEAM ELEMENTS) or 3 (FOR BEAM ELEMENTS ONLY)
-    call alloc(nn, FE_DB(Field2)%LNN)
-    read (unit=iu, fmt='(8I10)', iostat = ios) &
-    (nn(i), i = 1, FE_DB(Field2)%LNN) !Fields 1-n    -- node labels defining element
-    call reorder_nodes_pmh(pc%z, pc%el(elsingroup(Field2))%type, nn, is_opt)
-    fit = [.true., .false.]
-    pc%el(elsingroup(Field2))%nel = pc%el(elsingroup(Field2))%nel + 1
-    call set_col(pc%el(elsingroup(Field2))%nn, nn, pc%el(elsingroup(Field2))%nel,fit)
-
-    call set_col(els_loc, [elsingroup(Field2),pc%el(elsingroup(Field2))%nel], Field1,fit)
-
-    if (ios /= 0) call error('dataset_2412/read, #'//trim(string(ios)))
-  end do
-
-  do i=1, size(pc%el,1)
-    call reduce(pc%el(i)%nn, FEDB(pc%el(i)%type)%lnn, pc%el(i)%nel)
-    allocate(pc%el(i)%ref(pc%el(i)%nel))
-    pc%el(i)%ref = 0
-  enddo
+do i=1, size(pc%el,1)
+  call reduce(pc%el(i)%nn, FEDB(pc%el(i)%type)%lnn, pc%el(i)%nel)
+  allocate(pc%el(i)%ref(pc%el(i)%nel))
+  pc%el(i)%ref = 0
+enddo
 end subroutine
 
 !***********************************************************************
 ! PRIVATE PROCEDURES
 !***********************************************************************
 !-----------------------------------------------------------------------
-! check_and_set: check whether x and y differs; if not assigns y to x
+! check_and_set (unused): check whether x and y differs; if not assigns y to x
 !-----------------------------------------------------------------------
 subroutine check_and_set(str, x, y)
-  character(len=*), intent(in) :: str
-  integer,          intent(inout) :: x
-  integer,          intent(in)    :: y
+character(len=*), intent(in) :: str
+integer,          intent(inout) :: x
+integer,          intent(in)    :: y
 
-!  if (y == 0) then
-!    call error('dataset_2412/read/check_and_set, fe has null '//str//' in database')
-  if (x>0 .and. x/=y) then
-    call error('dataset_2412/read/check_and_set, '//str//' mesh differs from Field6')
-  else
-    x = y
-  end if
-
+if (x>0 .and. x/=y) then
+  call error('dataset_2412/read/check_and_set, '//str//' mesh differs from Field6')
+else
+  x = y
+end if
 end subroutine
 
 !-----------------------------------------------------------------------
-! reorder_nodes: reorder nn to obtain vertices first and counter-clockwise orientation
+! reorder_nodes (unused): reorder nn to obtain vertices first and counter-clockwise orientation
 ! REMARK: only valid for non-isoparametric triangles (P1 & P2) and tetrahedra (P1 & P2)
 !-----------------------------------------------------------------------
 subroutine reorder_nodes(mx, m, nn, is_opt)
@@ -222,8 +207,8 @@ elseif (m%LNN /= m%LNV) then
           if (l /= i) then
             if ( maxval(abs((mx%xd(:,nn(j))+mx%xd(:,nn(l)))/2-mx%xd(:,nn(i)))) < 1e3*epsilon(mx%xd) ) cycle NODES
             !the check: maxval(abs(mx%xd(:,nn(j))-mx%xd(:,nn(l)))) > 1e3*epsilon(mx%xd), to see whether (j,l) is a singular egde
-            ! is not made anymore; instead of that, when the number of non mid-points is greater then LNV, an error arises to warn
-            ! that P2 elements are isoparametrical
+            !is not made anymore; instead of that, when the number of non mid-points is greater then LNV, an error arises to warn
+            !that P2 elements are isoparametrical
           end if
         end do
       end if
@@ -275,10 +260,8 @@ end if
 
 end subroutine
 
-
-
 !-----------------------------------------------------------------------
-! reorder_nodes: reorder nn to obtain vertices first and counter-clockwise orientation
+! reorder_nodes_pmh (unused): reorder nn to obtain vertices first and counter-clockwise orientation
 ! REMARK: only valid for non-isoparametric triangles (P1 & P2) and tetrahedra (P1 & P2)
 !-----------------------------------------------------------------------
 subroutine reorder_nodes_pmh(z, eltype, nn, is_opt)
@@ -315,8 +298,8 @@ elseif (lnn /= lnv) then
           if (l /= i) then
             if ( maxval(abs((z(:,nn(j))+z(:,nn(l)))/2-z(:,nn(i)))) < 1e3*epsilon(0._real64) ) cycle NODES
             !the check: maxval(abs(z(:,nn(j))-z(:,nn(l)))) > 1e3*epsilon(0._real64), to see whether (j,l) is a singular egde
-            ! is not made anymore; instead of that, when the number of non mid-points is greater then LNV, an error arises to warn
-            ! that P2 elements are isoparametrical
+            !is not made anymore; instead of that, when the number of non mid-points is greater then LNV, an error arises to warn
+            !that P2 elements are isoparametrical
           end if
         end do
       end if
@@ -368,9 +351,8 @@ end if
 
 end subroutine
 
-
 !-----------------------------------------------------------------------
-! find (not  used): find the first occurrence of a value in a vector
+! find (unused): find the first occurrence of a value in a vector
 !-----------------------------------------------------------------------
 function find_prv(v) result(res)
 logical, dimension(:), intent(in) :: v
