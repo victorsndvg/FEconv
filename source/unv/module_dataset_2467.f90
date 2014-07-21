@@ -63,28 +63,21 @@ contains
 ! read: read dataset 2467
 ! REMARK: dataset 2467 must be read after 2412 
 !-----------------------------------------------------------------------
-subroutine read_2467(iu, pc, els_loc)
-integer,                              intent(in) :: iu   !unit number for unvfile
-type(piece),                       intent(inout) :: pc    !PMH piece
-integer, allocatable, dimension(:,:), intent(in) :: els_loc !Elements location
-type(elgroup), allocatable, dimension(:)         :: auxelgroup 
-integer :: ios, Field1, F2, F3, F4, F5, F6, F7, Field8, p, j, pos, k, m, n_elgroup
-integer, dimension(2):: etc, tag
-character(len=MAXPATH) :: gname
+subroutine read_2467(iu, pc, eloc)
+integer,              intent(in)    :: iu        !unit number for unvfile
+type(piece),          intent(inout) :: pc        !PMH piece
+integer, allocatable, intent(in)    :: eloc(:,:) !element locations
+integer :: ios, Field1, F2, F3, F4, F5, F6, F7, Field8, p, j, pos, k, m, etc(2), tag(2), neg
+character(maxpath) :: gname
+type(elgroup), allocatable :: eg(:) 
 
-  call info('Reading mesh references ...')
-
+call info('Reading mesh references...')
 if(.not. allocated(pc%el)) call error('dataset_2467/read, meshes not allocated')
-n_elgroup = size(pc%el,1) ! Number of element groups without vertex groups
-!call alloc(groups, d+1)
-!call alloc(m(d)%rv, m(d)%LNV, m(d)%nl)
-!call alloc(m(d)%re, m(d)%LNE, m(d)%nl)
-!call alloc(m(d)%rf, m(d)%LNF, m(d)%nl)
-!call alloc(m(d)%rl, m(d)%nl);         
+neg = size(pc%el,1) !number of element groups without vertex groups
+
 do
   if (is_dataset_delimiter(iu, back=.true.)) exit
-
-! Record 1
+  !record 1
   read (unit=iu, fmt='(8I10)', iostat = ios) &
   Field1, & !group number
   F2,     & !active constraint set no. for group
@@ -95,11 +88,13 @@ do
   F7,     & !active contact set no. for group
   Field8    !number of entities in group
   if (ios /= 0) call error('dataset_2467/read, #'//trim(string(ios)))
-! Record 2
+
+  !record 2
   read (unit=iu, fmt='(A40)', iostat = ios) gname !group name
   if (ios /= 0) call error('dataset_2467/read, #'//trim(string(ios)))
-    call info('  Reference number '//trim(string(Field1))//', associated with group named "'//trim(gname)//'"')
-! Record 3-N
+  call info('  Reference number '//trim(string(Field1))//', associated with group named "'//trim(gname)//'"')
+
+  !record 3-N
   if (Field8 == 0) then !si Field8 = 0, lectura vacia
     read (unit=iu, fmt=*, iostat = ios) (F2, p=1,Field8)
     if (ios /= 0) call error('dataset_2467/read, #'//trim(string(ios)))
@@ -112,27 +107,25 @@ do
     F4,      j = 1, 2 - dim(2*p, Field8)) !dim(x,y) = max(x-y, 0)
     do j = 1, 2 - dim(2*p, Field8)
       if (etc(j) == 8) then !8 => finite elements
-        pc%el(els_loc(1,tag(j)))%ref(els_loc(2,tag(j))) = Field1
+        pc%el(eloc(1,tag(j)))%ref(eloc(2,tag(j))) = Field1
       elseif (etc(j) == 7) then !7 => nodes
         ! Create node group
-        if(size(pc%el,1) == n_elgroup) then
-          allocate(auxelgroup(n_elgroup+1))
-          auxelgroup(1:n_elgroup) = pc%el(:)
-          call move_alloc(from=auxelgroup, to=pc%el)
-          pc%el(n_elgroup+1)%type = check_fe(.true.,1,1,0,0)
-          if(.not. allocated(pc%el(n_elgroup+1)%nn)) allocate(pc%el(n_elgroup+1)%nn(1,pc%nnod))
-          if(.not. allocated(pc%el(n_elgroup+1)%ref)) allocate(pc%el(n_elgroup+1)%ref(pc%nnod))
-          pc%el(n_elgroup+1)%nn(1,:) = (/(m,m=1,pc%nnod)/)
-          pc%el(n_elgroup+1)%ref = 0
-          pc%el(n_elgroup+1)%nel = pc%nnod
+        if(size(pc%el,1) == neg) then
+          allocate(eg(neg+1))
+          eg(1:neg) = pc%el(:)
+          call move_alloc(from=eg, to=pc%el)
+          pc%el(neg+1)%type = check_fe(.true.,1,1,0,0)
+          if(.not. allocated(pc%el(neg+1)%nn))  allocate(pc%el(neg+1)%nn(1,pc%nnod))
+          if(.not. allocated(pc%el(neg+1)%ref)) allocate(pc%el(neg+1)%ref(pc%nnod))
+          pc%el(neg+1)%nn(1,:) = [(m, m=1,pc%nnod)]
+          pc%el(neg+1)%ref = 0
+          pc%el(neg+1)%nel = pc%nnod
         endif
-        pc%el(n_elgroup+1)%ref(tag(j)) = Field1
+        pc%el(neg+1)%ref(tag(j)) = Field1
       end if
     end do
   end do
 end do
-
-
 end subroutine
 
 !***********************************************************************
@@ -153,7 +146,6 @@ elseif (size(u,1)==3) then
   if (v(2) > v(3)) call swap(v(2), v(3))
   if (v(1) > v(2)) call swap(v(1), v(2))
 end if
-
 end function
 
 !-----------------------------------------------------------------------
@@ -164,7 +156,6 @@ integer, intent(inout) :: u, v
 integer :: tmp
 
 tmp = u; u = v; v = tmp
-
 end subroutine
 
 end module

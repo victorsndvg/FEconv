@@ -16,8 +16,8 @@ implicit none
 !Types
 type unv
   private
-  character(len=MAXPATH) :: filename = ' ' !file name
-  integer                :: UNIT     = -1  !associated unit number
+  character(maxpath) :: filename = ' ' !file name
+  integer            :: UNIT     = -1  !associated unit number
 end type
 
 !Private module procedures
@@ -32,7 +32,6 @@ contains
 ! open: open universal file
 !-----------------------------------------------------------------------
 subroutine open_unv(this, filename)
-
 type(unv)                    :: this     !unv object
 character(len=*), intent(in) :: filename !unv file
 integer :: ios
@@ -49,68 +48,64 @@ end subroutine
 !-----------------------------------------------------------------------
 ! read: read universal file
 !-----------------------------------------------------------------------
-subroutine read_unv(this, pmh, padval, is_opt, infield, ca_opt)
+subroutine read_unv(this, pmh, padval, infield, ca_opt)
+type(unv),                intent(in)    :: this       !universal object
+type(pmh_mesh),           intent(inout) :: pmh        !mesh
+real(real64),             intent(in)    :: padval     !field padding value
+character(*),allocatable, intent(in)    :: infield(:) !input field names
+logical,                  intent(in)    :: ca_opt     !-ca Code Aster option
+integer :: maxdim !dimension detected
+integer, allocatable :: eloc(:,:) !elements location in pmh structure
+integer :: ios, n, j, i, pgroup(6), fgroup(4),nfield
+logical :: fit(2)
 
-  type(unv),                    intent(in) :: this   !universal object
-  type(pmh_mesh),            intent(inout) :: pmh    !mesh
-  real(real64),                 intent(in) :: padval !Field padding value
-  logical,                      intent(in) :: is_opt !-is option
-  character(len=*),allocatable, intent(in) :: infield(:) ! Input field names
-  logical,                      intent(in) :: ca_opt !-ca Code Aster option
+if(.not. allocated(pmh%pc)) allocate(pmh%pc(1))
+n = size(pmh%pc,1)
 
-  integer                       :: maxdim !dimension detected
-  integer, allocatable, dimension(:,:) :: els_loc!elements location in pmh structure
-  integer :: ios, n, j, i, pgroup(6), fgroup(4),nfield
-  logical :: fit(2)
+!dataset 2411, node coordinates
+rewind(unit=this%unit, iostat=ios)
+if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
+if (search_dataset_type(this,2411) /= 0) then
+  if (search_dataset_type(this,781) /= 0) then  
+    call error('unv/read, dataset 2411 or 781 not found')
+  else
+    continue
+  end if
+end if          
+call read_2411(this%unit, pmh%pc(n))
 
-  if(.not. allocated(pmh%pc)) allocate(pmh%pc(1))
-  n = size(pmh%pc,1)
+!dataset 2412, elements
+rewind(unit=this%unit, iostat=ios)
+if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
+if (search_dataset_type(this,2412) /= 0) call error('unv/read, dataset 2412 not found')
+call read_2412(this%unit, pmh%pc(n), maxdim, eloc)
 
-! dataset 2411, node coordinates
+!datasets for permanent groups, several numbers (see pgroup)
+pgroup = [2467, 2477, 2452, 2435, 2432, 2430]
+do i = 1, size(pgroup,1)
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
-  if (search_dataset_type(this,2411) /= 0) then
-    if (search_dataset_type(this,781) /= 0) then  
-      call error('unv/read, dataset 2411 or 781 not found')
-    else
-      continue
-    end if
-  end if          
-  call read_2411(this%unit, pmh%pc(n))
+  if (search_dataset_type(this,pgroup(i)) == 0) then
+    call read_2467(this%unit, pmh%pc(n), eloc)
+    exit
+  end if
+end do
 
-! dataset 2412, elements
+!datasets for fields, several numbers (see fgroup)
+fgroup = [2414, 55, 56, 57]
+nfield = 0
+do i = 1, size(fgroup,1)
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
-  if (search_dataset_type(this,2412) /= 0) call error('unv/read, dataset 2412 not found')
-  call read_2412(this%unit, pmh%pc(n), maxdim, els_loc, is_opt)
-
-! datasets for permanent groups, several numbers (see pgroup)
-  pgroup = [2467, 2477, 2452, 2435, 2432, 2430]
-  do i = 1, size(pgroup,1)
-    rewind(unit=this%unit, iostat=ios)
-    if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
-    if (search_dataset_type(this,pgroup(i)) == 0) then
-      call read_2467(this%unit, pmh%pc(n), els_loc)
-      exit
-    end if
+  do while (search_dataset_type(this,fgroup(i)) == 0) 
+    call read_2414(this%unit, pmh, n, nfield, eloc, fgroup(i), infield, ca_opt,  padval )
+    !exit not needed, reading multiple fields
   end do
+enddo
 
-! datasets for fields, several numbers (see fgroup)
-  fgroup = [2414, 55, 56, 57]
-  nfield = 0
-  do i = 1, size(fgroup,1)
-    rewind(unit=this%unit, iostat=ios)
-    if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
-    do while (search_dataset_type(this,fgroup(i)) == 0) 
-      call read_2414(this%unit, pmh, n, nfield, els_loc, fgroup(i), infield, ca_opt,  padval )
-!      exit ! Not needed, reading multiple fields
-    end do
-  enddo
-
-! close file
-  close(unit=this%unit, iostat=ios)
-  if (ios /= 0) call error('univ_file/close, #'//trim(string(ios)))
-
+!close file
+close(unit=this%unit, iostat=ios)
+if (ios /= 0) call error('univ_file/close, #'//trim(string(ios)))
 end subroutine
 
 !***********************************************************************
@@ -123,17 +118,15 @@ end subroutine
 !         >0 if an error occurs
 !-----------------------------------------------------------------------
 function search_dataset_delimiter(this) result(res)
+type(unv), intent(in) :: this !universal file
+integer :: res, val
 
-  type(unv), intent(in) :: this !universal file
-  integer :: res, val
-
-  do
-    read (unit=this%unit, fmt='(I6)', iostat=res) val
-!   find EOF or '-1', then return
-    if (res<0 .or. val==-1) return
-!   res>0 when reading chars, then cycle
-  end do
-
+do
+  read (unit=this%unit, fmt='(I6)', iostat=res) val
+  !find EOF or '-1', then return
+  if (res<0 .or. val==-1) return
+  !res>0 when reading chars, then cycle
+end do
 end function
 
 !-----------------------------------------------------------------------
@@ -143,26 +136,24 @@ end function
 !         >0 if an error occurs
 !-----------------------------------------------------------------------
 function search_dataset_type(this, ds) result(res)
+type(unv), intent(in) :: this !universal object
+integer,   intent(in) :: ds   !dataset type
+integer :: res, dsnumber
 
-  type(unv), intent(in) :: this !universal object
-  integer,   intent(in) :: ds   !dataset type
-  integer :: res, dsnumber
-
-  do
-    res = search_dataset_delimiter(this) 
-    if (res /= 0) return
-!   read the type of dataset
-    read (unit=this%unit, fmt='(I6)', iostat=res) dsnumber
-    if (res /= 0) call error('unv/search_dataset_type, #'//trim(string(res)))
-    if (dsnumber == ds) exit
-    res = search_dataset_delimiter(this)
-    if (res /= 0) return
-  enddo
-
+do
+  res = search_dataset_delimiter(this) 
+  if (res /= 0) return
+  !read the type of dataset
+  read (unit=this%unit, fmt='(I6)', iostat=res) dsnumber
+  if (res /= 0) call error('unv/search_dataset_type, #'//trim(string(res)))
+  if (dsnumber == ds) exit
+  res = search_dataset_delimiter(this)
+  if (res /= 0) return
+enddo
 end function
 
 !-----------------------------------------------------------------------
-! create_vertex_data: create iv and xv from id and xd
+! create_vertex_data (unused): create iv and xv from id and xd
 !-----------------------------------------------------------------------
 subroutine create_vertex_data(m)
 type(mfm_mesh), intent(inout) :: m !mesh
@@ -220,7 +211,6 @@ else
    call alloc(m%xv, m%DIM, m%nv)
    m%xv(1:m%DIM,1:m%nv) = m%xd(1:m%DIM,1:m%nv)
 end if
-
 end subroutine
 
 end module

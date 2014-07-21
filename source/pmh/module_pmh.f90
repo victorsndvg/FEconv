@@ -923,7 +923,7 @@ character(maxpath) :: reorder_type
 !check what type of reorder must be applied
 if (is_arg('-r')) then
   select case(get_post_arg('-r'))
-  case('hard', 'soft', 'salome') !recognized options
+  case('hard', 'soft', 'sandwich') !recognized options
     reorder_type = get_post_arg('-r')
   case default
     call error('(module_pmh/reorder_nodes) option -r not recognized: '//trim(get_post_arg('-r'))//&
@@ -972,7 +972,7 @@ do ip = 1, size(pmh%pc,1)
           do k = 1, elg%nel
             elg%nn(inew(:),k) = elg%nn(:,k)
           end do
-        case('salome') !node order is the one prescribed by Salome: vert. and mid-points sandwiched
+        case('sandwich') !node order is the one prescribed by SALOME: vert. and mid-points sandwiched
           do k = 1, elg%nel
             elg%nn([1,3,2],k) = elg%nn(:,k)
           end do
@@ -997,7 +997,7 @@ do ip = 1, size(pmh%pc,1)
           do k = 1, elg%nel
             elg%nn(:,k) = elg%nn(inew(:),k)
           end do
-        case('salome') !node order is the one prescribed by Salome for isoparam. P2 triangles: vert. and mid-points sandwiched
+        case('sandwich') !node order is the one prescribed by SALOME for isoparam. P2 triangles: vert. and mid-points sandwiched
           do k = 1, elg%nel
             if(tp == check_fe(.false.,  6, 3, 3, 0)) then
               elg%nn([1,4,2,5,3,6],k) = elg%nn(:,k)                !Tria P2
@@ -1026,7 +1026,7 @@ do ip = 1, size(pmh%pc,1)
           do k = 1, elg%nel
             elg%nn(:,k) = elg%nn(inew(:),k)
           end do
-        case('salome') !node order is the one prescribed by Salome for isoparam. P2 triangles: vert. and mid-points sandwiched
+        case('sandwich') !node order is the one prescribed by SALOME for isoparam. P2 triangles: vert. and mid-points sandwiched
           do k = 1, elg%nel
             if(tp == check_fe(.false., 10, 4,  6, 4)) then
               elg%nn([1,5,2,6,3,7,8,9,10,4],k) = elg%nn(:,k)                                ! Tetra  P2
@@ -1064,7 +1064,6 @@ NODES: do i = 1, FEDB(tp)%lnn !nodes
       do l = j+1, FEDB(tp)%lnn !second possible vertex
         if (l /= i) then
           if ( maxval(abs((z(:,elg%nn(j,k))+z(:,elg%nn(l,k)))/2-z(:,elg%nn(i,k)))) < 1e3*ztol ) cycle NODES
-
         end if
       end do
     end if
