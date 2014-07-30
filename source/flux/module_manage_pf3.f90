@@ -94,7 +94,7 @@ subroutine read_pf3(this, pmh, maxdim)
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
   integer, intent(inout) :: maxdim ! dimension detected
   character(len=MAXPATH) :: line
-  integer :: ios, i, j
+  integer :: ios
   integer :: nel, nelvol, nelsur, neledge, nelpoint
 
   maxdim = 0
@@ -137,7 +137,7 @@ subroutine write_pf3(this, pmh, infield, outfield, path, param)
   character(*), allocatable, intent(in) :: outfield(:) ! Out field names
   character(*),              intent(in) :: path !file names
   real(real64), optional,    intent(in) :: param 
-  integer                       :: i, j, ios, tp, mphlnn, prevnnod
+  integer                       :: i, ios, prevnnod
   logical                       :: all_P1
   real(real64), allocatable     :: znod(:,:)
 
@@ -161,7 +161,7 @@ subroutine write_pf3(this, pmh, infield, outfield, path, param)
   enddo
   write(unit=this%unit, fmt='(a)', iostat = ios) ' ==== DECOUPAGE  TERMINE'
   if (ios /= 0) call error('module_write_pf3/write_coordinates # write error #'//trim(string(ios)))
-  call write_pf3_node_field(this%unit, pmh, infield, outfield, path, param)
+  call write_pf3_node_field(this%unit, pmh, infield, outfield, param)
 
 
 end subroutine

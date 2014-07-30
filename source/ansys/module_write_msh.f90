@@ -25,7 +25,7 @@ subroutine write_msh_header(iu, pmh, maxtopdim)
   integer, intent(in)           :: iu ! file descriptor
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
   integer,        intent(inout) :: maxtopdim
-  integer                       :: ip, ig, ios, tp, totnver, totncells, totnfaces
+  integer                       :: ip, ig, ios, totnver, totncells, totnfaces
   logical                       :: all_P1
   character(len=MAXPATH)        :: auxch1,auxch2,auxheader
 
@@ -94,9 +94,9 @@ subroutine write_msh_nodes(iu, pmh, maxref,z)
   type(pmh_mesh),     intent(inout) :: pmh ! pmh_mesh
   integer,            intent(inout) :: maxref
   real(real64), allocatable, optional, intent(out) :: z(:,:)
-  integer                       :: ip, ig, i, ios, totnver, maxdim, ini, cnt
+  integer                       :: ip, i, ios, totnver, maxdim, ini, cnt
   character(len=MAXPATH)        :: ini_ch,end_ch,zone_ch,dim_ch, aux
-  integer, allocatable          :: totrefs(:), refs(:)
+  integer, allocatable          :: totrefs(:)
 
 
   totnver = 0
@@ -152,7 +152,7 @@ subroutine write_msh_cells(iu, pmh, maxtopdim, maxref)
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
   integer,           intent(in) :: maxtopdim
   integer,        intent(inout) :: maxref
-  integer                       :: ig, ip, i, ios, ini, numcells
+  integer                       :: ig, ip, i, ios, numcells
   character(len=MAXPATH)        :: ini_ch,end_ch,zone_ch, eltp_ch, aux
   integer, allocatable          :: refs(:)
 

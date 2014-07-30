@@ -31,16 +31,14 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
   character(*), allocatable,  intent(inout) :: infieldnames(:) !Inpùt field names
   character(*), allocatable,  intent(inout) :: outfieldnames(:) !Output field names
   real(real64), optional,        intent(in) :: param 
-  character(len=maxpath)                    :: filename, fieldname, aux
+  character(len=maxpath)                    :: filename, aux
   integer                                   :: iu, ios, i, j, k, idx, maxtdimtotnel  
-  integer                                   :: ncomp, totcomp, maxtdim, comp(3), compcount
+  integer                                   :: ncomp, maxtdim, compcount
   integer                                   :: version, n_points, n_comps, n_fields, ncells, dim
   integer, allocatable                      :: fieldcomp(:,:) ! [(field number, number of component) x every component]
   integer, allocatable                      :: compsperfield(:) ! [(field number, number of component) x every component]
   character(len=maxpath), allocatable       :: compnames(:), fnames(:) !comp names
-  real(real64), allocatable                 :: fielddata(:)
   type(field), allocatable                  :: tempfields(:)
-  logical                                   :: is_vector_comp
   logical, allocatable                      :: found_comp(:)
   type(tempfield), allocatable              :: tfields(:)
 
@@ -52,7 +50,7 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
 
     if(size(pmh%pc,1) == 1) then
       filename = trim(filenames(j))
-!      fieldname = trim(fieldnames(j))
+
       iu = get_unit()
 
       call info('Reading fields from: '//trim(adjustl(filenames(j))))
@@ -317,12 +315,14 @@ subroutine save_ip(pmh, filenames, infieldnames, outfieldnames, nparam)
   integer, optional,             intent(in) :: nparam
   character(len=maxpath)                    :: filename, str,inichar
   integer :: maxdim, maxtopdim, n_points, n_comps, counter, lnv
-  integer :: i, j, k, l, m, n, o, p, iu, ios
+  integer :: i, j, k, l, m, n, o, p, iu, ios, np
   integer, allocatable :: piece2save(:)
   logical :: node_fields, cell_fields, all_P1, check
   real(real64), allocatable :: znod(:,:), cellcoords(:,:)
 
 
+  np = 1
+  if(present(nparam)) np = nparam
 
 
   !check piece(s) to be saved
@@ -352,7 +352,6 @@ subroutine save_ip(pmh, filenames, infieldnames, outfieldnames, nparam)
         do j=1, size(pmh%pc(piece2save(i))%fi,1)
           do k=1, size(infieldnames,1)
             if(trim(pmh%pc(piece2save(i))%fi(j)%name)==trim(infieldnames(k))) then
-print*, infieldnames(k)
               check = .true.
               node_fields = .true.
               n_comps = n_comps + size(pmh%pc(piece2save(i))%fi(j)%val,1)
@@ -370,7 +369,6 @@ print*, infieldnames(k)
           do k=1, size(pmh%pc(piece2save(i))%el(j)%fi,1)
             do l=1, size(infieldnames,1)
               if(trim(pmh%pc(piece2save(i))%el(j)%fi(k)%name)==trim(infieldnames(l))) then
-print*, infieldnames(l)
                 check = .true.
                 cell_fields = .true.
                 n_comps = n_comps + size(pmh%pc(piece2save(i))%el(j)%fi(k)%val,1)
@@ -525,7 +523,7 @@ print*, infieldnames(l)
           do k=1, size(pmh%pc(piece2save(i))%fi(j)%val,1)
             inichar = '('
             do m=1, size(pmh%pc(piece2save(i))%fi(j)%val,2)
-              write(unit=iu, fmt='(A)', iostat=ios) trim(inichar)//trim(string(pmh%pc(piece2save(i))%fi(j)%val(k,m,1)))
+              write(unit=iu, fmt='(A)', iostat=ios) trim(inichar)//trim(string(pmh%pc(piece2save(i))%fi(j)%val(k,m,np)))
               if (ios /= 0) call error('save_ip/Node values, #'//trim(string(ios)))
               if(m==size(pmh%pc(piece2save(i))%fi(j)%val,2) ) write(unit=iu, fmt='(A)', iostat=ios) ')'
               inichar = ''
@@ -546,7 +544,7 @@ print*, infieldnames(l)
                     do n=1,size(pmh%pc(piece2save(i))%el(k)%fi(p)%val,1)
                       do o=1,size(pmh%pc(piece2save(i))%el(k)%fi(p)%val,2)
                         write(unit=iu, fmt='(A)', iostat=ios) &
-                          & trim(inichar)//trim(string(pmh%pc(piece2save(i))%el(k)%fi(p)%val(n,o,1)))
+                          & trim(inichar)//trim(string(pmh%pc(piece2save(i))%el(k)%fi(p)%val(n,o,np)))
                         if (ios /= 0) call error('save_ip/Node values, #'//trim(string(ios)))
                         if(o==size(pmh%pc(piece2save(i))%el(k)%fi(p)%val,2)) write(unit=iu, fmt='(A)', iostat=ios) ')'
                         inichar = ''
@@ -559,7 +557,7 @@ print*, infieldnames(l)
                   do n=1,size(pmh%pc(piece2save(i))%el(k)%fi(p)%val,1)
                     do o=1,size(pmh%pc(piece2save(i))%el(k)%fi(p)%val,2)
                       write(unit=iu, fmt='(A)', iostat=ios) & 
-                        & trim(inichar)//trim(string(pmh%pc(piece2save(i))%el(k)%fi(p)%val(n,o,1)))
+                        & trim(inichar)//trim(string(pmh%pc(piece2save(i))%el(k)%fi(p)%val(n,o,np)))
                       if (ios /= 0) call error('save_ip/Node values, #'//trim(string(ios)))
                       if(o==size(pmh%pc(piece2save(i))%el(k)%fi(p)%val,2)) write(unit=iu, fmt='(A)', iostat=ios) ')'
                       inichar = ''
@@ -620,7 +618,7 @@ end function
 function get_field_name(fieldname) result(res)
   character(len=*), intent(in) :: fieldname
   character(len=maxpath)       :: res
-  integer                      :: i1,i2, ios
+  integer                      :: i1,i2
 
   res = trim(fieldname)
   if(len_trim(fieldname) == 0) then

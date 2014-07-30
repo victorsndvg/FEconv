@@ -114,7 +114,6 @@ subroutine read_msh_nodes(iu, pmh, line)
   character(len=MAXPATH)             :: ch_group,ch_zone,ch_f_indx,ch_l_indx,aux,ch_nd
   integer                            :: zone,f_indx,l_indx
   integer                            :: ios, wc, i, numgroups
-  integer, allocatable               :: data(:)
  
   auxline(:) = line(:)
   ! Replace brackets
@@ -293,7 +292,7 @@ subroutine read_msh_faces(iu, faces, line)
   character(len=*),       intent(in) :: line
   type(msh_faces),     intent(inout) :: faces ! msh faces
   character(len=MAXPATH)             :: auxline,ch_group,ch_zone,ch_f_indx
-  character(len=MAXPATH)             :: ch_l_indx,ch_tp,ch_el_tp,ch_aux
+  character(len=MAXPATH)             :: ch_l_indx,ch_tp,ch_el_tp
   character(len=MAXPATH), allocatable:: ch_array(:)
   integer                            :: zone,f_indx,l_indx,zone_tp,tp
   integer                            :: ios, wc, i, j, numadcells,mix,ft
@@ -400,7 +399,7 @@ subroutine read_msh_cells(iu, cells, line)
   character(len=MAXPATH)              :: auxline,ch_l_indx,ch_tp,ch_el_tp
   character(len=MAXPATH)              :: ch_group,ch_zone,ch_f_indx
   integer                             :: zone,f_indx,l_indx,tp
-  integer                             :: ios, wc, i, j, cb
+  integer                             :: ios, wc, j
  
   auxline(:) = line(:)
   ! Replace brackets
@@ -483,14 +482,12 @@ end subroutine
 ! zones: array of zone info
 ! line: header line of the section
 !-----------------------------------------------------------------------
-subroutine read_msh_zones(iu, izones, line)
-  integer,                 intent(in) :: iu
+subroutine read_msh_zones(izones, line)
   character(len=*),        intent(in) :: line
   type(msh_zone),       intent(inout) :: izones ! interior zones
   character(len=MAXPATH)              :: ch_group,ch_zone,ch_type,ch_name
   character(len=MAXPATH)              :: auxline
-  integer                             :: zone
-  integer                             :: ios, wc, i, j
+  integer                             :: ios, wc, i
  
   auxline(:) = line(:)
   ! Replace brackets

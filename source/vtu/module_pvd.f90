@@ -107,7 +107,7 @@ subroutine save_pvd(filename, pmh, infield, outfield, padval)
   real(real64),                  intent(in) :: padval
 
   real(real64)                              :: p
-  character(len=maxpath)                    :: fname, pvdfname, prefn, ext, path
+  character(len=maxpath)                    :: fname, pvdfname, prefn, path
   integer, allocatable                      :: nshots(:),unshots(:)
   integer                                   :: i, iu, ios
 

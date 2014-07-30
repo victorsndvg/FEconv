@@ -144,7 +144,6 @@ subroutine save_mff(pmh, outfield, path, param)
   character(len=maxpath)                :: filename    !file names
   integer                               :: i,j,k,l,m,pi,mtdim
   integer                               :: iu, ios, fidx
-  logical                               :: all_f
 
 
 

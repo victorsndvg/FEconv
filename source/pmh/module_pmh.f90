@@ -1262,7 +1262,7 @@ subroutine cell2node_real_pmh(pmh)
   integer, allocatable          :: cell4node(:,:)
   integer :: n_nod_fi,n_cell_fi, maxtopdim
   integer :: ip,ig,ifi,np, nshots
-  integer :: ncomp, lnn, nel, i, j, k, l
+  integer :: ncomp, lnn, nel, i, j, k
 
   np = 1 ! Only in the first parammeter
   print*, ''
@@ -1404,7 +1404,7 @@ end function
 function get_piece_max_top_dim(pc) result(res)
   type(piece),    intent(inout) :: pc
   integer                       :: res
-  integer                       :: aux, i
+  integer                       :: i
 
   res = 0
 

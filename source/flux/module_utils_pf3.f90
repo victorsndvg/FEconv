@@ -346,7 +346,6 @@ function pmh2pf3_ordering(el, tp, prevnnod) result(auxel)
 
   integer, dimension(:), intent(in) :: el
   integer, intent(in) :: tp, prevnnod
-  integer :: aux
   integer, dimension(:), allocatable :: auxel
 
     if (tp <= 0) then

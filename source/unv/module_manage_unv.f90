@@ -56,8 +56,7 @@ character(*),allocatable, intent(in)    :: infield(:) !input field names
 logical,                  intent(in)    :: ca_opt     !-ca Code Aster option
 integer :: maxdim !dimension detected
 integer, allocatable :: eloc(:,:) !elements location in pmh structure
-integer :: ios, n, j, i, pgroup(6), fgroup(4),nfield
-logical :: fit(2)
+integer :: ios, n, i, pgroup(6), fgroup(4),nfield
 
 if(.not. allocated(pmh%pc)) allocate(pmh%pc(1))
 n = size(pmh%pc,1)

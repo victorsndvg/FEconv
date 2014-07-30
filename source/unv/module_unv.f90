@@ -236,7 +236,7 @@ integer,optional,intent(in) :: dataset
 integer,optional,intent(in) :: nparam
 integer                     :: prev_coord
 integer                     :: prev_nel
-integer                     :: i, j, k, l, m, p
+integer                     :: i, j, k, l, m
 integer                     :: counter, ds, ncomp, dc, np
 character(len=maxpath)      :: fieldname
 

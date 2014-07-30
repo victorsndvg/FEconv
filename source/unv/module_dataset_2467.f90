@@ -67,7 +67,7 @@ subroutine read_2467(iu, pc, eloc)
 integer,              intent(in)    :: iu        !unit number for unvfile
 type(piece),          intent(inout) :: pc        !PMH piece
 integer, allocatable, intent(in)    :: eloc(:,:) !element locations
-integer :: ios, Field1, F2, F3, F4, F5, F6, F7, Field8, p, j, pos, k, m, etc(2), tag(2), neg
+integer :: ios, Field1, F2, F3, F4, F5, F6, F7, Field8, p, j, m, etc(2), tag(2), neg
 character(maxpath) :: gname
 type(elgroup), allocatable :: eg(:) 
 
