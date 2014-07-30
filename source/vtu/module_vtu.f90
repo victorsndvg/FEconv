@@ -672,16 +672,17 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
         call reduce(cdfval(j)%val, cdfval(j)%ncomp, nel)
 
         if(size(cdfval(j)%val,1) == 1) then
-          if (vtk_var_xml(nel, trim(fieldname), cdfval(j)%val(1,1:nel)) /= 0) &
+          if (vtk_var_xml(nel, trim(fieldname), reshape(cdfval(j)%val(1,1:nel), (/nel/))) /= 0) &
             call error('Writing '//trim(fieldname))
         elseif(size(cdfval(j)%val,1) == 2) then      
           if (vtk_var_xml(nel, trim(fieldname), &
-            cdfval(j)%val(1,1:nel), cdfval(j)%val(2,1:nel), (/(real(0,R8P),i=1,nel)/)) /= 0) &
+            reshape(cdfval(j)%val(1,1:nel),(/nel/)), reshape(cdfval(j)%val(2,1:nel),(/nel/)), &
+            & (/(real(0,R8P),i=1,nel)/)) /= 0) &
             call error('Writing '//trim(fieldname))
         elseif(size(cdfval(j)%val,1) == 3) then      
           if (vtk_var_xml(nel, trim(fieldname), &
-            real(cdfval(j)%val(1,1:nel),R8P), real(cdfval(j)%val(2,1:nel),R8P), &
-            real(cdfval(j)%val(3,1:nel),R8P)) /= 0) call error('Writing '//trim(fieldname))
+            reshape(cdfval(j)%val(1,1:nel),(/nel/)), reshape(cdfval(j)%val(2,1:nel),(/nel/)), &
+            reshape(cdfval(j)%val(3,1:nel),(/nel/))) /= 0) call error('Writing '//trim(fieldname))
         else
           if( vtk_var_xml(nel, size(cdfval(j)%val,1), trim(fieldname),&
             & reshape(transpose(cdfval(j)%val(:,:)),(/nel, size(cdfval(j)%val,1)/)) ) /= 0) &
@@ -919,7 +920,6 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
   type(pmh_mesh)            :: auxpmh
   
 
-
   ! Reads the VTU file header and allocates the number of pieces
   inquire(file=trim(filename), exist=file_exists)
 
@@ -1013,19 +1013,23 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
 
     ! Reads and store pointdata fields
     if(vtk_var_xml_list(pdfnames,i,'Node') == 0 ) then
-      npdf = size(pdfnames,1) ! Number of pointdata fields
-      do j=1, size(pdfnames,1)
-        if(trim(lcase(pdfnames(j))) == 'vertex_ref' .or. &
-          & index(lcase(pdfnames(j)),'nrv_') /= 0) npdf = npdf -1
-        ! if -in option is present, discard not selected fields
-        if(allocated(fieldnames)) then
-          ffound = .false.
-          do k=1, size(fieldnames,1)
-            if(trim(adjustl(pdfnames(j))) == trim(adjustl(fieldnames(k)))) ffound = .true.
-          enddo
-          if(.not. ffound) npdf = npdf -1
-        endif
-      enddo
+      if(allocated(pdfnames)) then
+        npdf = size(pdfnames,1) ! Number of pointdata fields
+        do j=1, size(pdfnames,1)
+          if(trim(lcase(pdfnames(j))) == 'vertex_ref' .or. &
+            & index(lcase(pdfnames(j)),'nrv_') /= 0) npdf = npdf -1
+          ! if -in option is present, discard not selected fields
+          if(allocated(fieldnames)) then
+            ffound = .false.
+            do k=1, size(fieldnames,1)
+              if(trim(adjustl(pdfnames(j))) == trim(adjustl(fieldnames(k)))) ffound = .true.
+            enddo
+            if(.not. ffound) npdf = npdf -1
+          endif
+        enddo
+      else
+        npdf = 0
+      endif
 
       ! Memory allocation: Point fields
       if(.not. allocated(pmh%pc(i)%fi)) then
@@ -1039,36 +1043,53 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
       endif
 
       npdf = 0
-      do j=1, size(pdfnames,1)
-        if(lcase(pdfnames(j)) == 'vertex_ref' .or. &
-          & index(lcase(pdfnames(j)),'nrv_') /= 0) cycle
-        ! if -in option is present, discard not selected fields
-        if(allocated(fieldnames)) then
-          ffound = .false.
-          do k=1, size(fieldnames,1)
-            if(trim(adjustl(pdfnames(j))) == trim(adjustl(fieldnames(k)))) ffound = .true.
+      if(allocated(fieldnames) .and. allocated(pdfnames)) then
+        do k=1, size(fieldnames,1)
+          do j=1, size(pdfnames,1)
+            if(trim(adjustl(pdfnames(j))) == trim(adjustl(fieldnames(k)))) then
+              if(vtk_var_xml_read('Node',nnref,ncomp,trim(pdfnames(j)),pdfval,i) == 0 ) then
+                npdf = npdf +1
+                if(nnref == nn) then
+                  call info('    Reading node field: '//trim(pdfnames(j)))
+                  pmh%pc(i)%fi(npdf)%name = trim(pdfnames(j))
+                  call  set(pmh%pc(i)%fi(npdf)%param, p, np, fit=.true.)
+                  call set(pmh%pc(i)%fi(npdf)%val,pdfval, (/(k,k=1,ncomp)/), &
+                    & (/(k,k=1,nnref)/),(/np/), fit=[.true.,.true.,.true.])
+                  call reduce(pmh%pc(i)%fi(npdf)%val, ncomp, nnref, np)
+                else
+                  call error('Wrong number of node values')
+                endif
+              else
+                call error('Reading VTU file')
+              endif
+            endif
           enddo
-          if(.not. ffound) cycle
-        endif
-        if(vtk_var_xml_read('Node',nnref,ncomp,trim(pdfnames(j)),pdfval,i) == 0 ) then
-          npdf = npdf +1
-          if(nnref == nn) then
-            call info('    Reading node field: '//trim(pdfnames(j)))
-            pmh%pc(i)%fi(npdf)%name = trim(pdfnames(j))
-            call  set(pmh%pc(i)%fi(npdf)%param, p, np, fit=.true.)
-            call set(pmh%pc(i)%fi(npdf)%val,pdfval, (/(k,k=1,ncomp)/), &
-              & (/(k,k=1,nnref)/),(/np/), fit=[.true.,.true.,.true.])
-            call reduce(pmh%pc(i)%fi(npdf)%val, ncomp, nnref, np)
+        enddo
+      elseif(allocated(pdfnames)) then
+        do j=1, size(pdfnames,1)
+          if(lcase(pdfnames(j)) == 'vertex_ref' .or. &
+            & index(lcase(pdfnames(j)),'nrv_') /= 0) cycle
+          ! if -in option is present, discard not selected fields
+          if(vtk_var_xml_read('Node',nnref,ncomp,trim(pdfnames(j)),pdfval,i) == 0 ) then
+            npdf = npdf +1
+            if(nnref == nn) then
+              call info('    Reading node field: '//trim(pdfnames(j)))
+              pmh%pc(i)%fi(npdf)%name = trim(pdfnames(j))
+              call  set(pmh%pc(i)%fi(npdf)%param, p, np, fit=.true.)
+              call set(pmh%pc(i)%fi(npdf)%val,pdfval, (/(k,k=1,ncomp)/), &
+                & (/(k,k=1,nnref)/),(/np/), fit=[.true.,.true.,.true.])
+              call reduce(pmh%pc(i)%fi(npdf)%val, ncomp, nnref, np)
+            else
+              call error('Wrong number of node values')
+            endif
           else
-            call error('Wrong number of node values')
+            call error('Reading VTU file')
           endif
-        else
-          call error('Reading VTU file')
-        endif
-        if(allocated(pdfval)) deallocate(pdfval)
-      enddo
-      if(allocated(pdfnames)) deallocate(pdfnames)
+        enddo
+      endif
     endif
+    if(allocated(pdfval)) deallocate(pdfval)
+    if(allocated(pdfnames)) deallocate(pdfnames)
 
     ! Reads celldata fields
     if(vtk_var_xml_list(cdfnames,i,'Cell') == 0 ) then
@@ -1092,32 +1113,50 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
         if(allocated(cdfval)) deallocate(cdfval)
         allocate(cdfval(ncdf))
         ncdf = 0
-        do j=1, size(cdfnames,1)
-          ! Discard references
-          if(trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
-             trim(lcase(cdfnames(j))) == 'edge_ref') cycle
-          if(index(lcase(cdfnames(j)),'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
-             index(lcase(cdfnames(j)), 'nra_') /= 0) cycle
-          ! if -in option is present, discard unselected fields
-          if(allocated(fieldnames)) then
-            ffound = .false.
-            do k=1, size(fieldnames,1)
-              if(trim(adjustl(cdfnames(j)))== trim(adjustl(fieldnames(k)))) ffound = .true.
+
+        if(allocated(fieldnames)) then
+          do k=1, size(fieldnames,1)
+            do j=1, size(cdfnames,1)
+              if(trim(adjustl(cdfnames(j)))== trim(adjustl(fieldnames(k))))  then
+                ! Discard references
+                if(trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
+                   trim(lcase(cdfnames(j))) == 'edge_ref') cycle
+                if(index(lcase(cdfnames(j)),'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
+                   index(lcase(cdfnames(j)), 'nra_') /= 0) cycle
+                if(vtk_var_xml_read('Cell',ncref,ncomp,trim(cdfnames(j)),temp,i) == 0 ) then
+                  call info('    Reading cell field: '//trim(cdfnames(j)))
+                  if(ncref == nc) then
+                    ncdf = ncdf + 1
+                    allocate(cdfval(ncdf)%val(ncomp,nc))
+                    cdfval(ncdf)%val(:,:) = reshape(temp, (/ncomp,nc/))
+                  else
+                    call error('Wrong number of element values')
+                  endif
+                endif
+                if(allocated(temp)) deallocate(temp)
+              endif
             enddo
-            if(.not. ffound) cycle
-          endif
-          if(vtk_var_xml_read('Cell',ncref,ncomp,trim(cdfnames(j)),temp,i) == 0 ) then
-            call info('    Reading cell field: '//trim(cdfnames(j)))
-            if(ncref == nc) then
-              ncdf = ncdf + 1
-              allocate(cdfval(ncdf)%val(ncomp,nc))
-              cdfval(ncdf)%val(:,:) = reshape(temp, (/ncomp,nc/))
-            else
-              call error('Wrong number of element values')
+          enddo
+        else
+          do j=1, size(cdfnames,1)
+            ! Discard references
+            if(trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
+               trim(lcase(cdfnames(j))) == 'edge_ref') cycle
+            if(index(lcase(cdfnames(j)),'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
+               index(lcase(cdfnames(j)), 'nra_') /= 0) cycle
+            if(vtk_var_xml_read('Cell',ncref,ncomp,trim(cdfnames(j)),temp,i) == 0 ) then
+              call info('    Reading cell field: '//trim(cdfnames(j)))
+              if(ncref == nc) then
+                ncdf = ncdf + 1
+                allocate(cdfval(ncdf)%val(ncomp,nc))
+                cdfval(ncdf)%val(:,:) = reshape(temp, (/ncomp,nc/))
+              else
+                call error('Wrong number of element values')
+              endif
             endif
-          endif
-          if(allocated(temp)) deallocate(temp)
-        enddo
+            if(allocated(temp)) deallocate(temp)
+          enddo
+        endif
       else
         ncdf = 0
       endif
@@ -1159,21 +1198,28 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
           pmh%pc(i)%el(j)%fi(1:size(auxpmh%pc(1)%el(1)%fi,1)) = auxpmh%pc(1)%el(1)%fi(:)
           if(allocated(auxpmh%pc(1)%el(1)%fi)) deallocate(auxpmh%pc(1)%el(1)%fi)
         endif
-        do l=1, size(cdfnames,1)
-          if(lcase(cdfnames(l)) == 'element_ref' .or. lcase(cdfnames(l)) == 'face_ref' .or. &
-             lcase(cdfnames(l)) == 'edge_ref') cycle
-          ! if -in option is present, discard unselected fields
-          if(allocated(fieldnames)) then
-            ffound = .false.
-            do k=1, size(fieldnames,1)
-              if(trim(adjustl(cdfnames(l))) == trim(adjustl(fieldnames(k)))) ffound = .true.
+        if(allocated(fieldnames)) then
+          do k=1, size(fieldnames,1)
+            do l=1,size(cdfnames,1)
+              if(lcase(cdfnames(l)) == 'element_ref' .or. lcase(cdfnames(l)) == 'face_ref' .or. &
+                 lcase(cdfnames(l)) == 'edge_ref') cycle
+              if(trim(adjustl(cdfnames(l))) == trim(adjustl(fieldnames(k)))) then
+                ! if -in option is present, discard unselected fields
+                ncdf = ncdf + 1
+                pmh%pc(i)%el(j)%fi(ncdf)%name = trim(cdfnames(l))
+                call set(pmh%pc(i)%el(j)%fi(ncdf)%param, p, np, fit=.true.)
+              endif
             enddo
-            if(.not. ffound) cycle
-          endif
-          ncdf = ncdf + 1
-          pmh%pc(i)%el(j)%fi(ncdf)%name = trim(cdfnames(l))
-          call set(pmh%pc(i)%el(j)%fi(ncdf)%param, p, np, fit=.true.)
-        enddo
+          enddo
+        else
+          do l=1, size(cdfnames,1)
+            if(lcase(cdfnames(l)) == 'element_ref' .or. lcase(cdfnames(l)) == 'face_ref' .or. &
+               lcase(cdfnames(l)) == 'edge_ref') cycle
+            ncdf = ncdf + 1
+            pmh%pc(i)%el(j)%fi(ncdf)%name = trim(cdfnames(l))
+            call set(pmh%pc(i)%el(j)%fi(ncdf)%param, p, np, fit=.true.)
+          enddo
+        endif
       enddo
       if(allocated(cdfnames)) deallocate(cdfnames)
     endif
