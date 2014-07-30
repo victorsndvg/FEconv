@@ -411,16 +411,19 @@ do ipp = 1, size(piece2save,1)
                 & -pos, maxrow=sver(nsv)%n, fit=[.false.,.true.])
 !              call set(sver(nsv)%mmr, new_refs(elg%ref(k)), -pos, nsv+1, fit=[.true.,.true.])
 !              call set(sver(nsv)%mmr, nel_piece(ipp)+k, -pos, nsv+2, fit=[.true.,.true.])
-print*, '+',nsv,'-', j,k, '-',sver(nsv)%mmr(-pos,nsv+2),'-', trim(string(elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)))
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Checking prints ...
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!print*, '+',nsv,'-', j,k, '-',sver(nsv)%mmr(-pos,nsv+2),'-', trim(string(elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)))
             else
               if(sver(nsv)%mmr(pos,nsv+2) == 0) then
                 call set_row(sver(nsv)%mmr, [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)], &
                   & pos, fit=[.true.,.true.])
                 call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+2, fit=[.true.,.true.])
-print*, '-',nsv,'-', j,k, '-',sver(nsv)%mmr(pos,nsv+2:nsv+3),'-', trim(string(elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)))
+!print*, '-',nsv,'-', j,k, '-',sver(nsv)%mmr(pos,nsv+2:nsv+3),'-', trim(string(elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)))
               else
                 call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+3, fit=[.true.,.true.])
-print*, '!',nsv,'-', j,k, '-',sver(nsv)%mmr(pos,nsv+2:nsv+3),'-'
+!print*, '!',nsv,'-', j,k, '-',sver(nsv)%mmr(pos,nsv+2:nsv+3),'-'
               endif
             endif
           end do

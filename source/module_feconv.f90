@@ -36,7 +36,7 @@ use module_pmh
 use module_fem_extract, only: extract_mesh, extract_ref
 use module_gmsh, only: load_gmsh
 use module_dex, only: load_dex, save_dex
-use module_ip, only: load_ip
+use module_ip, only: load_ip, save_ip
 implicit none
 
 !PMH structure
@@ -489,7 +489,7 @@ if(there_is_field .and. is_arg('-if')) then
     case('dex')
       call load_dex(pmh, infieldfile, infieldname)
     case('ip')
-      call load_ip(pmh, infieldfile, outfieldfile)
+      call load_ip(pmh, infieldfile, infieldname, outfieldname)
   end select
 
 endif
@@ -655,7 +655,7 @@ if(is_pmh .and. there_is_field .and. is_arg('-of')) then
     case('dex')
       call save_dex(pmh, infieldname, outfieldname, outfieldfile)
     case('ip')
-      call info('ip field extension not implemented yet!')
+      call save_ip(pmh, outfieldfile, infieldname, outfieldname)
     case default
       call info('Field file extension "'//trim(lcase(adjustlt(outfext)))//'" not supported!')
   end select
