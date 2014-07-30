@@ -15,6 +15,7 @@ module module_pmh
 !   cell2node: calculate a node field form a cell one
 !   get_field_num_shots: returns the number of shots giving a field name
 !   get_num_shots: returns an array with the number of shots of all fields
+!   get_piece_max_top_dim: returns the maximum topological dimension 
 
 !
 ! REMARKS:
@@ -83,7 +84,7 @@ integer, parameter, private :: Pc(32,4) = reshape([ &
 
 !Private procedures
 private :: swap, reorder_nodes_element_P2, QJ_pos, detDFT_pos, reorder_nodes_P2, positive_jacobian, &
-           cell2node_real_pmh, get_piece_max_top_dim
+           cell2node_real_pmh
 
 interface cell2node;     module procedure cell2node_real_pmh;     end interface
 

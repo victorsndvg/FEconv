@@ -525,7 +525,7 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
 
       ! Data. Record15
         if((dataset == 57 .or. dataset == 56) .and. iexp == 2) then ! 2: Data present for only 1st node
-          read (unit=iu, fmt=*, iostat = ios) elg%fi(fidx)%val(:,n_el-prev_nel,nparam)
+          read (unit=iu, fmt=*, iostat = ios) elg%fi(fidx)%val(:,els_loc(2,n_el),nparam)
           if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
         elseif(((dataset == 57 .or. dataset == 56) .and. iexp == 1) .or. dloc == 3) then ! 1: Data present for all nodes
           val = 0._real64
@@ -534,9 +534,9 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
             if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
             val = val + tempval
           enddo
-          elg%fi(fidx)%val(:,n_el-prev_nel,nparam) = val/n_nod_el
+          elg%fi(fidx)%val(:,els_loc(2,n_el),nparam) = val/n_nod_el
         else
-          read (unit=iu, fmt=*, iostat = ios) elg%fi(fidx)%val(:,n_el-prev_nel,nparam)
+          read (unit=iu, fmt=*, iostat = ios) elg%fi(fidx)%val(:,els_loc(2,n_el),nparam)
           if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
         endif
       end associate
