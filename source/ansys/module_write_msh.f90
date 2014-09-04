@@ -288,7 +288,7 @@ integer :: numfaces, ini, ios, tempref
 integer, allocatable :: piece2save(:), nver_piece(:), nel_piece(:)
 integer, allocatable ::  refs(:), new_refs(:), aux_refs(:), ie_zones(:)
 character(maxpath) :: str,zone_ch,ini_ch,end_ch,eltype_ch, aux,aux2
-logical :: check
+logical :: check, ft(2) = [.false.,.true.], tt(2) = [.true.,.true.]
 type submmr
   integer              :: n        !number of files of mmr
   integer, allocatable :: tmp(:)   !aux. vector to save an single element (vertices+1)
@@ -344,8 +344,10 @@ do ipp = 1, size(piece2save,1)
       if ((FEDB(elg%type)%tdim == 1 .and. max_tdim == 2) .or. (FEDB(elg%type)%tdim == 2 .and. max_tdim == 3)) then 
         ! Renumber references
         if(allocated(aux_refs)) deallocate(aux_refs)
-        aux_refs = sort(unique(elg%ref))
-        aux_refs = pack(aux_refs,aux_refs/=0) ! Remove reference 0
+        call sunique(pack(elg%ref, elg%ref/=0), aux_refs)
+        call ssort(aux_refs)
+!        aux_refs = sort(unique(elg%ref))
+!        aux_refs = pack(aux_refs,aux_refs/=0) ! Remove reference 0
         if(allocated(aux_refs) .and. size(aux_refs,1)>0) then
           do k = 1, size(aux_refs)
             maxref = maxref + 1
@@ -364,11 +366,11 @@ do ipp = 1, size(piece2save,1)
           endif
           call set(auxsver(nv)%tmp, [sort(nver_piece(ipp-1) + elg%mm(:,k)), tempref], &
                & [(i, i=1,nv+3)], fit=.true.)
-          call insert_row_sorted(auxsver(nv)%mmr, auxsver(nv)%tmp, used=auxsver(nv)%n, fit=[.false.,.true.],pos=pos)
+          call insert_row_sorted(auxsver(nv)%mmr, auxsver(nv)%tmp, used=auxsver(nv)%n, fit=ft,pos=pos)
 !Nuevo
           sver(nv)%n = auxsver(nv)%n
           call insert_row(sver(nv)%mmr, [nver_piece(ipp-1) + elg%mm(:,k), tempref,0,0],&
-            & abs(pos), maxrow=sver(nv)%n, fit=[.false.,.true.])
+            & abs(pos), maxrow=sver(nv)%n, fit=ft)
         enddo
       end if
     end associate
@@ -380,8 +382,10 @@ do ipp = 1, size(piece2save,1)
         print*, 'Building faces from high order elements: '//trim(FEDB(elg%type)%desc)
         ! Renumber references
         if(allocated(aux_refs)) deallocate(aux_refs)
-        aux_refs = sort(unique(elg%ref))
-        aux_refs = pack(aux_refs,aux_refs/=0) ! Remove reference 0
+        call sunique(pack(elg%ref, elg%ref/=0), aux_refs)
+        call ssort(aux_refs)
+!        aux_refs = sort(unique(elg%ref))
+!        aux_refs = pack(aux_refs,aux_refs/=0) ! Remove reference 0
         if(allocated(aux_refs) .and. size(aux_refs,1)>0) then
           do k = 1, size(aux_refs)
             maxref = maxref + 1
@@ -402,13 +406,13 @@ do ipp = 1, size(piece2save,1)
             endif
             call set(auxsver(nsv)%tmp, [sort(nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(1:nsv,j),k)), 0], &
                  & [(i, i=1,nsv+3)], fit=.true.)
-            call insert_row_sorted(auxsver(nsv)%mmr, auxsver(nsv)%tmp(1:nsv), used=auxsver(nsv)%n, fit=[.false.,.true.], pos=pos) !ref not saved
+            call insert_row_sorted(auxsver(nsv)%mmr, auxsver(nsv)%tmp(1:nsv), used=auxsver(nsv)%n, fit=ft, pos=pos) !ref not saved
             sver(nsv)%n = auxsver(nsv)%n
             if(pos<0) then
 !Nuevo
               call insert_row(sver(nsv)%mmr, &
                 & [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k),tempref, nel_piece(ipp)+k], &
-                & -pos, maxrow=sver(nsv)%n, fit=[.false.,.true.])
+                & -pos, maxrow=sver(nsv)%n, fit=ft)
 !              call set(sver(nsv)%mmr, new_refs(elg%ref(k)), -pos, nsv+1, fit=[.true.,.true.])
 !              call set(sver(nsv)%mmr, nel_piece(ipp)+k, -pos, nsv+2, fit=[.true.,.true.])
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -418,11 +422,11 @@ do ipp = 1, size(piece2save,1)
             else
               if(sver(nsv)%mmr(pos,nsv+2) == 0) then
                 call set_row(sver(nsv)%mmr, [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)], &
-                  & pos, fit=[.true.,.true.])
-                call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+2, fit=[.true.,.true.])
+                  & pos, fit=tt)
+                call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+2, fit=tt)
 !print*, '-',nsv,'-', j,k, '-',sver(nsv)%mmr(pos,nsv+2:nsv+3),'-', trim(string(elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)))
               else
-                call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+3, fit=[.true.,.true.])
+                call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+3, fit=tt)
 !print*, '!',nsv,'-', j,k, '-',sver(nsv)%mmr(pos,nsv+2:nsv+3),'-'
               endif
             endif
@@ -433,8 +437,10 @@ do ipp = 1, size(piece2save,1)
         print*, 'Building faces from high order elements: '//trim(FEDB(elg%type)%desc)
         ! Renumber references
         if(allocated(aux_refs)) deallocate(aux_refs)
-        aux_refs = sort(unique(elg%ref))
-        aux_refs = pack(aux_refs,aux_refs/=0) ! Remove reference 0
+        call sunique(pack(elg%ref, elg%ref/=0), aux_refs)
+        call ssort(aux_refs)
+!        aux_refs = sort(unique(elg%ref))
+!        aux_refs = pack(aux_refs,aux_refs/=0) ! Remove reference 0
         if(allocated(aux_refs) .and. size(aux_refs,1)>0) then
           do k = 1, size(aux_refs)
             maxref = maxref + 1
@@ -456,21 +462,21 @@ do ipp = 1, size(piece2save,1)
             & [sort(nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%edge(:,j),k)), 0], &
             & [(i, i=1,nsv+3)], .true.)
             call insert_row_sorted(auxsver(nsv)%mmr, auxsver(nsv)%tmp(1:nsv), &
-              &used=auxsver(nsv)%n, fit=[.true.,.true.], pos=pos) !ref not saved
+              &used=auxsver(nsv)%n, fit=tt, pos=pos) !ref not saved
             sver(nsv)%n = auxsver(nsv)%n
             if(pos<0) then
 !Nuevo
               call insert_row(sver(nsv)%mmr, &
                 [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%edge(:,j),k), tempref, nel_piece(ipp)+k], &
-                & -pos, maxrow=sver(nsv)%n, fit=[.false.,.true.]) !ref not saved
+                & -pos, maxrow=sver(nsv)%n, fit=ft) !ref not saved
 !              call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+2, fit=[.true.,.true.])
             else
               if(sver(nsv)%mmr(pos,nsv+2) == 0) then
                 call set_row(sver(nsv)%mmr, [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%edge(:,j),k)], &
-                  & pos, fit=[.true.,.true.])
-                call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+2, fit=[.true.,.true.])
+                  & pos, fit=tt)
+                call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+2, fit=tt)
               else
-                call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+3, fit=[.true.,.true.])
+                call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+3, fit=tt)
               endif
             endif
           end do
@@ -505,7 +511,9 @@ if (ios /= 0) call error('module_write_msh/pmh2msh # '//trim(string(ios)))
 ! Write faces to file
 do i = 2, 4
   if (allocated(sver(i)%mmr)) then
-    refs = sort(unique(sver(i)%mmr(:,i+1)))
+    call sunique(unique(sver(i)%mmr(:,i+1)), refs)
+    call ssort(refs)
+!    refs = sort(unique(sver(i)%mmr(:,i+1)))
     write(eltype_ch,'(z20)') i
     do j=1, size(refs,1)
       check = .false.

@@ -115,6 +115,7 @@ subroutine save_pvd(filename, pmh, infield, outfield, padval)
   nshots = get_num_shots(pmh)
 
   if(allocated(nshots)) then
+    if(size(nshots,1)<1) call error("No fields found!")
     call sunique(nshots,unshots)
     if(size(unshots,1)>1) call error("Contains fields with different number of shots")
   else

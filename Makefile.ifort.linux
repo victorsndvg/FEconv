@@ -198,7 +198,7 @@ includes =
 FC = ifort
  
 # COMPILER OPTIONS
-FFLAGS = -module $(dir_objetos)  -warn all -g -check all -traceback
+FFLAGS = -module $(dir_objetos)  -warn all -g -check all,noarg_temp_created -traceback 
  
 # LINKER OPTIONS
 LDFLAGS = 

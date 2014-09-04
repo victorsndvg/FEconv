@@ -258,6 +258,7 @@ real(real64), allocatable :: z(:,:)
 integer :: i, ipp, ip, ig, pos, k, prev_nel, n, j, type_by_tdim(0:3), tmp_2d(2), tmp_3d(3), &
 prev_max_tdim, res, max_tdim, valid_fe(12)
 integer, allocatable :: piece2save(:), ref(:,:), tmp_vf(:), nel_piece(:), nnod_piece(:), nver_piece(:)
+logical :: ft(2) = [.false.,.true.]
 character(maxpath) :: str, cad
 
 !valid elements types to save a MFM mesh (all but wedges)
@@ -436,7 +437,7 @@ if (max_tdim > 0) then
         if (FEDB( elg%type )%tdim == 0) then
           do k = 1, elg%nel
             tmp_2d = [nver_piece(ipp-1) + elg%mm(1,k), elg%ref(k)]
-            call insert_row_sorted(ref, tmp_2d, used=n, fit=[.false.,.true.])
+            call insert_row_sorted(ref, tmp_2d, used=n, fit=ft)
           end do
           call dealloc(elg%ref)
         end if
@@ -469,7 +470,7 @@ if (max_tdim > 1) then
         if (FEDB( elg%type )%tdim == 1) then
           do k = 1, elg%nel
             tmp_3d = [sort(nver_piece(ipp-1) + elg%mm(1:2,k)), elg%ref(k)]
-            call insert_row_sorted(ref, tmp_3d, used=n, fit=[.false.,.true.])
+            call insert_row_sorted(ref, tmp_3d, used=n, fit=ft)
           end do
           call dealloc(elg%ref)          
         end if
@@ -504,7 +505,7 @@ if (max_tdim > 2) then
           if (FEDB( elg%type )%tdim == 2 .and. FEDB(elg%type)%lnv == v_f) then
             do k = 1, elg%nel
               tmp_vf = [sort(nver_piece(ipp-1) + elg%mm(1:v_f, k)), elg%ref(k)]
-              call insert_row_sorted(ref, tmp_vf, used=n, fit=[.false.,.true.])
+              call insert_row_sorted(ref, tmp_vf, used=n, fit=ft)
             end do
             call dealloc(elg%ref)
           end if
@@ -1101,8 +1102,10 @@ subroutine positive_jacobian(pmh)
 type(pmh_mesh), intent(inout) :: pmh
 integer :: ip, ig, i, k, max_tdim
 integer, allocatable :: pos(:) 
-real(real64) ::  s, t
+real(real64) ::  s, t, st(2)
 logical :: QJac(4) ,check
+real(real64) :: zz(2)=[0._real64, 0._real64],zo(2)=[0._real64, 1._real64],oz(2)=[1._real64, 0._real64]
+
 
 !check whether the application of possitive jacobian (by default, positive jacobian is run)
 if (is_arg('-j')) then
@@ -1157,10 +1160,11 @@ do ip = 1, size(pmh%pc,1)
         do k = 1, elg%nel
           s = dot_product(z(:,elg%mm(3,k))-z(:,elg%mm(1,k)), z(:,elg%mm(2,k))-z(:,elg%mm(1,k))) !projection of a3-a1 in <{a2-a1}>
           t = dot_product(z(:,elg%mm(3,k))-z(:,elg%mm(1,k)), z(:,elg%mm(4,k))-z(:,elg%mm(1,k))) !projection of a3-a1 in <{a4-a1}>
-          QJac = [QJ_pos([0._real64, 0._real64], [1._real64, 0._real64], [s, t], [0._real64, 1._real64], -1, -1), &
-                  QJ_pos([0._real64, 0._real64], [1._real64, 0._real64], [s, t], [0._real64, 1._real64],  1, -1), &
-                  QJ_pos([0._real64, 0._real64], [1._real64, 0._real64], [s, t], [0._real64, 1._real64],  1,  1), &
-                  QJ_pos([0._real64, 0._real64], [1._real64, 0._real64], [s, t], [0._real64, 1._real64], -1,  1)]
+          st = [s, t]
+          QJac = [QJ_pos(zz, oz, st, zo, -1, -1), &
+                  QJ_pos(zz, oz, st, zo,  1, -1), &
+                  QJ_pos(zz, oz, st, zo,  1,  1), &
+                  QJ_pos(zz, oz, st, zo, -1,  1)]
           call sfind(QJac, .false., pos) !check whether vertices in (s,t)-plane are well oriented
           if     (size(pos,1) == 2) then
             call swap(elg%mm(pos(1),k), elg%mm(pos(2),k))
@@ -1487,6 +1491,8 @@ function get_num_shots(pmh) result(res)
     endif
 
   enddo
+
+  if(.not. allocated(res)) allocate(res(0))
 
 end function
 

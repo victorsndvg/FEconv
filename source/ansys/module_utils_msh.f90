@@ -359,6 +359,7 @@ subroutine add_faces_to_pmh(faces,izones,pmh)
   type(pmh_mesh),               intent(inout) :: pmh
   integer, allocatable                        :: groups(:) !groups(face type) = group number
   integer                                     :: i, numgroups, group, numface,ft
+  logical                                     :: tf(2) = [.true.,.false.]
 
 
   if(.not. allocated(faces%mm)) call error("MSH without faces, could be a binary file")
@@ -396,7 +397,7 @@ subroutine add_faces_to_pmh(faces,izones,pmh)
 
     numface = numface+1
 
-    call set_col(pmh%pc(1)%el(group)%mm,faces%mm(i)%data,numface,(/.true.,.false./))
+    call set_col(pmh%pc(1)%el(group)%mm,faces%mm(i)%data,numface,fit=tf)
     call set(pmh%pc(1)%el(group)%ref,faces%zone(i), numface,.false.)
     pmh%pc(1)%el(group)%nel = pmh%pc(1)%el(group)%nel + 1
 
@@ -420,6 +421,7 @@ subroutine build_cells(faces,cells, pmh)
   integer                                     :: i, j, k, l, aux1, aux2, aux3, aux4
   integer                                     :: wedgequadface(4),face(4)
   integer                                     :: numgroups,group,numcell,ft,ct,ac, snn, prevcell
+  logical                                     :: tf(2) = [.true.,.false.]
 
 
   if(.not. allocated(faces%mm)) call error("MSH without faces, could be a binary file")
@@ -438,6 +440,8 @@ subroutine build_cells(faces,cells, pmh)
 
 ! Renumber cells for PMH groups
   numcell = 1
+  prevcell = 0
+
   do i=1, size(cells%type,1)
     if(prevcell /= cells%type(i)) numcell = 1
     nels(i) = numcell
@@ -495,11 +499,11 @@ subroutine build_cells(faces,cells, pmh)
           if(FEDB(ft)%lnv == 4) then
             if(j == 1 .and. .false.) then ! First adjacent cell: reverse orientation
               do k=1, FEDB(ft)%lnv
-                call set(pmh%pc(1)%el(group)%mm, faces%mm(i)%data(k), FEDB(ft)%lnv-k+1, numcell, (/.true.,.false./))
+                call set(pmh%pc(1)%el(group)%mm, faces%mm(i)%data(k), FEDB(ft)%lnv-k+1, numcell, fit=tf)
               enddo
             else
               do k=1, FEDB(ft)%lnv
-                call set(pmh%pc(1)%el(group)%mm, faces%mm(i)%data(k), k, numcell, (/.true.,.false./))
+                call set(pmh%pc(1)%el(group)%mm, faces%mm(i)%data(k), k, numcell, fit=tf)
               enddo
             endif
             nodesadded(ac) = FEDB(ft)%lnv
@@ -507,11 +511,11 @@ subroutine build_cells(faces,cells, pmh)
         else
           if(j == 1) then ! First adjacent cell: reverse orientation
             do k=1, FEDB(ft)%lnv
-              call set(pmh%pc(1)%el(group)%mm, faces%mm(i)%data(FEDB(ft)%lnv-k+1), face(k), numcell, (/.true.,.false./))
+              call set(pmh%pc(1)%el(group)%mm, faces%mm(i)%data(FEDB(ft)%lnv-k+1), face(k), numcell, fit=tf)
             enddo
           else
             do k=1, FEDB(ft)%lnv
-              call set(pmh%pc(1)%el(group)%mm, faces%mm(i)%data(k), face(k), numcell, (/.true.,.false./))
+              call set(pmh%pc(1)%el(group)%mm, faces%mm(i)%data(k), face(k), numcell, fit=tf)
             enddo
           endif
           nodesadded(ac) = FEDB(ft)%lnv
@@ -600,7 +604,7 @@ print*, numcell,'-', trim(string(pmh%pc(1)%el(group)%mm(:,numcell)))
           call nodes_not_in_cell(pmh%pc(1)%el(group)%mm(:,numcell),faces%mm(i)%data(:), newnodes)
           snn = size(newnodes,1)
           do k=1,snn
-            call set(pmh%pc(1)%el(group)%mm, newnodes(k), FEDB(ft)%lnv+k, numcell, (/.true.,.false./))
+            call set(pmh%pc(1)%el(group)%mm, newnodes(k), FEDB(ft)%lnv+k, numcell, fit=tf)
           enddo
           nodesadded(ac) = nodesadded(ac) + snn
         endif

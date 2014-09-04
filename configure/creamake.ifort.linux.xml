@@ -30,7 +30,7 @@ ifort
 </compiler>
 
 <fflags>
- -warn all -g -check all -traceback
+ -warn all -g -check all,noarg_temp_created -traceback
 </fflags>
 
 </content>

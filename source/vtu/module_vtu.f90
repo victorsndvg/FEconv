@@ -610,7 +610,7 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
       if(vtk_var_xml(nel, 'element_ref', el_ref) /= 0) stop 
       ! Build nsd references
       if(allocated(uref)) deallocate(uref)
-      uref = unique(pack(el_ref,el_ref /= 0))
+      call sunique(pack(el_ref,el_ref /= 0), uref)
       do k=1, size(uref,1)
         aux_ref = 0
         where(el_ref==uref(k))
@@ -626,7 +626,8 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
       if(vtk_var_xml(nel, 'face_ref', f_ref) /= 0) stop 
       ! Build nrc references
       if(allocated(uref)) deallocate(uref)
-      uref = unique(pack(f_ref,f_ref /= 0))
+      call sunique(pack(f_ref,f_ref /= 0), uref)
+!      uref = unique(pack(f_ref,f_ref /= 0))
       do k=1, size(uref,1)
         aux_ref = 0
         where(f_ref==uref(k))
@@ -642,7 +643,8 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
       if(vtk_var_xml(nel, 'edge_ref', e_ref) /= 0) stop 
       ! Build nra references
       if(allocated(uref)) deallocate(uref)
-      uref = unique(pack(e_ref,e_ref /= 0))
+      call sunique(pack(e_ref,e_ref /= 0),uref)
+!      uref = unique(pack(e_ref,e_ref /= 0))
       do k=1, size(uref,1)
         aux_ref = 0
         where(e_ref==uref(k))
@@ -917,7 +919,9 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
   type(cdfield), allocatable:: cdfval(:)
   real(R8P)                 :: p
   logical                   :: file_exists, ffound
+  logical                   :: tf(2)=[.true.,.false.],tt(2)=[.true.,.true.]
   type(pmh_mesh)            :: auxpmh
+  logical                   :: ttt(3) = [.true.,.true.,.true.]
   
 
   ! Reads the VTU file header and allocates the number of pieces
@@ -961,11 +965,11 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
     allocate(pmh%pc(i)%z(3,nn))
 
     ! Save coordinates in PMH structure
-    call set_row(pmh%pc(i)%z, X, 1, fit=[.true.,.true.])
+    call set_row(pmh%pc(i)%z, X, 1, fit=tt)
     if(allocated(X)) deallocate(X)
-    call set_row(pmh%pc(i)%z, Y, 2, fit=[.true.,.true.])
+    call set_row(pmh%pc(i)%z, Y, 2, fit=tt)
     if(allocated(Y)) deallocate(Y)
-    call set_row(pmh%pc(i)%z, Z, 3, fit=[.true.,.true.])
+    call set_row(pmh%pc(i)%z, Z, 3, fit=tt)
     if(allocated(Z)) deallocate(Z)
 
 
@@ -1054,7 +1058,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
                   pmh%pc(i)%fi(npdf)%name = trim(pdfnames(j))
                   call  set(pmh%pc(i)%fi(npdf)%param, p, np, fit=.true.)
                   call set(pmh%pc(i)%fi(npdf)%val,pdfval, (/(k,k=1,ncomp)/), &
-                    & (/(k,k=1,nnref)/),(/np/), fit=[.true.,.true.,.true.])
+                    & (/(k,k=1,nnref)/),(/np/), fit=ttt)
                   call reduce(pmh%pc(i)%fi(npdf)%val, ncomp, nnref, np)
                 else
                   call error('Wrong number of node values')
@@ -1077,7 +1081,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
               pmh%pc(i)%fi(npdf)%name = trim(pdfnames(j))
               call  set(pmh%pc(i)%fi(npdf)%param, p, np, fit=.true.)
               call set(pmh%pc(i)%fi(npdf)%val,pdfval, (/(k,k=1,ncomp)/), &
-                & (/(k,k=1,nnref)/),(/np/), fit=[.true.,.true.,.true.])
+                & (/(k,k=1,nnref)/),(/np/), fit=ttt)
               call reduce(pmh%pc(i)%fi(npdf)%val, ncomp, nnref, np)
             else
               call error('Wrong number of node values')
@@ -1091,6 +1095,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
     if(allocated(pdfval)) deallocate(pdfval)
     if(allocated(pdfnames)) deallocate(pdfnames)
 
+    ncdf = 0
     ! Reads celldata fields
     if(vtk_var_xml_list(cdfnames,i,'Cell') == 0 ) then
       if(allocated(cdfnames)) then 
@@ -1163,7 +1168,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
     endif
 
     ! deallocate cdfval if no fields found
-    if(ncdf == 0 .and. allocated(cdfval)) then
+    if(allocated(cdfval) .and. ncdf == 0) then
       do j=1,size(cdfval,1)
         if(allocated(cdfval(j)%val)) deallocate(cdfval(j)%val)
       enddo
@@ -1171,7 +1176,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
     endif
 
     ! Initialize celldata field names and number of parameters
-    uct = uniqueI1P(cell_type)
+    call suniqueI1P(cell_type, uct)
     ! Memory allocation: Element groups
     if(.not. allocated(pmh%pc(i)%el)) then
        allocate(pmh%pc(i)%el(size(uct,1)))
@@ -1235,7 +1240,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
         ! Stores connectivities and references in PMH structure
         if(uct(j) == cell_type(k)) then
           nel = nel + 1
-          call set_col(pmh%pc(i)%el(j)%nn, connect(offset(k)-lnn+1:offset(k))+1, nel, fit=[.true.,.false.])
+          call set_col(pmh%pc(i)%el(j)%nn, connect(offset(k)-lnn+1:offset(k))+1, nel, fit=tf)
           if(pmh%pc(i)%el(j)%type /= check_fe(.true.,1,1,0,0)) then
             call set(pmh%pc(i)%el(j)%ref, int(c_refs(k)), nel, fit=.true.)
           elseif(allocated(v_ref)) then
@@ -1321,12 +1326,12 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
 end subroutine
 
 !-----------------------------------------------------------------------
-! unique (function): returns the same values as in v with no repetitions.
+! suniqueI1P: returns the same values as in v with no repetitions.
 ! REMARK: res will not be sorted
 !-----------------------------------------------------------------------
-function uniqueI1P(v) result(res)
+subroutine suniqueI1P(v, res)
 integer(I1P), intent(in) :: v(:)
-integer(I1P), allocatable :: res(:)
+integer(I1P), allocatable, intent(out) :: res(:)
 integer(I1P), dimension(size(v,1)) :: tmp
 integer :: ios, n, i
 character(maxpath) :: err_msg
@@ -1341,7 +1346,7 @@ enddo
 allocate(res(n), stat=ios, errmsg=err_msg)
 if (ios /= 0) call error('unique, unable to allocate output variable: '//trim(err_msg))
 res = tmp(1:n)
-end function
+end subroutine
 
 function vtk2pmhcelltype(vtktype) result(res)
   integer, intent(in) :: vtktype
