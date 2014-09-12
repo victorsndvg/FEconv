@@ -378,7 +378,7 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
   real(real64), allocatable     :: znod(:,:)
   integer, allocatable          :: connect(:), offset(:), celltypes(:),piece2save(:)
   integer, allocatable          :: v_ref(:), e_ref(:), f_ref(:), el_ref(:)
-  integer, allocatable          :: uref(:), aux_ref(:)
+  integer, allocatable          :: uref(:), aux_ref(:), temp(:,:)
   type(cdfield), allocatable    :: cdfval(:)
 
   integer :: i, j, k, l, m
@@ -456,8 +456,11 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
       else
           lnv = FEDB(tp)%lnv
           ! Build vtk conectivity array
-          call set(connect, pack(reshape(pc%el(j)%mm-1, (/1,pc%el(j)%nel*lnv/)),.true.), &
+          if(allocated(temp)) deallocate(temp)
+          allocate(temp, source=reshape(pc%el(j)%mm-1, (/1,pc%el(j)%nel*lnv/)))
+          call set(connect, temp(1,:), &
             &(/(k,k=tnvpc+1,tnvpc+pc%el(j)%nel*lnv)/), fit=.false.)
+          deallocate(temp)
           ! Build vtk offset array
           call set(offset, (/(tnvpc+k*lnv, k=1,pc%el(j)%nel)/) , &
             &(/(k,k=nel+1,nel+pc%el(j)%nel)/), fit=.false.)
@@ -549,7 +552,8 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
       call reduce(v_ref, nnod)
       if(vtk_var_xml(nnod, 'vertex_ref', v_ref) /= 0) stop 
       if(allocated(uref)) deallocate(uref)
-      uref = unique(pack(v_ref,v_ref /= 0))
+      call sunique(pack(v_ref,v_ref /= 0), uref)
+!      uref = unique(pack(v_ref,v_ref /= 0))
       do k=1, size(uref,1)
         aux_ref = 0
         where(v_ref==uref(k))

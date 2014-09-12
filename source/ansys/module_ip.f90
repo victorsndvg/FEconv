@@ -204,6 +204,7 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
 
       ! Read field values
       do k=1,n_comps
+        if(fieldcomp(1,k)<=0) cycle
         if(.not. allocated(tfields(fieldcomp(1,k))%val)) &
           & allocate(tfields(fieldcomp(1,k))%val(compsperfield(n_fields),n_points))
         i = 1

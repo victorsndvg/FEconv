@@ -1463,10 +1463,10 @@ end function
 !--------------------------------------------------------------------
 ! get_num_shots: returns an array with the number of shots of all fields
 !--------------------------------------------------------------------
-function get_num_shots(pmh) result(res)
-  type(pmh_mesh),    intent(in) :: pmh
-  integer, allocatable          :: res(:)
-  integer                       :: ip, ig, ifi, nfield
+subroutine get_num_shots(pmh, res)
+  type(pmh_mesh),    intent(in)    :: pmh
+  integer, allocatable, intent(out):: res(:)
+  integer                          :: ip, ig, ifi, nfield
 
   nfield = 0
   do ip=1,size(pmh%pc) 
@@ -1494,7 +1494,7 @@ function get_num_shots(pmh) result(res)
 
   if(.not. allocated(res)) allocate(res(0))
 
-end function
+end subroutine
 
 
 end module

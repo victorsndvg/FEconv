@@ -112,7 +112,7 @@ subroutine save_pvd(filename, pmh, infield, outfield, padval)
   integer                                   :: i, iu, ios
 
 
-  nshots = get_num_shots(pmh)
+  call get_num_shots(pmh, nshots)
 
   if(allocated(nshots)) then
     if(size(nshots,1)<1) call error("No fields found!")
