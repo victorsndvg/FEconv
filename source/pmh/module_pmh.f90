@@ -16,6 +16,7 @@ module module_pmh
 !   get_field_num_shots: returns the number of shots giving a field name
 !   get_num_shots: returns an array with the number of shots of all fields
 !   get_piece_max_top_dim: returns the maximum topological dimension 
+!   remove_coordinate: reduces the space dimension of the mesh removing the chosen coordinate
 
 !
 ! REMARKS:
@@ -1494,6 +1495,36 @@ subroutine get_num_shots(pmh, res)
 
   if(.not. allocated(res)) allocate(res(0))
 
+end subroutine
+
+
+!--------------------------------------------------------------------
+! remove_coordinate: reduces the space dimension of the mesh removing the chosen coordinate
+!--------------------------------------------------------------------
+subroutine remove_coordinate(pmh, dim)
+  type(pmh_mesh), intent(inout) :: pmh
+  integer,        intent(in)    :: dim
+  integer                       :: i, newdim
+  real(real64), allocatable     :: tempz(:,:)
+
+  if(.not. allocated(pmh%pc)) call error('Not allocated mesh')
+
+  call info('Removin component '//string(dim))
+
+  do i=1,size(pmh%pc,1)
+    if(pmh%pc(i)%dim<dim) call error('Not enought component. Cannot downgrade space dimension.')
+
+    if(allocated(tempz)) deallocate(tempz)
+    newdim = pmh%pc(i)%dim-1
+    allocate(tempz(newdim, pmh%pc(i)%nver))
+
+    tempz(1:newdim,:) = pmh%pc(i)%z([1:dim-1,dim+1:pmh%pc(i)%dim],:)
+    call move_alloc(from=tempz,to=pmh%pc(i)%z)
+
+    pmh%pc(i)%dim = newdim
+
+  enddo
+ 
 end subroutine
 
 

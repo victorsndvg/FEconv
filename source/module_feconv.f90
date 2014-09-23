@@ -71,7 +71,7 @@ character(maxpath) :: infile=' ', inmesh=' ', inext=' ', outfile=' ', outmesh=' 
 character(maxpath) :: infext=' ', outfext=' ', outpath = ' '!,fieldfilename = ' '
 character(maxpath), allocatable :: infieldfile(:), outfieldfile(:),infieldname(:), outfieldname(:)
 character(maxpath) :: str
-integer :: p, nargs, q
+integer :: p, nargs, q, comp
 integer, allocatable :: nsd0(:)
 logical :: there_is_field
 !Variables for extratction
@@ -501,6 +501,15 @@ if(is_arg('-l')) then
   call save_pmh2(infile,pmh,with_values=.false.)
   stop
 endif
+
+
+! Remove a component of the space dimension
+if (is_arg('-rc')) then
+ comp = int(get_post_arg('-rc'))
+ if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+ call remove_coordinate(pmh, comp)
+endif
+
 
 !extract (only for Lagrange P1 meshes)
 if (is_arg('-es')) then
