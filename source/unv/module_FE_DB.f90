@@ -57,7 +57,7 @@ FE_DB( 45) = fe_db_type('Plane Stress Parabolic Quadrilateral',2, 8,4, 4,0,.fals
 FE_DB( 81) = fe_db_type('Axisymetric Solid Linear Triangle',   2, 3,3, 3,0,.false.,         0)
 FE_DB( 82) = fe_db_type('Axisymetric Solid Parabolic Triangle',3, 6,3, 3,0,.false.,ND_TRIA_P2)
 FE_DB( 84) = fe_db_type('Axisymetric Solid Linear Quad',       3, 4,4, 4,0,.false.,         0)
-FE_DB( 85) = fe_db_type('Axisimetric Solid Parabolic Quad',    3, 8,4, 4,0,.false.,ND_QUAD_P2)
+FE_DB( 85) = fe_db_type('Axisymetric Solid Parabolic Quad',    3, 8,4, 4,0,.false.,ND_QUAD_P2)
 
 FE_DB( 91) = fe_db_type('Thin Shell Linear Triangle',          3, 3,3, 3,0,.false.,         0)
 FE_DB( 92) = fe_db_type('Thin Shell Parabolic Triangle',       3, 6,3, 3,0,.false.,ND_TRIA_P2)
