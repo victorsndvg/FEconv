@@ -14,38 +14,44 @@
 
     <p><strong>On this page:</strong></p>
     <ul>
+      <p>
       <li><a href="#info">Info options</a></li>
       <ul>
         <li><a href="#help">Show help</a></li>
         <li><a href="#vers">Show version</a></li>
         <li><a href="#list">List mesh and field info</a></li>
       </ul>
-      <li><a href="#fetype">Finite element type</a></li>
-      <ul>
-        <li><a href="#l1">Transform to Lagrange P1</a></li>
-        <li><a href="#l2">Transform to Lagrange P2</a></li>
-        <li><a href="#rt">Transform to Raviart-Thomas</a></li>
-        <li><a href="#nd">Transform to Nêdelec</a></li>
-      </ul>
-      <li><a href="#pmhopt">PMH options</a></li>
+      </p>
+      <p>
+      <li><a href="#meshread">Mesh read options</a></li>
       <ul>
         <li><a href="#jaco">Force jacobian</a></li>
         <li><a href="#reor">Reorder nodes</a></li>
         <li><a href="#tol">Define tolerance</a></li>
+        <li><a href="#piece">Read a single piece</a></li>
       </ul>
-      <li><a href="#meshopt">Mesh options</a></li>
+      </p>
+      <p>
+      <li><a href="#meshconv">Mesh conversion options</a></li>
       <ul>
-        <li><a href="#piece">Save a single piece</a></li>
+        <li><a href="#l1">Transform to Lagrange P1</a></li>
+        <li><a href="#l2">Transform to Lagrange P2</a></li>
+        <li><a href="#nd">Transform to Nêdelec</a></li>
+        <li><a href="#rt">Transform to Raviart-Thomas</a></li>
+        <li><a href="#rcm">Bandwidth reduction (RCM)</a></li>
         <li><a href="#es">Extract submesh</a></li>
         <li><a href="#rc">Remove a component of the coordinates</a></li>
-        <li><a href="#rcm">Bandwidth reduction (RCM)</a></li>
       </ul>
-      <li><a href="#meshform">Mesh formats</a></li>
+      </p>
+      <p>
+      <li><a href="#meshform">Related formats to MSH extension</a></li>
       <ul>
         <li><a href="#ff">FreeFEM++</a></li>
         <li><a href="#gm">GMSH</a></li>
       </ul>
-      <li><a href="#Fieldopt">Field options</a></li>
+      </p>
+      <p>
+      <li><a href="#fieldopt">Field options</a></li>
       <ul>
         <li><a href="#if">Input field file</a></li>
         <li><a href="#of">Output field file</a></li>
@@ -53,85 +59,51 @@
         <li><a href="#on">Output field name</a></li>
         <li><a href="#pad">Padding value</a></li>
         <li><a href="#cn">Cell to node</a></li>
-      </ul>
-      <li><a href="#fieldform">Field formats</a></li>
-      <ul>
         <li><a href="#ca">Code Aster (UNV)</a></li>
       </ul>
+      </p>
     </ul>
 
     <h3 id="info">Info options</h3>
-      <pre>-l &gt;file&lt;</pre>
-      <p>List the content of &gt;file&lt;, ignore the rest of arguments and exit.</p>
-    <div class="back"><a href="#top">Back to top</a></div>
-
-    <h3 id="fetype">Finite element type</h3>
       <p>
       <div align="left">
-        <table class="tb">
+        <table class="tb" width="80%">
           <thead>
             <tr> <th width="30%">Command option</th> <th>Meaning</th></tr>
           </thead>
           <tbody>
-            <tr><td><var id="l1">-l1</var></td> <td align="left"><var>Output file will contain Lagrange P1 finite elements.</var></td></tr>
-            <tr><td><var id="l2">-l2</var></td> <td align="left"><var>Output file will contain Lagrange P2 finite elements.</var></td></tr>
-            <tr><td><var id="nd">-nd</var></td> <td align="left"><var>Output file will contain Raviart-Thomas (face) finite elements of the lowest degree.</var></td></tr>
-            <tr><td><var>-rt id="rt"</var></td> <td align="left"><var>Output file will contain Lagrange P1 finite elements.</var></td></tr>
+            <tr><td id="help"><code><strong>-h</strong></code></td> <td align="left">Show context help.</td></tr>
+            <tr><td id="vers"><code><strong>-v</strong></code></td> <td align="left">Show software version.</td></tr>
+            <tr><td id="list"><code><strong>-l</strong></code></td> <td align="left">Show mesh and field info.</td></tr>
           </tbody>
         </table>
       </div>
       </p>
     <div class="back"><a href="#top">Back to top</a></div>
 
-    <h3 id="pmhopt">PMH options</h3>
+    <h3 id="meshread">Mesh read options</h3>
       <p>
       <div align="center">
-        <table>
+        <table width="80%">
           <thead>
             <tr> <th width="30%">Command option</th> <th>Meaning</th></tr>
           </thead>
           <tbody>
             <tr>
-              <td><var id="jaco">-j {yes|no}</var></td> 
-              <td align="left"><var>Either to enforce or not positive jacobian in element groups with maximal topological dimension. The default value is 'yes'. Since positivity is checked using the third component of the normal vector, its enforcement is not recommend for two-dimensional meshes containing almost vertical elements</var></td>
+              <td id="jaco"><code><strong>-j</strong></code> <em>{yes|no}</em></td> 
+              <td align="left">Either to enforce or not positive jacobian in element groups with maximal topological dimension. The default value is 'yes'. Since positivity is checked using the third component of the normal vector, its enforcement is not recommend for two-dimensional meshes containing almost vertical elements</td>
             </tr>
             <tr>
-              <td><var id="reor">-r {hard|soft|sandwich}</var></td> 
-              <td align="left"><var>Feconv assumes that nodes of a Lagrange P2 element are listed vertices first, then mid-points, both counterclockwise. The default value 'hard' check whether every element meet this order. The value 'soft' checks only the first element and assumes that the rest keep the same order; this option can dramatically reduce the reordering computation time. The value 'sandwich' assumes that vertices and mid-points appear sandwiched and counterclockwise; this option must be used when the Lagrange P2 mesh was created with SALOME</var></td>
+              <td id="reor"><code><strong>-r</strong></code> <em>{hard|soft|sandwich}</em></td> 
+              <td align="left">Feconv assumes that nodes of a Lagrange P2 element are listed vertices first, then mid-points, both counterclockwise. The default value 'hard' check whether every element meet this order. The value 'soft' checks only the first element and assumes that the rest keep the same order; this option can dramatically reduce the reordering computation time. The value 'sandwich' assumes that vertices and mid-points appear sandwiched and counterclockwise; this option must be used when the Lagrange P2 mesh was created with SALOME</td>
             </tr>
             <tr>
-               <td><var id="tol">-t &lt;tolerance&gt;</var></td> 
-               <td align="left"><var>Tolerance to search mid-points in Lagrange P2 meshes. By default the value of tolerance is epsilon for kind real64 (double precision in fortran 77). Do not change it unless the conversion fails</var></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      </p>
-    <div class="back"><a href="#top">Back to top</a></div>
-
-    <h3 id="meshopt">Mesh options</h3>
-      <p>
-      <div align="center">
-        <table>
-          <thead>
-            <tr> <th width="30%">Command option</th> <th>Meaning</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><var id="piece">-p &lt;n&gt;</var></td> 
-              <td align="left"><var>        When the input mesh is divided in several pieces (like in VTU or MPHTXT formats), &lt;n&gt; is the number of the piece to be saved. If not present, when transforming to MFM, all pieces are merged and coincident nodes from different pieces are not indentified; use option -glue identify coincident nodes from different pieces (not yet implemented).</var></td>
+              <td id="tol"><code><strong>-t</strong></code> <em>&lt;tolerance&gt;</em></td> 
+              <td align="left">Tolerance to search mid-points in Lagrange P2 meshes. By default the value of tolerance is epsilon for kind real64 (double precision in fortran 77). Do not change it unless the conversion fails</td>
             </tr>
             <tr>
-              <td><var id="es">-es &lt;n&gt;, -es [&lt;n1&gt;,&lt;n2&gt;,&lt;n3&gt;,...]</var></td> 
-              <td align="left"><var>Save in &lt;outfile&gt; a submesh extracting only elements with reference &lt;n&gt;. When several references must be extrated, separate them with commas without blank spaces and enclose them in square brakets. This option is available only for Lagrange P1 meshes.</var></td>
-            </tr>
-            <tr>
-               <td><var id="rc">-rc &lt;comp&gt;</var></td> 
-               <td align="left"><var>EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION EXPLIACION </var></td>
-            </tr>
-            <tr>
-               <td><var id="rcm">-cm</var></td> 
-               <td align="left"><var>Performs a bandwidth optimization using the CutHill-McKee algorithm. This option is incompatible with field conversion.</var></td>
+              <td id="piece"><code><strong>-p</strong></code> <em>&lt;n&gt;</em></td> 
+              <td align="left">        When the input mesh is divided in several pieces (like in VTU or MPHTXT formats), &lt;n&gt; is the number of the piece to be saved. If not present, when transforming to MFM, all pieces are merged and coincident nodes from different pieces are not indentified; use option -glue identify coincident nodes from different pieces (not yet implemented).</td>
             </tr>
           </tbody>
         </table>
@@ -139,21 +111,51 @@
       </p>
     <div class="back"><a href="#top">Back to top</a></div>
 
-    <h3 id="meshform">Mesh formats</h3>
+    <h3 id="meshconv">Mesh conversion options</h3>
+      <p>
+      <div align="left">
+        <table class="tb" width="80%">
+          <thead>
+            <tr> <th width="30%">Command option</th> <th>Meaning</th></tr>
+          </thead>
+          <tbody>
+            <tr><td id="l1"><code><strong>-l1</strong></code></td> <td align="left">Output file will contain Lagrange P1 finite elements.</td></tr>
+            <tr><td id="l2"><code><strong>-l2</strong></code></td> <td align="left">Output file will contain Lagrange P2 finite elements.</td></tr>
+            <tr><td id="nd"><code><strong>-nd</strong></code></td> <td align="left">Output file will contain Raviart-Thomas (face) finite elements of the lowest degree.</td></tr>
+            <tr><td id="rt"><code><strong>-rt</strong></code></td> <td align="left">Output file will contain Lagrange P1 finite elements.</td></tr>
+            <tr>
+              <td id="rcm"><code><strong>-cm</strong></code></td> 
+              <td align="left">Performs a bandwidth optimization using the CutHill-McKee algorithm. This option is incompatible with field conversion.</td>
+            </tr>
+            <tr>
+              <td id="es"><code><strong>-es</strong></code> <em>&lt;n&gt;</em>, <code><strong>-es</strong></code> <em>[&lt;n1&gt;,&lt;n2&gt;,&lt;n3&gt;,...]</em></td> 
+              <td align="left">Save in &lt;outfile&gt; a submesh extracting only elements with reference &lt;n&gt;. When several references must be extrated, separate them with commas without blank spaces and enclose them in square brakets. This option is available only for Lagrange P1 meshes.</td>
+            </tr>
+            <tr>
+              <td id="rc"><code><strong>-rc</strong></code> <em>&lt;comp&gt;</em></td> 
+              <td align="left">Remove the component <em>&lt;comp&gt;</em> of the coordinates. <em>&lt;comp&gt;</em> must be smaller than the number of components.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </p>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    <h3 id="meshform">Related formats to MSH extension</h3>
       <p>
       <div align="center">
-        <table>
+        <table width="80%">
           <thead>
             <tr> <th width="30%">Command option</th> <th>Meaning</th></tr>
           </thead>
           <tbody>
             <tr>
-              <td><var id="ff">-ff</var></td> 
-              <td align="left"><var> When a .msh file appears, format applied is FreeFem++ MSH format; if absent, format applied is ANSYS MSH format.</var></td>
+              <td id="ff"><code><strong>-ff</strong></code></td> 
+              <td align="left"> When a .msh file appears, format applied is FreeFem++ MSH format; if absent, format applied is ANSYS MSH format.</td>
             </tr>
             <tr>
-              <td><var id="gm">-gm</var></td> 
-              <td align="left"><var>When a .msh file appears, format applied is Gmsh MSH ASCII format; if absent, format applied is ANSYS MSH format.</var></td>
+              <td id="gm"><code><strong>-gm</strong></code></td> 
+              <td align="left">When a .msh file appears, format applied is Gmsh MSH ASCII format; if absent, format applied is ANSYS MSH format.</td>
             </tr>
           </tbody>
         </table>
@@ -164,34 +166,38 @@
     <h3 id="fieldopt">Field options</h3>
       <p>
       <div align="center">
-        <table>
+        <table width="80%">
           <thead>
             <tr> <th width="30%">Command option</th> <th>Meaning</th></tr>
           </thead>
           <tbody>
             <tr>
-              <td><var id="if">-if &lt;file&gt;</var></td> 
-              <td align="left"><var>Specify the input field file &lt;file&gt;. Option -if is required for field formats classified as (O) and ignored otherwise. See paragraph FIELD FORMATS regarding field classification. This option is incompatible with -cm.</var></td>
+              <td id="if"><code><strong>-if</strong></code> <em>&lt;file&gt;</em></td> 
+              <td align="left">Specify the input field file &lt;file&gt;. Option -if is required for field formats classified as (O) and ignored otherwise. See paragraph FIELD FORMATS regarding field classification. This option is incompatible with -cm.</td>
             </tr>
             <tr>
-              <td><var id="of">-of &lt;file&gt;</var></td> 
-              <td align="left"><var>Specify the output field file &lt;file&gt;. Option -of is mandatory for field formats classified as (O) and ignored otherwise. See paragraph FIELD FORMATS regarding field classification. This option is incompatible with -cm.</var></td>
+              <td id="of"><code><strong>-of</strong></code> <em>&lt;file&gt;</em></td> 
+              <td align="left">Specify the output field file &lt;file&gt;. Option -of is mandatory for field formats classified as (O) and ignored otherwise. See paragraph FIELD FORMATS regarding field classification. This option is incompatible with -cm.</td>
             </tr>
             <tr>
-              <td><var id="in">-in &lt;name&gt;, -in [&lt;name1&gt;,&lt;name2&gt;,&lt;name3&gt;,...]</var></td> 
-              <td align="left"><var>Specify the input field name &lt;name&gt; to be read. When several names are indicated, enclose everyone in quotes, separate them with commas without blank spaces and enclose them in square brakets. Option -in is ignored for field formats classified as (U), and it is optional otherwise. In the latter case, if omitted, all the fields are read by feconv. See paragraph FIELD FORMATS regarding field classification. See paragraph ANSYS INTERPOLATION FILES regarding restriccions applied to ANSYS Interpolation files. Field conversion is incompatible with -cm.</var></td>
+              <td id="in"><code><strong>-in</strong></code> <em>&lt;name&gt;</em>, <code><strong>-in</strong></code> <em>[&lt;name1&gt;,&lt;name2&gt;,&lt;name3&gt;,...]</em></td> 
+              <td align="left">Specify the input field name &lt;name&gt; to be read. When several names are indicated, enclose everyone in quotes, separate them with commas without blank spaces and enclose them in square brakets. Option -in is ignored for field formats classified as (U), and it is optional otherwise. In the latter case, if omitted, all the fields are read by feconv. See paragraph FIELD FORMATS regarding field classification. See paragraph ANSYS INTERPOLATION FILES regarding restriccions applied to ANSYS Interpolation files. Field conversion is incompatible with -cm.</td>
             </tr>
             <tr>
-              <td><var id="on">-on &lt;name&gt;, -on [&lt;name1&gt;,&lt;name2&gt;,&lt;name3&gt;,...]</var></td> 
-              <td align="left"><var>Specify the input field name &lt;name&gt; to be read. When several names are indicated, enclose everyone in quotes, separate them with commas without blank spaces and enclose them in square brakets. Option -on is ignored for field formats classified as (U), and it is optional otherwise. In the latter case, when it appears, the number of names in -on must coincide with the number of input fields read by feconv. See paragraph FIELD FORMATS regarding field classification. See paragraph ANSYS INTERPOLATION FILES regarding restriccions applied to ANSYS Interpolation files. This option is incompatible with -cm.</var></td>
+              <td id="on"><code><strong>-on</strong></code> <em>&lt;name&gt;</em>, <code><strong>-on</strong></code> <em>[&lt;name1&gt;,&lt;name2&gt;,&lt;name3&gt;,...]</em></td> 
+              <td align="left">Specify the input field name &lt;name&gt; to be read. When several names are indicated, enclose everyone in quotes, separate them with commas without blank spaces and enclose them in square brakets. Option -on is ignored for field formats classified as (U), and it is optional otherwise. In the latter case, when it appears, the number of names in -on must coincide with the number of input fields read by feconv. See paragraph FIELD FORMATS regarding field classification. See paragraph ANSYS INTERPOLATION FILES regarding restriccions applied to ANSYS Interpolation files. This option is incompatible with -cm.</td>
             </tr>
             <tr>
-              <td><var id="pad">--pad &lt;val&gt;</var></td> 
-              <td align="left"><var>When reading a nodewise field not defined for every node, assigns the real value &lt;val&gt; in those nodes; similarly, when reading a elementwise field not defined for every maximum dimension element, assigns the real value &lt;val&gt; in those elements; if absent, &lt;val&gt; is taken as 0.</var></td>
+              <td id="pad"><code><strong>-pad</strong></code> <em>&lt;val&gt;</em></td> 
+              <td align="left">When reading a nodewise field not defined for every node, assigns the real value &lt;val&gt; in those nodes; similarly, when reading a elementwise field not defined for every maximum dimension element, assigns the real value &lt;val&gt; in those elements; if absent, &lt;val&gt; is taken as 0.</td>
             </tr>
             <tr>
-              <td><var id="cn">-cn</var></td> 
-              <td align="left"><var>Save every input elementwise field as a nodewise in &lt;outfile&gt;. If absent, elementwise fields are saved unchanged when the output field format can handle them.</var></td>
+              <td id="cn"><code><strong>-cn</strong></code></td> 
+              <td align="left">Save every input elementwise field as a nodewise in &lt;outfile&gt;. If absent, elementwise fields are saved unchanged when the output field format can handle them.</td>
+            </tr>
+            <tr>
+              <td id="ca"><code><strong>-ca</strong></code></td> 
+              <td align="left">Allow to identify UNV fields by the search keys that define the problem solved by Code Aster (record6 or record9) instead of the field name. This option is only compatible with UNV files. </td>
             </tr>
           </tbody>
         </table>
@@ -199,25 +205,9 @@
       </p>
     <div class="back"><a href="#top">Back to top</a></div>
 
-    <h3 id="fieldform">Field formats</h3>
-      <p>
-      <div align="center">
-        <table>
-          <thead>
-            <tr> <th width="30%">Command option</th> <th>Meaning</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><var id="ca">-ca</var></td> 
-              <td align="left"><var>EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION EXPLICACION </var></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      </p>
-    <div class="back"><a href="#top">Back to top</a></div>
-
+<!--    <hr />
     <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> -->
+
   </body>
 </html>
 
