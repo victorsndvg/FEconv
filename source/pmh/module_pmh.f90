@@ -1509,10 +1509,10 @@ subroutine remove_coordinate(pmh, dim)
 
   if(.not. allocated(pmh%pc)) call error('Not allocated mesh')
 
-  call info('Removin component '//string(dim))
+  call info('Removing component '//string(dim))
 
   do i=1,size(pmh%pc,1)
-    if(pmh%pc(i)%dim<dim) call error('Not enought component. Cannot downgrade space dimension.')
+    if(pmh%pc(i)%dim<dim) call error('Not enought components. Cannot downgrade space dimension.')
 
     if(allocated(tempz)) deallocate(tempz)
     newdim = pmh%pc(i)%dim-1

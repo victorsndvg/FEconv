@@ -16,7 +16,7 @@ use module_report, only: error
 use module_convers, only: adjustlt, lcase, word_count
 use module_files, only: get_unit
 use module_alloc, only: set
-use module_args, only: get_arg, is_arg, get_post_arg, args_count
+use module_args, only: get_arg, is_arg, get_post_arg, args_count, set_args
 use module_transform, only: lagr2l2, lagr2rt, lagr2nd, to_l1
 use module_cuthill_mckee, only: cuthill_mckee
 use module_msh, only: load_msh,save_msh
@@ -66,7 +66,9 @@ contains
 !-----------------------------------------------------------------------
 ! convert: converts between several mesh and FE field formats
 !-----------------------------------------------------------------------
-subroutine convert()
+subroutine convert(cad,mempmh)
+character(maxpath), optional, intent(in) :: cad
+type(pmh_mesh), optional, intent(inout) :: mempmh
 character(maxpath) :: infile=' ', inmesh=' ', inext=' ', outfile=' ', outmesh=' ', outext=' '
 character(maxpath) :: infext=' ', outfext=' ', outpath = ' '!,fieldfilename = ' '
 character(maxpath), allocatable :: infieldfile(:), outfieldfile(:),infieldname(:), outfieldname(:)
@@ -79,10 +81,16 @@ integer,      allocatable :: submm(:,:), subnrv(:,:), subnra(:,:), subnrc(:,:), 
 real(real64), allocatable :: subz(:,:)
 real(real64)              :: padval
 
+if(present(cad)) then
+  call set_args(cad)
+else
+  call info('String options for convert not found. Reading options from command line')
+endif
+
 !find infile and outfile at the end of the arguments
 nargs = args_count()
 
- if(is_arg('-l')) then
+ if(is_arg('-l') .or. present(mempmh)) then
    infile = get_post_arg('-l')
    p = index( infile, '.', back=.true.)
    inmesh =  infile(1:p-1)
@@ -98,7 +106,7 @@ nargs = args_count()
 !check mesh names and extensions
 if (len_trim(infile)  == 0) call error('(module_feconv/fe_conv) unable to find input file.')
 if (len_trim(inext)   == 0) call error('(module_feconv/fe_conv) unable to find input file extension.')
-if(.not. is_arg('-l')) then
+if(.not. is_arg('-l') .and. .not. present(mempmh)) then
   if (len_trim(outfile) == 0) call error('(module_feconv/fe_conv) unable to find output file.')
   if (len_trim(outext)  == 0) call error('(module_feconv/fe_conv) unable to find output file extension.')
   select case (trim(adjustlt(outext))) !check outfile extension now (avoid reading infile when outfile is invalid)
@@ -506,7 +514,11 @@ endif
 ! Remove a component of the space dimension
 if (is_arg('-rc')) then
  comp = int(get_post_arg('-rc'))
- if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+ if (.not. is_pmh) then
+   call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+   is_pmh=.true.
+ endif
+
  call remove_coordinate(pmh, comp)
 endif
 
@@ -585,91 +597,96 @@ if (is_arg('-cn')) then
   call cell2node(pmh)
 end if
 
+if(present(mempmh)) then
+  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  mempmh = pmh
+else
 
-!save mesh
-select case (trim(adjustlt(outext)))
-case('mfm')
-  print '(/a)', 'Saving MFM mesh file...'
-  if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  call save_mfm(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  print '(a)', 'Done!'
-case('mum')
-  print '(/a)', 'Saving MUM mesh file...'
-  if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  call save_mum(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  print '(a)', 'Done!'
-case('vtu')
-  print '(/a)', 'Saving VTU mesh file...'
-  if (is_pmh) then
-    call save_vtu(outfile, pmh,infieldname, outfieldname, padval)
-  else
-    call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  endif
-  print '(a)', 'Done!'
-!case('vtu')
-!  print '(/a)', 'Saving VTU mesh file...'
-!  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-!  call save_vtu2(outfile, pmh)
-!  print '(a)', 'Done!'
-case('pvd')
-  print '(/a)', 'Saving PVD file...'
-  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_pvd(outfile, pmh,infieldname, outfieldname, padval)
-  print '(a)', 'Done!'
-case('mphtxt')
-  print '(/a)', 'Saving COMSOL mesh file...'
-  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_mphtxt(outfile, pmh)
-  print '(a)', 'Done!'
-case('unv')
-  print '(/a)', 'Saving I-DEAS UNV mesh file...'
-  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_unv(outfile, get_unit(), pmh, infieldname, outfieldname, is_arg('-ca'))
-  print '(a)', 'Done!'
-case('pf3')
-  print '(/a)', 'Saving FLUX mesh file...'
-  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_pf3(outfile, pmh, infieldname, outfieldname, outpath)
-  print '(a)', 'Done!'
-case('msh')
-  if (is_arg('-ff')) then !FreeFem++
+  !save mesh
+  select case (trim(adjustlt(outext)))
+  case('mfm')
+    print '(/a)', 'Saving MFM mesh file...'
+    if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    call save_mfm(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    print '(a)', 'Done!'
+  case('mum')
+    print '(/a)', 'Saving MUM mesh file...'
+    if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    call save_mum(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    print '(a)', 'Done!'
+  case('vtu')
+    print '(/a)', 'Saving VTU mesh file...'
+    if (is_pmh) then
+      call save_vtu(outfile, pmh,infieldname, outfieldname, padval)
+    else
+      call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    endif
+    print '(a)', 'Done!'
+  !case('vtu')
+  !  print '(/a)', 'Saving VTU mesh file...'
+  !  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  !  call save_vtu2(outfile, pmh)
+  !  print '(a)', 'Done!'
+  case('pvd')
+    print '(/a)', 'Saving PVD file...'
+    if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+    call save_pvd(outfile, pmh,infieldname, outfieldname, padval)
+    print '(a)', 'Done!'
+  case('mphtxt')
+    print '(/a)', 'Saving COMSOL mesh file...'
+    if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+    call save_mphtxt(outfile, pmh)
+    print '(a)', 'Done!'
+  case('unv')
+    print '(/a)', 'Saving I-DEAS UNV mesh file...'
+    if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+    call save_unv(outfile, get_unit(), pmh, infieldname, outfieldname, is_arg('-ca'))
+    print '(a)', 'Done!'
+  case('pf3')
+    print '(/a)', 'Saving FLUX mesh file...'
+    if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+    call save_pf3(outfile, pmh, infieldname, outfieldname, outpath)
+    print '(a)', 'Done!'
+  case('msh')
+    if (is_arg('-ff')) then !FreeFem++
+      print '(/a)', 'Saving FreFem++ mesh file...'
+      if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+      call save_freefem_msh(outfile, get_unit(), pmh)
+    else !ANSYS
+      print '(/a)', 'Saving ANSYS mesh file...'
+      if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+      call save_msh(outfile, pmh)
+    end if
+    print '(a)', 'Done!'
+  case('mesh')
     print '(/a)', 'Saving FreFem++ mesh file...'
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-    call save_freefem_msh(outfile, get_unit(), pmh)
-  else !ANSYS
-    print '(/a)', 'Saving ANSYS mesh file...'
+    call save_freefem_mesh(outfile, get_unit(), pmh)
+    print '(a)', 'Done!'
+  case('pmh')
+    print '(/a)', 'Saving PMH mesh file...'
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-    call save_msh(outfile, pmh)
-  end if
-  print '(a)', 'Done!'
-case('mesh')
-  print '(/a)', 'Saving FreFem++ mesh file...'
-  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_freefem_mesh(outfile, get_unit(), pmh)
-  print '(a)', 'Done!'
-case('pmh')
-  print '(/a)', 'Saving PMH mesh file...'
-  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  call save_pmh(outfile, pmh)
-  print '(a)', 'Done!'
-end select !case default, already checked before reading infile
+    call save_pmh(outfile, pmh)
+    print '(a)', 'Done!'
+  end select !case default, already checked before reading infile
+  
+  !save fields
+  if(is_pmh .and. there_is_field .and. is_arg('-of')) then
+    select case (trim(lcase(adjustlt(outfext))))
+      case('mff')
+        call save_mff(pmh, outfieldfile, outpath)
+      case('muf')
+        call error('muf field extension not implemented yet!')
+      case('dex')
+        call save_dex(pmh, infieldname, outfieldname, outfieldfile)
+      case('ip')
+        call save_ip(pmh, outfieldfile, infieldname, outfieldname)
+      case default
+        call info('Field file extension "'//trim(lcase(adjustlt(outfext)))//'" not supported!')
+    end select
+  endif
 
-!save fields
-if(is_pmh .and. there_is_field .and. is_arg('-of')) then
-  select case (trim(lcase(adjustlt(outfext))))
-    case('mff')
-      call save_mff(pmh, outfieldfile, outpath)
-    case('muf')
-      call error('muf field extension not implemented yet!')
-    case('dex')
-      call save_dex(pmh, infieldname, outfieldname, outfieldfile)
-    case('ip')
-      call save_ip(pmh, outfieldfile, infieldname, outfieldname)
-    case default
-      call info('Field file extension "'//trim(lcase(adjustlt(outfext)))//'" not supported!')
-  end select
-endif
-
+endif 
 
 end subroutine
 
