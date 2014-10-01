@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" "http://www.w3.org/Math/DTD/mathml2/xhtml-math11-f.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US">
+  <head>
+    <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" /> 
+    <title>UNV format</title>
+    <link rel="stylesheet" type="text/css" href="estilo.css" />
+  </head>
+  <body id="top">
+    <p>Up: <a href="index.html">Program feconv</a></p>
+    <hr /> 
+
+    <h2>UNV format</h2>
+
+    <p><strong>On this page:</strong></p>
+    <ul>
+      <li><a href="#desc">Description</a></li>
+      <li><a href="#feat">Features supported by feconv</a></li>
+      <ul>
+        <li><a href="#node">Node DataSets</a></li>
+        <li><a href="#element">Element DataSet</a></li>
+        <li><a href="#group">Group DataSets</a></li>
+        <li><a href="#field">Field DataSets</a></li>
+      </ul>
+    </ul>
+
+    <h3 id="desc">Description</h3>
+
+    <p>The Universal File formats were originally developed by the Structural Dynamics Research Corporation (SDRC) in the late 1960s and early 1970s to facilitate computer aided engineering (CAE). This format is described in the web page of the Structural Dynamics Research Lab at the <a href="http://sdrl.uc.edu">University of Cincinnati (UC-SDRL)</a>. The file extension for the format UNV is also <em>.unv</em>.</p>
+
+    <p>The main features of this format are:</p>
+    <ul>
+      <li>It can save hybrid meshes, that is, meshes that contain a several types of finite elements.</li>
+      <li>The global indexing of nodes, edges, faces and elements are defined by integers. </li>
+      <li>The vertex coordinates and field values are defined by floats of double precision.</li>
+      <li>Each set of coordinates, connectivities, references and fields  are stored in its own dataset.</li>
+      <ul>
+        <li>The node datasets contains the node number and their coordinates among other information</li>
+        <li>The element datasets contains the element number, element descriptor, number of nodes and their connectivities among other information</li>
+        <li>The group datasets contains the group number, group name and a set of entities with their tags and entity types among other information</li>
+        <li>The field datasets contains the field descriptors and a set of entities with their values and entity numbers among other information</li>
+      </ul>
+    </ul>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+
+    <h3 id="feat">Features supported by feconv</h3>
+
+
+    <h4 id="node">Node DataSets</h4>
+
+    <p>The node dataset contains the node number and their coordinates among other information. Feconv supports the DataSets <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2411.htm">2411</a> and <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_0781.htm">781</a> for reading node definition and uses the Dataset <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2411.htm">2411</a> for writing node data.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    <h4 id="element">Element DataSet</h4>
+
+    <p>The element datasets contains the element number, element descriptor, number of nodes and their connectivities among other information. Feconv supports the DataSet <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2412.htm">2412</a> for reading and writing element definition.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    <h5 id="fetypes">UNV finite element types allowed in feconv</h5>
+
+    <p>The UNV format describes a lot of different types of finite elements. In the following table you can see the finite elements allowed and its meaning in FEconv.</p>
+
+    <p>
+    <div align="center">
+    <table class="tb" width="80%">
+      <thead>
+        <tr> <th>UNV descriptor</th> <th align="left">UNV name</th>  <th align="left">FE type</th> <th>dim</th> <th>lnn</th> <th>lnv</th> <th>lne</th> <th>lnf</th> <th>nn&ne;mm</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>11</td> <td align="left">Rod</td> <td align="left">Edge Lagrange P1</td> <td>1</td> <td>2</td>  <td>2</td> <td>1</td> <td>0</td> <td>Yes</td></tr>
+        <tr><td>21</td> <td align="left">Linear Beam</td> <td align="left">Edge Lagrange P1</td> <td>1</td> <td>2</td>  <td>2</td> <td>1</td> <td>0</td><td> Yes</td></tr>
+        <tr><td>22</td> <td align="left">Tapered Beam</td> <td align="left">Edge Lagrange P2</td> <td>1</td> <td>3</td>  <td>2</td> <td>1</td> <td>0</td><td> No</td></tr>
+        <tr><td>24</td> <td align="left">Parabolic Beam</td> <td align="left">Edge Lagrange P2</td> <td>1</td> <td>3</td>  <td>2</td> <td>1</td> <td>0</td><td> No</td> </tr>
+        <tr><td>41</td> <td align="left">Plane Stress Linear Triangle</td> <td align="left">Triangle Lagrange P1</td> <td>2</td> <td>3</td>  <td>3</td> <td>3</td> <td>0</td><td> Yes</td> </tr>
+        <tr><td>42</td> <td align="left">Plane Stress Parabolic Triangle</td> <td align="left">Triangle Lagrange P2</td> <td>2</td> <td>6</td>  <td>3</td> <td>3</td> <td>0</td><td> No</td> </tr>
+        <tr><td>44</td> <td align="left">Plane Stress Linear Quadrilateral</td> <td align="left">Quadrilateral Lagrange P1</td> <td>2</td> <td>4</td>  <td>4</td> <td>4</td> <td>0</td><td> Yes</td> </tr>
+        <tr><td>45</td> <td align="left">Plane Stress Parabolic Quadrilateral</td> <td align="left">Quadrilateral Lagrange P2</td> <td>2</td> <td>8</td>  <td>4</td> <td>4</td> <td>0</td><td> No</td> </tr>
+        <tr><td>81</td> <td align="left">Axisymetric Solid Linear Triangle</td> <td align="left">Triangle Lagrange P1</td> <td>2</td> <td>3</td>  <td>3</td> <td>3</td> <td>0</td><td> Yes</td> </tr>
+        <tr><td>82</td> <td align="left">Axisymetric Solid Parabolic Triangle</td> <td align="left">Triangle Lagrange P2</td> <td>2</td> <td>6</td>  <td>3</td> <td>3</td> <td>0</td><td> No</td> </tr>
+        <tr><td>84</td> <td align="left">Axisymetric Solid Linear Quadrilateral</td> <td align="left">Quadrilateral Lagrange P1</td> <td>2</td> <td>4</td>  <td>4</td> <td>4</td> <td>0</td><td> Yes</td></tr>
+        <tr><td>85</td> <td align="left">Axisymetric Solid Parabolic Quadrilateral</td> <td align="left">Quadrilateral Lagrange P2</td> <td>2</td> <td>8</td>  <td>4</td> <td>4</td> <td>0</td><td> No</td></tr>
+        <tr><td>91</td> <td align="left">Thin Shell Linear Triangle</td> <td align="left">Triangle Lagrange P1</td> <td>2</td> <td>3</td>  <td>3</td> <td>3</td> <td>0</td><td> Yes</td></tr>
+        <tr><td>92</td> <td align="left">Thin Shell Parabolic Triangle</td> <td align="left">Triangle Lagrange P2</td> <td>2</td> <td>6</td>  <td>3</td> <td>3</td> <td>0</td><td> No</td></tr>
+        <tr><td>94</td> <td align="left">Thin Shell Linear Quadrilateral</td> <td align="left">Quadrilateral Lagrange P1</td> <td>2</td> <td>4</td>  <td>4</td> <td>4</td> <td>0</td><td> Yes</td></tr>
+        <tr><td>95</td> <td align="left">Thin Shell Parabolic Quadrilateral</td> <td align="left">Quadrilateral Lagrange P2</td> <td>2</td> <td>8</td>  <td>4</td> <td>4</td> <td>0</td><td> No</td> </tr>
+        <tr><td>111</td> <td align="left">Solid Linear Tetrahedron</td> <td align="left">Tetrahedron Lagrange P1</td> <td>3</td> <td>4</td>  <td>4</td> <td>6</td> <td>4</td><td> Yes</td></tr>
+        <tr><td>112</td> <td align="left">Solid Linear Wedge</td> <td align="left">Wedge Lagrange P1</td> <td>3</td> <td>6</td>  <td>6</td> <td>9</td> <td>5</td><td> Yes</td></tr>
+        <tr><td>115</td> <td align="left">Solid Linear Brick</td> <td align="left">Hexahedron Lagrange P1</td> <td>3</td> <td>8</td>  <td>8</td> <td>12</td> <td>6</td><td> Yes</td></tr>
+        <tr><td>116</td> <td align="left">Solid Parabolic Brick</td> <td align="left">Hexahedron Lagrange P2</td> <td>3</td> <td>20</td>  <td>8</td> <td>12</td> <td>6</td><td> Yes</td></tr>
+        <tr><td>118</td> <td align="left">Solid Parabolic Tetrahedron</td> <td align="left">Tetrahedron Lagrange P2</td> <td>3</td> <td>10</td>  <td>4</td> <td>6</td> <td>4</td><td> No</td></tr>
+        <tr><td>122</td> <td align="left">Rigid Element</td> <td align="left">Quadrilateral Lagrange P1</td> <td>2</td> <td>4</td>  <td>4</td> <td>4</td> <td>0</td><td> Yes</td></tr>
+      </tbody>
+    </table>
+    </div>
+    </p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    
+    <h5 id="vord">Local order of nodes</h5>
+
+    <p>There is no a formal specification about node ordering of UNV finite elements, it has been checked that the node order used in some software like <a href="http://www.salome-platform.org/">Salome</a>, <a href="http://www.code-aster.org">Code Aster</a> or <a href="http://www.ansys.com/Products/Simulation+Technology/Fluid+Dynamics/Fluid+Dynamics+Products/ANSYS+Fluent">Ansys Fluent</a> introduces the nodes between the vertices.</p>
+
+    <p>Note that feconv only works with isoparametric elements with midside nodes. <a href="http://www.salome-platform.org/">Salome</a> can create non-isoparametric elements, the way to convert this kind of elements in feconv is to use the <a href="options.xhtml#reor"><code>-r sandwich</code></a> option.</p>
+
+    <p>The local order of nodes in each element respect the following rules:</p>
+
+    <p align="center"> 
+
+      <div align="center"> <table class="tb" width="80%"> <tbody>
+        <tr>
+          <td>
+            <img src="images/unv/edgep1_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 edges.</span>
+          </td>
+          <td>
+            <img src="images/unv/triap1_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-2" class="caption"> <strong>Figure 2:</strong> Local order of nodes on Lagrange P1 triangles.</span>
+          </td>
+          <td>
+            <img src="images/unv/quadp1_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-3" class="caption"> <strong>Figure 3:</strong> Local order of nodes on Lagrange P1 quadrangles.</span>
+          </td>
+        </tr>
+      </tbody> </table> </div>
+    </p>
+    <p align="center"> 
+
+      <div align="center"> <table class="tb" width="80%"> <tbody>
+        <tr>
+          <td>
+            <img src="images/unv/tetrap1_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-4" class="caption"> <strong>Figure 4:</strong> Local order of nodes on Lagrange P1 tetrahedrons.</span>
+          </td>
+          <td>
+            <img src="images/unv/hexap1_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-5" class="caption"> <strong>Figure 5:</strong> Local order of nodes on Lagrange P1 hexahedrons.</span>
+          </td>
+          <td>
+            <img src="images/unv/pentap1_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-6" class="caption"> <strong>Figure 6:</strong> Local order of nodes on Lagrange P1 wedges.</span>
+          </td>
+        </tr>
+      </tbody> </table> </div>
+    </p>
+
+    <p align="center"> 
+
+      <div align="center"> <table class="tb" width="80%"> <tbody>
+        <tr>
+          <td>
+            <img src="images/unv/edgep2_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-7" class="caption"> <strong>Figure 7:</strong> Local order of nodes on Lagrange P2 edges.</span>
+          </td>
+          <td>
+            <img src="images/unv/triap2_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-8" class="caption"> <strong>Figure 8:</strong> Local order of nodes on Lagrange P2 triangles.</span>
+          </td>
+          <td>
+            <img src="images/unv/quadp2_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-9" class="caption"> <strong>Figure 9:</strong> Local order of nodes on Lagrange P2 quadrangles.</span>
+          </td>
+        </tr>
+      </tbody> </table> </div>
+    </p>
+
+    <p align="center"> 
+
+      <div align="center"> <table class="tb" width="80%"> <tbody>
+        <tr>
+          <td>
+            <img src="images/unv/tetrap2_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-10" class="caption"> <strong>Figure 10:</strong> Local order of nodes on Lagrange P2 tetrahedrons.</span>
+          </td>
+          <td>
+            <img src="images/unv/hexap2_ord.png" />
+            <br clear="all" /> 
+            <span id="fig-11" class="caption"> <strong>Figure 11:</strong> Local order of nodes on Lagrange P1 hexahedrons.</span>
+          </td>
+        </tr>
+      </tbody> </table> </div>
+    </p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    <h4 id="group">Group DataSets</h4>
+
+    <p>Groups behave as references, and are useful to apply boundary conditions, materials ans sources to the mesh. Groups can contain nodes, edges, faces or elements.</p>
+
+    <p>The group datasets contains the group number, group name and a set of entities with their tags and entity types among other information. Feconv supports the DataSet <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2467.htm">2467</a>, 2477,<a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2452.htm">2452</a>, <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2435.htm">2435</a>, <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2432.htm">2432</a> and <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2430.htm">2430</a> for reading groups definition. Feconv uses then DataSet <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2467.htm">2467</a> for writing UNV groups.</p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    <h4 id="field">Field DataSets</h4>
+
+    <p>The field datasets contains the field descriptors and a set of entities with their values and entity numbers among other information. Feconv supports the DataSet <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2414.htm">2414</a>, <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_0055.htm">55</a>, <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_0056.htm">56</a> and <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_0057.htm">57</a> for reading field definition. Feconv uses the DataSet <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2414.htm">2414</a> for writing UNV fields.</p>
+
+    <p>There may be scalar and vector fields, vector fields can have 3, 6 (Simmetric global tensor) or 9 (General tensor) components.</p>
+
+    <p>The field values can be located at nodes, on elements or at nodes on elements. Feconv only allows fields at nodes and on elements, data at nodes on elements will be processed to calculate the average of all node values ​​and store it on the element barycenter.</p>
+
+    <p>Field identification, in addition to its name, is given by the information of the problem solved. <a href="http://www.code-aster.org">Code Aster</a> defines the relationship between these information and the field name through <a href="http://www.code-aster.org/V2/doc/default/en/man_u/u7/u7.02.01.pdf">lire_resu</a> function, you can use <a href="options.xhtml#ca"><code>-ca</code></a> option to read/write <a href="http://www.code-aster.org">Code Aster</a> UNV files.</p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+
+
+<!--    <hr />
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> -->
+  </body>
+</html>
+

@@ -1,0 +1,278 @@
+\documentclass[11pt,a4paper]{article}
+
+\linespread{1.7}
+
+\textwidth 16,5cm \oddsidemargin 0cm
+
+\textheight 24cm \topmargin -1,5cm
+\usepackage{graphicx}
+\usepackage{indentfirst}
+\usepackage[spanish]{babel}
+\usepackage[latin1]{inputenc}
+
+
+\begin{document}
+
+\vspace*{1cm}
+
+\Huge\textbf{Conversi\'on de Datos de Patran a}
+
+\noindent\textbf{MODULEF; patmod}\\
+
+
+\normalsize\textbf{patmod} es un programa escrito en Fortran 90,
+pensado para ejecutarse desde Windows, que convierte archivos .bdf
+obtenidos mediante Patran (Patran 2003 release 2) en archivos de
+malla MODULEF (con o sin formato).
+
+Este programa est\'a destinado \'unicamente a convertir la
+geometr\'ia y la malla del archivo .bdf de Patran en un archivo de
+malla MODULEF, empleando distintas fuerzas definidas sobre la
+geometr\'ia para diferenciar distintas condiciones de contorno y
+distintos materiales para diferenciar distintos subdominios.
+
+
+
+
+
+
+\section{Estructura}
+
+\textbf{patmod} est\'a formado por un programa principal,
+\textbf{patran-modulef.f90}, en el que se realiza toda la
+conversi\'on y tres funciones auxiliares, \textbf{dos.f90},
+\textbf{tres.f90} y \textbf{cuatro.f90}, que intervienen en el
+c\'alculo de las referencias de las aristas, la primera de ellas,
+y de las referencias de las caras, las otras dos.
+
+
+
+
+
+\section{Utilizaci\'on}
+
+\subsection{Entrada}
+
+Hay que situar \textbf{patmod.exe} y el archivo .bdf a convertir
+en el mismo directorio, ejecutar \textbf{patmod.exe} y completar
+los datos que el programa va solicitando (el nombre del archivo
+.bdf que se pide debe llevar extensi\'on).
+
+\vspace{0.5cm}
+
+Se han de conocer de antemano el número de nodos y el número de
+elementos. Estos datos se pueden obtener desde Patran o
+consultando el archivo .bdf. Los nodos han de estar numerados de
+forma consecutiva del n\'umero uno en adelante. En el caso de los
+elementos no es necesario.
+
+\vspace{0.5cm}
+
+Las condiciones Dirichlet se imponen en Patran como
+desplazamientos (displacement) y las Neumann como fuerzas (force).
+De este modo, distintos desplazamientos y distintas fuerzas (el
+momento no influye) en Patran dan lugar a distintas condiciones
+Dirichlet y Neumann, respectivamente, en la malla MODULEF. En
+Patran, todas las condiciones de contorno tienen que estar
+definidas sobre la geometr\'ia y no sobre la malla. Adem\'as,
+hemos de tener en cuenta que en aquellos v\'ertices en los que
+coincidan condiciones Dirichlet con Neumann, prevalece la
+condici\'on Dirichlet y en aquellos en los que coincidan
+condiciones del mismo tipo, prevalecen las primeras impuestas. (La
+asignaci\'on de referencias necesita ser revisada).
+
+\vspace{0.5cm}
+
+Los tipos de elementos soportados por el conversor son
+
+\noindent en dos dimensiones: \begin{tabular}{cccccc} Tria3 &
+Tria6 & Tria6* & Quad4 &
+ Quad8 & Quad8*\\\end{tabular}
+
+\noindent y en tres dimensiones: \begin{tabular}{ccc}Tet4 & Wedge6
+& Hex8\end{tabular}
+
+
+Los elementos  Tria6*  son elementos  Tria6  de Patran que al
+pasar a la malla MODULEF se convierten en tri\'angulos con nodos
+los puntos medios de los lados. Y, de igual modo, los elementos
+Quad8*  son elementos  Quad8  de Patran que al pasar a la malla
+MODULEF se convierten en cuadril\'ateros con nodos los puntos
+medios de los lados.
+
+\vspace{0.5cm}
+
+En Patran, los casos bidimensionales han de estar sobre el plano
+XY.
+
+
+
+\subsection{Salida}
+
+Tras la ejecuci\'on se obtiene un archivo de malla MODULEF, es
+decir con la siguiente estructura
+
+\indent\indent n\'umero de elementos, n\'umero de nodos, n\'umero
+de v\'ertices
+
+\indent\indent matriz de conectividades de los nodos (en caso de
+que estos sean distintos a los v\'ertices), matriz de
+conectividades de los v\'ertices, n\'umero de referencia de caras
+(de haberlas), n\'umero de referencia de aristas, n\'umero de
+referencia de v\'ertices, coordenadas de los v\'ertices (dos o
+tres por v\'ertice seg\'un estemos en una geometr\'ia en dos o
+tres dimensiones)
+
+\indent\indent n\'umero de subdominio
+
+\vspace{0.5cm}
+
+Si han seleccionado los tipos de elemento Tria6* o Quad8*, al
+final del archivo de malla MODULEF creado, en un registro nuevo
+después de los n\'umeros de subdominio, se dan las coordenadas de
+los nodos.
+
+\vspace{0.5cm}
+
+Todas las coordenadas del archivo generado est\'an definidas como
+reales de doble precisión.
+
+Por \'ultimo, si se selecciona la opci\'on de malla con formato,
+\textbf{patmod} tratar\'a a los enteros con el formato $i10$ y a
+los reales con el $e12\textrm{.}5$\\
+
+
+
+Departamento de Matem\'atica Aplicada. USC
+
+In\'es Santos Atienza \space\space  28 - II - 2005
+
+\appendix
+\section{ANEXO: Modificaciones para el uso de patmod con ficheros de datos MD Nastran obtenidos a través del mallador Hypermesh}
+
+\subsection{Introducción}
+Buena parte de la información de este anexo ha sido obtenida del fichero ``MD Nastran 2006 Quick Reference Guide'', incluido en la ayuda de la aplicación MD Nastran 2006.
+\subsubsection{El fichero de datos Nastran}
+Un fichero de datos Nastran (o \textit{MD Nastran input data file}) se identifica por las extensiones \texttt{.dat} o \texttt{.bdf}. Su estructura se muestra en la Figura~\ref{fig:datafile}. Puede constar de cinco secciones:
+\begin{figure}[htbp]
+   \centering
+   \includegraphics[width=0.75\textwidth]{Nastran_Input_File.jpg} 
+   \caption{Estructura de un fichero de datos Nastran}
+   \label{fig:datafile}
+\end{figure}
+\begin{itemize}
+\item Las dos primeras, las sentencias Nastran (\textit{Nastran statements}) y la sección de gestión de ficheros (\textit{File management section}) son las únicas opcionales y pueden terminar con el delimitador opcional ``ID A, B''.
+\item La sección de control ejecutivo (\textit{Executive control section}) termina con el delimitador obligatorio ``CEND''. 
+\item La seccion de control de casos (\textit{Case control section}) termina con el delimitador obligatorio ``BEGIN BULK''. 
+\item La sección de datos primarios (\textit{Bulk data section}) termina con el delimitador ``ENDDATA''.
+\end{itemize}
+Esta última sección es la que nos interesa, ya que permite especificar la geometría del modelo, la conectividad y las propiedades de los elementos, los materiales, las restricciones y las cargas\footnote{Los que pretendan usar Nastran deben saber que esta aplicación, de entre todas las cargas definidas en los datos primarios, solo considera aquéllas que se indican a través del comando correspondiente en la sección de control de casos.}.
+
+\subsubsection{La sección de datos primarios}
+La sección de datos primarios está compuesto de ``entradas'' y cada entrada contiene ``datos'' distribuidos en ``campos''. Cada linea de datos consta de 10 campos. El nombre de la entrada se da en el primer campo de la primera linea. El décimo campo de cada linea sirve para indicar si hay linea adicional de campos en la entrada. Un ejemplo de esta estructura puede verse en la Figura~\ref{fig:entrada}.
+\begin{figure}[htbp]
+   \centering
+   \includegraphics[width=0.75\textwidth]{entrada.png} 
+   \caption{Esquema de una entrada de la sección de datos primarios.}
+   \label{fig:entrada}
+\end{figure}
+
+Los datos solo pueden ser enteros, reales o cadenas alfanuméricas. Las cadenas son de hasta 8 caracteres. Los reales pueden darse de varias maneras. Por ejemplo, son el mismo número \texttt{7.0}, \texttt{.7E1}, \texttt{0.7+1}, \texttt{.70+1}, \texttt{7.E+0} y  \texttt{70.-1}.
+ 
+MD Nastran tiene tres formatos distintos para los datos de una entrada: 
+\begin{itemize}
+\item Formato de campo libre (\textit{Free Field Format}): los campos de datos están separados por comas.
+\item Formato de campo corto (\textit{Small Field Format}): Hay 10 campos contiguos de 8 caracteres cada uno. 
+\item Formato de campo largo (\textit{Large Field Format}): Hay 10 campos contiguos de 16 caracteres cada uno.
+\end{itemize}
+El tipo de formato leído por patmod es el formato de campo corto.
+
+\subsubsection{Las entradas relevantes para patmod}
+Las entradas de las sección de datos primarios que patmod es capaz de reconocer son:
+\begin{itemize}
+\item Conectividad de los elementos: las entradas involucradas son CTRIA3, CTRIA6, CQUAD4, CQUAD8, CTETRA, CPENTA y CHEXA. Sirven para obtener las variables \textit{mm} y \textit{nn} de RECONVXX.
+\item Coordenadas de los vértices: la entrada GRID. Se obtiene la variable \textit{z} de RECONVXX.
+\item Referencias Dirichlet de los vértices: la entrada SPC1, implementada por Inés y la entrada SPC, implementada por Fran. Se obtiene la variable \textit{nrv}.
+\item Referencias Neumann de los vértices: la entrada LOAD, implementada por Inés (y modificada por Fran). Se  obtiene la variable \textit{nrv}.
+\end{itemize}
+
+\subsection{Modificaciones al código de Inés}
+Respecto de las modificaciones hechas al código de Inés, resaltamos las siguientes:
+\begin{itemize}
+\item En el caso CTRIA3 y CTETRA, si el determinante de la matriz de la transformación de paso al elemento de referencia es negativo, se intercambian los dos últimos nodos para obtener un valor positivo.
+\item La inclusión de la entrada SPC se debe a que es la utilizada por defecto por Hypermesh para incluir condiciones de tipo Dirichlet. La estructura de la entrada SPC puede verse en la Figura~\ref{fig:SPC}.
+\begin{figure}[htbp]
+   \centering
+   \includegraphics[width=0.75\textwidth]{spc.png} 
+   \caption{Estructura de la entrada SPC.}
+   \label{fig:SPC}
+\end{figure}
+
+Nuestros objetivos son
+\begin{itemize}
+\item saber cuántas condiciones Dirichlet distintas definen los campos SPC de un fichero y
+\item asignar el número de condición a cada nodo.
+\end{itemize}
+Para la primera tarea, no podemos usar el campo SID ya que, desgraciadamente,  Hypermesh asigna siempre (en los ejemplos realizados) el valor 1 al campo SID. En su lugar, debemos contabilizar qué grados de libertad se restringen por nodo (pueden ser hasta 6) y qué valor se da a cada restricción. Este proceso no es trivial, ya que las restricciones para un nodo no tienen por qué ir todas en la misma entrada SPC. Por ejemplo, en una entrada SPC se pueden restringir los grados 1, 2 (y asignarles el valor 8); en la segundo entrada SPC, restringir los grados 3, 4 (con valor 10); en la tercera restringir el grado 2 (con valor 7). Lo que tendríamos aquí serían dos condiciones de contorno, la primera restringiendo los grados 1, 2, 3 y 4 (con valor 8 en los dos primeros y 10 en los otros) y la segunda restringiendo únicamente el grado 2, con valor 7.
+
+Para poder gestionar todas las posibles variantes, Hypermesh hace ciertas hipótesis que debemos tener en cuenta: 
+\begin{itemize}
+\item todos los SPC de una condición son contig\"uos y 
+\item en los SPC de una condición, se fijan primero los grados de libertad menores (i.e., se fija el grado 1 antes que el 2).
+\end{itemize}
+De este modo, no conocemos el numero total de condiciones de contorno Dirichlet hasta que se han leído todas las entradas. Por eso, primero se llama al procedimiento \texttt{set\_SPC} de \texttt{module\_desplazamientos}, que guarda todas las condiciones de entradas SPC, para cada nodo y luego se llama al procedimiento \texttt{assign\_SPC}, que agrupa los nodos que corresponden a la misma condición y asigna a cada nodo la condición Dirichlet \textbf{cuyo número es mayor} (es decir, si las condiciones 6 y 7 se aplican al mismo nodo, se asigna la 7).
+
+\item Las entradas FORCE se gestionan ahora con \texttt{module\_fuerzas}. Esto permite distinguir las condiciones Neumann por el valor de la fuerza aplicada, y no por el SID de la entrada FORCE. La estructura de la entrada FORCE puede verse en la Figura~\ref{fig:FORCE}.
+\begin{figure}[htbp]
+   \centering
+   \includegraphics[width=0.75\textwidth]{force.png} 
+   \caption{Estructura de la entrada FORCE.}
+   \label{fig:FORCE}
+\end{figure}
+
+De modo análogo al explicado con SPC, el procedimiento \texttt{set\_FORCE} de \texttt{module\_fuerzas} guarda todas las condiciones y el procedimiento \texttt{assign\_FORCE} asigna la condición Neumann \textbf{cuyo número es mayor, siempre que no tenga ya asignada una condición Dirichlet}.
+
+\item La sección de datos primarios solo guarda las condiciones de contorno sobre los nodos. El programa patmod se ha modificado para garantizar que, al asignar la condición de contorno a un nodo,
+\begin{itemize}
+\item las Dirichlet hayan tenido prioridad sobre las Neumann, y
+\item dentro de cada tipo, las que cuentan con un número mayor, hayan tenido prioridad sobre las de número menor.
+\end{itemize}
+La asignación de números de referencia a aristas se realiza en el procedimiento \texttt{dos} y, la asignación a caras, en los procedimientos \texttt{tres} y \texttt{cuatro}.
+Las normas que se siguen para la asignación de referencias a aristas o caras son las siguientes:
+\begin{itemize}
+\item Si todos los vértices de la entidad tienen el mismo número, se asigna ese número.
+\item Si alguno es cero, se asigna cero.
+\item Si hay números de distinto tipo, se asigna el número \textbf{Neumman de menor valor}.
+\item En otro caso, se asigna el número de \textbf{menor valor}.
+\end{itemize}
+De este modo, garantizamos que las aristas y caras de la frontera entre dos condiciones tienen asignadas las referencias de mayor valor. Esta regla puede fallar en ciertas esquinas. En la Figura~\ref{fig:esquina}, se muestra en trazo grueso la frontera entre las condiciones 1 y 2. Los vértices de la frontera tienen todos el número 2 asignado, lo que provoca que la cara de la esquina reciba equivocadamente el número 2 (en rojo). Los números azules representan los números asignados correctamente al resto de caras.
+\begin{figure}[htbp]
+   \centering
+   \includegraphics[width=0.75\textwidth]{esquina.png} 
+   \caption{Ejemplo de mal funcionamiento de la asignación de referencias a caras.}
+   \label{fig:esquina}
+\end{figure}
+
+Salvo casos de este tipo, creo que este algoritmo de asignación es correcto.
+\end{itemize}
+
+\subsubsection{Otras modificaciones}
+Se resumen a continuación otras modificaciones menores al código original de Inés:
+\begin{itemize}
+\item Se han incluido módulos básicos de servicio para facilitar la programación:
+\begin{itemize}
+  \item \texttt{module\_COMPILER\_DEPENDANT}: agrupa los procedimientos que dependen de cada compilador. Implementado para los compiladores Intel, Gfortran y NAG.
+  \item \texttt{module\_SO\_DEPENDANT}: agrupa los procedimientos que dependen del sistema operativo. Implementado para Windows y Linux.
+  \item \texttt{module\_REPORT}: gestiona la emisión de avisos y errores programados en el código.
+  \item \texttt{module\_CONVERS}: agrupa los procedimientos para conversión de tipos.
+  \item \texttt{module\_ALLOC}: agrupa los procedimientos para el alojamiento de arrays.
+  \item \texttt{module\_FILES}: agrupa los procedimientos para la gestión de ficheros.
+
+  \item \texttt{module\_MATH}: permite realizar operaciones matemáticas. En particular, permite calcular el determinante de una matriz cuadrada.
+\end{itemize}
+\item Los nombres de fichero pasan de 20 a 255 caracteres.
+\item La apertura de ficheros es ahora más general.
+\item Se introduce el comando \texttt{rewind(3)} entre la lectura de coordenadas y elementos, para que ambas puedan hacerse en cualquier orden.
+\end{itemize}
+
+\end{document}

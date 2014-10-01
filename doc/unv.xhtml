@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" "http://www.w3.org/Math/DTD/mathml2/xhtml-math11-f.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US">
+  <head>
+    <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" /> 
+    <title>UNV format</title>
+    <link rel="stylesheet" type="text/css" href="estilo.css" />
+  </head>
+  <body id="top">
+    <p>Up: <a href="index.html">Program feconv</a></p>
+    <hr /> 
+
+    <h2>UNV format</h2>
+
+    <p>The Universal File formats were originally developed by the Structural Dynamics Research Corporation (SDRC) in the late 1960s and early 1970s to facilitate computer aided engineering (CAE). This format is described in the <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1">web page</a> of the Structural Dynamics Research Lab at the University of Cincinnati (UC-SDRL).</p>
+    <p>In the UNV format, meshes are composed by <em>datasets</em>. The original Universal File formats are composed of several thousands of different datasets, but the relevant datasets for OpenNum are:</p>
+    <ul>
+      <li><a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2411.htm/">dataset 2411:</a> describe the node coordinates;</li>
+      <li><a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2412.htm/">dataset 2412:</a> describe global indexing of the nodes;</li>
+      <li><a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2467.htm/">dataset 2467:</a> describe the groups of nodes, edges and faces.</li>
+    </ul>  
+    <p>The UNV format only admits Lagrange P1 and P2 finite elements.</p>
+
+    <p>OpenNum supports a subset of FE descriptor IDs of dataset 2411. These finite elements types must be transformed to a VTK cell type to be managed by the graphical interface; we write in parentheses the VTK cell type that become after being read:</p>
+    <ul>
+      <li>11: Rod (3: VTK_LINE)</li>
+      <li>41: Plane Stress Linear Triangle (5: VTK_TRIANGLE)</li>
+      <li>44: Plane Stress Linear Quadrilateral (9: VTK_QUAD)</li>
+      <li>111: Solid Linear Tetrahedron (10: VTK_TETRA)</li>
+      <li>112: Solid Linear Wedge (13: VTK_WEDGE)</li>
+      <li>115: Solid Linear Brick (12: VTK_HEXAHEDRON)</li>
+    </ul>
+
+    <p><code>feconv</code> identifies the entities of a group defined in the dataset 2467 by the <em>group number</em> instead of the <em>group name</em>. Thus, format UNV is interchangeable with <a href="mfm.xhtml">format MFM</a> in the meshes where both formats are available. <!-- In order to manage the reference numbering of nodes, edges, faces and elements, the graphical interface create some integer fields explained in the <a href="vtk.xhtml#vtk+">VTK+ format</a>. --> </p>
+    
+    <p><code>feconv</code> expects extension <em>.unv</em> for files written in Universal File format. <code>feconv</code> has been tested with <em>.unv</em> files constructed by <a href="http://www.salome-platform.org/">Salome</a>.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+<!--    <hr />
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> -->
+  </body>
+</html>
+
