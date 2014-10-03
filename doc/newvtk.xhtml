@@ -15,7 +15,6 @@
     <p><strong>On this page:</strong></p>
     <ul>
       <li><a href="#desc">Description</a></li>
-      <li><a href="#vtk+">VTK+ format</a></li>
       <li><a href="#feat">Features supported by feconv</a></li>
       <ul>
         <li><a href="#fetypes">Finite element types</a></li>
@@ -45,7 +44,7 @@
 
     <h3 id="feat">Features supported by feconv</h3>
 
-    <p>Feconv can read and write serial binary VTK XML files containing <em>UnstructuredGrid</em> datasets with extension <em>.vtu</em> </p>
+    <p>Feconv can only read and write serial binary VTK XML files containing <em>UnstructuredGrid</em> datasets with extension <em>.vtu</em> </p>
 
     <h4 id="fetypes">VTK finite element types allowed in feconv</h4>
 
@@ -88,7 +87,7 @@
       <div align="center">
             <img src="images/vtk/elp1_ord.png"  width="50%"/>
             <br clear="all" /> 
-            <span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local index of nodes on Lagrange P1 elements.</span>
+            <p><span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local index of nodes on Lagrange P1 elements.Note that elements with descriptors 4, 6 and 7 are not supported by feconv.</span></p>
       </div>
     </p>
 
@@ -96,7 +95,7 @@
       <div align="center">
             <img src="images/vtk/elp2_ord.png"  width="50%"/>
             <br clear="all" /> 
-            <span id="fig-2" class="caption"> <strong>Figure 2:</strong> Local index of nodes on Lagrange P2 elements.</span>
+            <p><span id="fig-2" class="caption"> <strong>Figure 2:</strong> Local index of nodes on Lagrange P2 elements.</span></p>
       </div>
     </p>
 
