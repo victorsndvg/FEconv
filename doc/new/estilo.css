@@ -1,0 +1,297 @@
+/*Colors*/
+/*BurlyWood 	DEB887 	222,184,135*/		/*LightBlue 	ADD8E6 	173,216,230*/		/*DarkSeaGreen 	8FBC8F 	143,188,143*/
+/*Maroon 	800000 	128,0,0*/		/*MidnightBlue 	191970 	25,25,112*/		/*DarkGreen 	006400 	0,100,0*/
+/*Cornsilk 	FFF8DC 	255,248,220*/		/*LightCyan 	E0FFFF 	224,255,255*/		/*Beige 	F5F5DC 	245,245,220*/
+
+/*White 	FFFFFF 	255,255,255*/
+/*Gainsboro 	DCDCDC 	220,220,220*/
+/*LightGrey 	D3D3D3 	211,211,211*/
+
+html, body {
+  height: 100%; 
+  margin: 0; 
+  padding: 0;
+  background-color: Lavender;
+}
+
+
+header {
+  height: 10%;
+  text-align: center;
+}
+
+header img {
+  display: block;
+  margin: 0% 2% 0% 0%;
+  width: auto;
+  height: auto;
+  max-width:100%;
+  max-height:100%;
+  float: right;
+}
+
+section {
+  margin: 0px 230px 0px 200px;
+  background-color: SlateGray; 
+  overflow-y:scroll;
+  height: 75%; 
+}
+
+nav.menu {
+  padding: 5px;
+  margin: 0px 0px 0px 15px;
+  float: left;
+  width: 160px;
+/*  height: 100%*/
+}
+
+
+.mnu ul {
+  display: block;
+  list-style-type: disc;
+  margin: 0px 0px 0px 0px;
+  padding: 5px;
+  text-align: center;
+} 
+
+.mnu ul li {
+  display: block;
+  padding: 1px;
+  margin: 5px 0px 0px 0px;
+  background-color: SlateGray; 
+/*  border-radius: 15px;
+  border-top: 2px solid;
+  border-top-color: White;
+  border-bottom: 2px solid;
+  border-bottom-color: Black;
+  border-left: 2px solid;
+  border-left-color: White;
+  border-right: 2px solid;
+  border-right-color: Black;*/
+} 
+
+.mnu ul li a {
+  color: White; 
+  font-weight: bold;
+  text-decoration: none;
+} 
+
+.mnu ul li:hover {
+  background-color: Maroon;
+} 
+
+nav.breadcrumbs {
+  padding: 1px;
+  margin: 0px 0px 0px 0px;
+  text-indent: 10px;
+  background-color: SlateGray; 
+  color:White
+}
+
+nav.breadcrumbs a {
+  color: White; 
+  font-weight: bold;
+  text-decoration: none;
+} 
+
+nav.topics {
+  padding: 0px;
+  margin: 0px 0px 0px 0px;
+  position: relative;
+}
+
+nav.topics ul {
+  padding: 5px;
+  margin: 0px 0px 0px 0px;
+  list-style: none;
+  display: block;
+}
+
+nav.topics ul ul {
+  padding: 0px;
+  margin: 0px 0px 0px 0px;
+  display: none;
+  float: left;
+/*  background-color: Lavender;*/
+}
+
+
+nav.topics ul li {
+  padding: 0px;
+  margin: 0px 0px 0px 10px;
+  display: block;
+  float: left;
+/*  background-color: Lavender;*/
+}
+
+nav.topics ul li:hover ul {
+  display: block;
+  list-style: disc;
+}
+
+nav.topics ul li ul li a {
+  text-decoration: none;
+  font-weight: bold;
+  color: SlateGray;
+  background-color: Lavender;
+}
+
+nav.topics ul li ul li a:hover {
+  background-color: SlateGray;
+}
+
+nav.topics ul li a{
+  padding: 5px;
+  margin: 0px 0px 0px 0px;
+  display:block;
+  text-decoration: none;
+  font-weight: bold;
+  color: Maroon;
+	  background-color: Lavender;
+}
+
+
+nav.topics ul li a:hover{
+  background-color: Maroon;
+  color: White;
+
+}
+
+article {
+  padding: 1%;
+  margin: 1% 2% 2% 2%; 
+  height: auto;
+  width: auto;
+  min-width: 94%;
+  min-height: 84%;
+  background-color: White; 
+  float: left
+}
+
+aside {
+  padding: 15px;
+  margin: 0px 10px 10px 10px;
+  float: right;
+  width: 180px;
+}
+
+footer {
+  text-align: center;
+  padding: 5px;
+  background-color: SlateGray;
+  height: 5%
+}
+
+.maintable {
+  margin: 5% 10% 5% 10% ; 
+/*  table-layout:fixed;*/
+  width:80%;
+  height:80%;
+/*  border:solid 1px #000000;*/
+  padding:0;
+  border-collapse:collapse;
+}
+
+.maintable th{
+/*  border:solid 1px;*/
+}
+
+.maintable td{
+/*  border:solid 1px;*/
+  vertical-align:center;
+}
+
+.maintable td:hover{
+  background-color: GainsBoro;
+}
+
+.centro {
+  text-align: center;
+}
+
+hr {
+  background-color: gray;
+}
+
+code, pre {
+  font-family: monospace;
+  font-size: medium;
+}
+
+h1, h2 {
+  color: Maroon; 
+}
+
+h3 {
+  margin: 30px 0px 30px 30px;
+  color: DarkSlateGray; 
+}
+
+h4 {
+  margin: 30px 0px 30px 60px;
+  color: DarkSlateGray; 
+}
+
+th, td {
+  vertical-align: top;
+  padding: 0.3em;
+}
+
+table.tb {
+  margin-left: auto;
+  margin-right: auto; /*margin: 45px; *width: 480px;*/ 
+  border-collapse: collapse;
+  text-align: center;
+}
+
+table.tb th {
+  font-weight: normal;
+  padding: 9px 7px;
+  border-bottom: 2px solid;
+}
+
+table.tb td {
+ padding: 8px 7px 0px 7px;
+}
+
+table.tb tr:hover td {
+  background-color: GainsBoro; 
+}
+
+tbody.l {
+  padding: 8px 7px 0px 7px; 
+  text-align: left;
+}
+
+pre, code {
+  font-family: 'Courier New', FreeMono, Courier, monospace; 
+} /* font-size:110%; */
+
+pre.xml	{
+  margin-left: 20px; 
+  margin-right: 20px; 
+  padding: 10px; 
+  background-color: GainsBoro; 
+}
+
+.back {
+  text-align: right;
+}
+
+.back a{
+  background-color: SlateGray; 
+  color: White;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.back a:hover {
+  background-color: Maroon; 
+}
+
+.caption {
+  font-family: Times, FreeSerif, 'Century Schoolbook L', 'Times New Roman', serif;
+  text-align: center;
+  padding: 0% 15% 0% 15%;
+  font-size: larger; 
+}

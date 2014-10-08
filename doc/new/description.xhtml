@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>FEconv: Finite Element conversor</title>
+  <link href="estilo.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+  <header>
+    <img src="images/ico.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="index.html">Home</a>><a href="description.xhtml">Description</a></em></p>
+  </nav>
+
+  <nav class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="description.xhtml">Description</a></li>
+      <li><a href="install.xhtml">Install</a></li>
+      <li><a href="formats.xhtml">Formats</a></li>
+      <li><a href="example.xhtml">Examples</a></li>
+      <li><a href="contribute.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+
+  </aside>
+
+
+  <section>
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
+      <ul>
+        <li><a href="#intro">Description</a></li>
+        <li><a href="#sum">Summary</a></li>
+        <li><a href="#license">License</a></li>
+      </ul>
+    </nav>
+
+    <article>
+
+      <h2 id="intro">1. Description</h2>
+
+      <p>Program <code>feconv</code> converts finite element (FE) mesh files between several formats; it can also transform the FE type of the mesh and/or perform    a bandwidth optimization. Some conversion capabilities are also present for mesh fields. Please, visit the EXAMPLES section, in the help invoked by <code>feconv -h</code>, to know more details.</p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+
+      <h2 id="sum">2. Summary</h2>
+
+        <h3>The available input mesh formats are:</h3>
+        <ul>
+          <li>ANSYS (<strong>.msh</strong>)</li>
+          <li>I-Deas Universal (<strong>.unv</strong>)</li>
+          <li>VTK-XML Unstructured Grid (<strong>.vtu</strong>)</li>
+          <li>MD Nastran input file (<strong>.bdf</strong>)</li>
+          <li>COMSOL mesh file (<strong>.mphtxt</strong>)</li>
+          <li>FLUX mesh file (<strong>.pf3</strong>)</li>
+          <li>Modulef-like Formatted Mesh (<strong>.mfm</strong>)</li>
+          <li>Modulef-like Unformatted Mesh (<strong>.mum</strong>)</li>
+          <li>FreFem++ Tetrahedral and/or Triangular Lagrange P1 Mesh (<strong>.msh</strong>)</li>
+          <li>FreFem++ Tetrahedral Lagrange P1 Mesh (<strong>.mesh</strong>)</li>
+          <li>Gmsh MSH ASCII (<strong>.msh</strong>)</li>
+        </ul>
+ 
+        <h3>The available output mesh formats are:</h3>
+        <ul>
+          <li>ANSYS (<strong>.msh</strong>)</li>
+          <li>I-Deas Universal (<strong>.unv</strong>)</li>
+          <li>VTK-XML Unstructured Grid (<strong>.vtu</strong>)</li>
+          <li>COMSOL mesh file (<strong>.mphtxt</strong>)</li>
+          <li>FLUX mesh file (<strong>.pf3</strong>)</li>
+          <li>Modulef-like Formatted Mesh (<strong>.mfm</strong>)</li>
+          <li>Modulef-like Unformatted Mesh (<strong>.mum</strong>)</li>
+          <li>FreFem++ Tetrahedral and/or Triangular Lagrange P1 Mesh (<strong>.msh</strong>)</li>
+          <li>FreFem++ Tetrahedral Lagrange P1 Mesh (<strong>.mesh</strong>)</li>
+        </ul>
+ 
+
+        <h3>The field formats supported by feconv can be classified using dichotomic rules:</h3>
+        <ul>
+          <li><strong>I</strong>/<strong>O</strong>: Field format states that fields are saved INSIDE/OUTSIDE the mesh file <a href="#note1">[1]</a>.</li>
+          <li><strong>N</strong>/<strong>U</strong>: Field format states that fields are NAMED/UNNAMED.</li>
+          <li><strong>S</strong>/<strong>1</strong>: Field format states that SEVERAL/ONLY ONE field(s) is(are) saved in the file.</li>
+          <li><strong>P</strong>/<strong>A</strong>: Field format states that PARAMETRIZED/ALONE fields can be saved <a href="#note2">[2]</a>.</li>
+        </ul>
+
+        <h4>The current available (both input and output) field formats are:</h4>
+
+        <p />
+        <div>
+        <table class="tb">
+          <thead>
+            <td></td><td>Classification</td><td>Associated mesh format <a href="#note1">[1]</a></td><td colspan="4">Options <a href="#note3">[3]</a></td>
+          </thead>
+          <thead>
+            <th></th><th></th><th></th> <th>-IF</th><th>-IN</th><th>-OF</th><th>-ON</th>
+          </thead>
+          <tbody>
+            <tr>
+              <td align="left">VTK-XML Unstructured Grid (<strong>.vtu</strong>)</td><td>(INSA)</td><td></td><td>i</td><td>o</td><td>i</td><td>o</td>
+            </tr>
+            <tr>
+              <td align="left">I-Deas Universal (<strong>.unv</strong>)</td><td>(INSP)</td><td></td><td>i</td><td>o</td><td>i</td><td>o</td>
+            </tr>
+            <tr>
+              <td align="left">FLUX mesh file (<strong>.pf3</strong>)</td><td>(IN1A)</td><td></td><td>i</td><td>o</td><td>i</td><td>o</td>
+            </tr>
+            <tr>
+              <td align="left">FLUX field file (<strong>.dex</strong>)</td><td>(ON1A)</td><td>.pf3</td><td>r</td><td>o</td><td>r</td><td>o</td>
+            </tr>
+            <tr>
+              <td align="left">Modulef-like Formatted Field (<strong>.mff</strong>)</td><td>(OU1A)</td><td>.mfm</td><td>r</td><td>i</td><td>r</td><td>i</td>
+            </tr>
+            <tr>
+              <td align="left">Modulef-like Unformatted Field (<strong>.muf</strong>)</td><td>(OU1A)</td><td>.mum</td><td>r</td><td>i</td><td>r</td><td>i</td>
+            </tr>
+            <tr>
+              <td align="left">ANSYS interpolation file (<strong>.ip</strong>)</td><td>(ONSA)</td><td>.msh</td><td>r</td><td>o</td><td>r</td><td>o</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+
+	<p><strong>Notes:</strong></p>
+	<p id="note1"><strong>[1]</strong> When a field is saved outside (O) the mesh file, a mesh file must be specified with the default associated 
+    mesh format.</p>
+	<p id="note2"><strong>[2]</strong> A parametrized field is a field composed of several snapshots identified through "parameter" values
+    (time, frequency,...). A field format is (P) when all the snapshots and their associated parameter values</p>
+	<p id="note3"><strong>[3]</strong> "r", "i", "o" means that the option is required, ignored or optional, respectively. See explanation
+    for options -if, -in, -of and -on to know more about their use.</p>
+ 
+
+
+
+    <div class="back"><a href="#top">Back to top</a></div>
+
+      <h2 id="license">3. License</h2>
+
+      <p>«Copyright 2012 Iban Constenla, Victor Sande, Francisco Pena»</p>
+
+      <p>This program is free software: you can redistribute it and/or modify
+      it under the terms of the GNU General Public License as published by
+      the Free Software Foundation, either version 3 of the License, or
+      (at your option) any later version.</p>
+
+      <p>This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+      GNU General Public License for more details.</p>
+
+      <p>You should have received a copy of the GNU General Public License
+      along with this program.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
+
+      <div class="back"><a href="#top">Back to top</a></div>
+
+
+
+    </article>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
+</html>

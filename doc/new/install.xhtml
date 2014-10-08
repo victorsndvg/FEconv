@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Feconv: Finite Element conversor</title>
+  <link href="estilo.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+  <header>
+    <img src="images/ico.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="index.html">Home</a>><a href="install.xhtml">Install</a></em></p>
+  </nav>
+
+  <nav class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="description.xhtml">Description</a></li>
+      <li><a href="install.xhtml">Install</a></li>
+      <li><a href="formats.xhtml">Formats</a></li>
+      <li><a href="example.xhtml">Examples</a></li>
+      <li><a href="contribute.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+
+  </aside>
+
+
+  <section>
+
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
+      <ul>
+        <li><a href="#install">Install</a></li>
+        <li><a href="#testing">Testing</a></li>
+      </ul>
+    </nav>
+
+    <article>
+
+      <h2 id="install">1. Install</h2>
+    
+        <p>To install this program, you must have previously installed <a href="http://www.gnu.org/software/make/"><code>make</code></a> in your system and a Fortran 2003 compiler. At the present time, only the <a href="http://gcc.gnu.org/wiki/GFortran">GNU Fortran compiler</a>, <code>gfortran</code>, and the <a href="http://software.intel.com/en-us/intel-compilers"> Intel Fortran compiler</a>, <code>ifort</code>, are supported.</p>
+        <p>Go to <a href="http://sourceforge.net/projects/feconv/">http://sourceforge.net/projects/feconv/</a> and download the package <code>feconv_<em>&lt;date&gt;</em>.tar.gz</code>, where <code><em>&lt;date&gt;</em></code> is the date of the release.</p>
+        <p> Open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the installation folder and type:</p>
+        <pre>
+        make -f Makefile.&lt;compiler&gt;.&lt;os&gt;
+        </pre>
+        <p>where <code>&lt;compiler&gt;</code> can be "gfortran" or "ifort" and <code>&lt;os&gt;</code> can be "linux" or "windows" (for Mac OS X, "linux" is the valid option).</p>
+
+      <div class="back"><a href="#top">Back to top</a></div>
+
+      <h2 id="testing">2. Testing</h2>
+
+        <p>This code has been tested in the following platforms:</p>
+        <ul>
+          <li>Ubuntu 12.04 LTS:      gfortran 4.6.3,   make 3.81</li>
+          <li>Mac OS X 10.8.3:       gfortran 4.6.2,   make 3.81</li>
+        </ul>
+
+      <div class="back"><a href="#top">Back to top</a></div>
+    </article>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
+</html>
