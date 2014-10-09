@@ -1,64 +1,145 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" "http://www.w3.org/Math/DTD/mathml2/xhtml-math11-f.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US">
-  <head>
-    <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" /> 
-    <title>PMH format</title>
-    <link rel="stylesheet" type="text/css" href="../estilo.css" />
-  </head>
-  <body id="top">
-    <p>Up: <a href="index.html">Program feconv</a></p>
-    <hr /> 
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Feconv: Finite Element conversor</title>
+  <link href="../estilo.css" rel="stylesheet" type="text/css" />
+</head>
 
-    <h2>PMH format</h2>
+<body>
 
-    <p><strong>On this page:</strong></p>
+  <header>
+    <img src="images/ico.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Description</a>><a href="pmh.xhtml">PMH</a></em></p>
+  </nav>
+
+  <nav class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="../description.xhtml">Description</a></li>
+      <li><a href="../install.xhtml">Install</a></li>
+      <li><a href="../formats.xhtml">Formats</a></li>
+      <li><a href="../examples.xhtml">Examples</a></li>
+      <li><a href=".../contribute.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+
+  </aside>
+
+
+  <section>
+
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
     <ul>
       <li><a href="#desc">Description</a></li>
       <li><a href="#var">Variables</a></li>
-      <li><a href="#vord">Local order of vertices</a></li>
-      <li><a href="#eord">Local index of edges</a></li>
-      <li><a href="#ford">Local order of faces</a></li>
-      <li><a href="#fe">Finite element types</a></li>
-      <li><a href="#file">Writing a <em>.pmh</em> file</a></li>
-      <li><a href="#for">Fortran 90 subroutine to save a mesh in PMH format</a></li>
+      <li><a href="#fe">Finite element types</a>
+        <ul>
+          <li><a href="#vord">Local order of vertices</a></li>
+          <li><a href="#eord">Local index of edges</a></li>
+          <li><a href="#ford">Local order of faces</a></li>
+        </ul>
+      </li>
     </ul>
+    </nav>
 
-    <h3 id="desc">Description</h3>
+    <article> 
+
+    <h2 id="desc">1. Description</h2>
     <div class="back"><a href="#top">Back to top</a></div>
     
-    <h3 id="var">Variables</h3>
-    <div class="back"><a href="#top">Back to top</a></div>
-    
-    <h3 id="vord">Local order of vertices</h3>
-    <p>The local index of vertices in each element must respect the following rules (see <a href="#fig-1">Figure 1</a>):</p>
+    <h2 id="var">2. Variables</h2>
+    <p>The meaning of the variables involved in the format PMH is the following:</p>
     <ul>
-      <li><p> For triangles, the local index of the three vertices satisfies det (<var>v<sub>2</sub></var>-<var>v<sub>1</sub></var> | <var>v<sub>3</sub></var>-<var>v<sub>1</sub></var>) &gt; 0.</p></li>
-      <li><p> For tetrahedra, the local index of the four vertices satisfies det (<var>v<sub>2</sub></var>-<var>v<sub>1</sub></var> | <var>v<sub>3</sub></var>-<var>v<sub>1</sub></var> | <var>v<sub>4</sub></var>-<var>v<sub>1</sub></var>) &gt; 0.</p></li>
-    </ul>  
+      <li><var>pc</var>: vector of pieces that compose the mesh,</li>
+      <li><var>ztol</var>: mesh coordinates tolerance,</li>
+      <li><var>z</var>: double precision matrix (<var>dim</var> &times; <var>nver</var>) where <var>z(i,j)</var> is the <var>i</var>-th coordinate of the <var>j</var>-th vertex of the mesh.</li>
+      <li><var>el</var>: vector of element groups,</li>
+      <li><var>fi</var>: vector of fields associated to nodes or elements,</li>
+      <li><var>nel</var>: total number of elements,</li>
+      <li><var>nnod</var>: total number of nodes (degrees of freedom),</li>
+      <li><var>nver</var>: total number of vertices,</li>
+      <li><var>dim</var>: space dimension,</li>
+      <li><var>tdim</var>: topological dimension,</li>
+      <li><var>lnn</var>: local number of nodes per element,</li>
+      <li><var>lnv</var>: local number of vertices per element,</li>
+      <li><var>lne</var>: local number of edges per element and</li>
+      <li><var>lnf</var>: local number of faces per element.</li>
+      <li><var>ref</var>: integer vector (<var>nel</var>) where <var>ref(k)</var> is a reference number associated to the <var>k</var>-th entity of the element group.</li>
+    </ul>    
 
-    <p>The local order of nodes in each element respect the following rules:</p>
+    <p>The global indexing of nodes, vertices and elements must start in one and be consecutive.</p>
+    <p>To define the previous arrays is important to follow a strict rule to locally index the finite element entities. We will see these rules in the next sections.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+
+    <h2 id="fe">3. Finite element types</h2>
+
+    <p>We present a table that summarizes the finite element types supported by feconv:</p>
+
+    <div align="center">
+    <table class="tb">
+      <thead>
+        <th>Element</th> <th>FE type</th> <th><var>tdim</var></th> <th><var>lnn</var></th> <th><var>lnv</var></th> <th><var>lne</var></th> <th><var>lnf</var></th> <th><var>nn</var>&ne;<var>mm</var></th>
+      </thead>
+      <tbody>
+        <tr><td>Edge</td> <td>Lagrange P1</td> <td>1</td> <td>2</td> <td>2</td> <td>0</td> <td>0</td> <td>No</td></tr>
+        <tr><td>Edge</td> <td>Lagrange P2</td> <td>1</td> <td>3</td> <td>2</td> <td>0</td> <td>0</td> <td>Yes</td></tr>
+        <tr><td>Triangle</td> <td>Lagrange P1</td> <td>2</td> <td>3</td> <td>3</td> <td>3</td> <td>0</td> <td>No</td></tr>
+        <tr><td>Triangle</td> <td>Lagrange P2</td> <td>2</td> <td>6</td> <td>3</td> <td>3</td> <td>0</td> <td>Yes</td></tr>
+        <tr><td>Triangle</td> <td>Raviart-Thomas (edge)</td> <td>2</td> <td>3</td> <td>3</td> <td>3</td> <td>0</td> <td>Yes</td></tr>
+        <tr><td>Quadrangle</td> <td>Lagrange P1</td> <td>2</td> <td>4</td> <td>4</td> <td>4</td> <td>0</td> <td>No</td></tr>
+        <tr><td>Quadrangle</td> <td>Lagrange P2</td> <td>2</td> <td>8</td> <td>4</td> <td>4</td> <td>0</td> <td>Yes</td></tr>
+        <tr><td>Tetrahedron</td> <td>Lagrange P1</td> <td>3</td> <td>4</td> <td>4</td> <td>6</td> <td>4</td> <td>No</td></tr>
+        <tr><td>Tetrahedron</td> <td>Lagrange P2</td> <td>3</td> <td>4</td> <td>10</td> <td>6</td> <td>4</td> <td>Yes</td></tr>
+        <tr><td>Tetrahedron</td> <td>Raviart-Thomas (face)</td> <td>3</td> <td>4</td> <td>4</td> <td>6</td> <td>4</td> <td>Yes</td></tr>
+        <tr><td>Tetrahedron</td> <td>Whitney (edge)</td> <td>3</td> <td>4</td> <td>6</td> <td>6</td> <td>4</td> <td>Yes</td></tr>
+        <tr><td>Hexahedron</td> <td>Lagrange P1</td> <td>3</td> <td>8</td> <td>8</td> <td>12</td> <td>6</td> <td>No</td></tr>
+        <tr><td>Hexahedron</td> <td>Lagrange P2</td> <td>3</td> <td>20</td> <td>8</td> <td>12</td> <td>6</td> <td>Yes</td></tr>
+        <tr><td>Pentahedron</td> <td>Lagrange P1</td> <td>3</td> <td>6</td> <td>6</td> <td>9</td> <td>5</td> <td>No</td></tr>
+      </tbody>
+    </table>
+    </div>
+    
+    <!-- <p>These finite elements types must be transformed to a VTK cell type to be managed by the graphical interface. <span class="rev">Poner los casos que se transforman. Qué pasa con Raviart-Thomas y los otros tipos, ¿se reducen a P1?</span> In order to consider the reference numbering of nodes, edges, faces and elements, we create some integer fields explained in the <a href="vtk.xhtml#vtk+">VTK+ format</a>.</p> -->
+    
+    <p>The last column indicated whether the global index of nodes is different from the one for vertices. They only coincide for Lagrange P1 elements; we will see that for those elements <var>nn</var> is not stored.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+        
+
+    
+    <h3 id="vord">Local index of vertices</h3> 
+
+    <p>The local index of nodes in each element are shown in <a href="#fig-1">Figure 1</a> for edges, triangles and quadrangles Lagrange P1; in <a href="#fig-2">Figure 2</a> for tetrahedrons, hexahedrons and pentahedron Lagrange P1; in <a href="#fig-3">Figure 3</a> for edges, triangles and quadrangles Lagrange P2; <a href="#fig-4">Figure 4</a> for tetrahedrons and hexahedrons Lagrange P2</p>
 
     <p align="center"> 
 
       <div align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
-            <p>a)</p>
+            <p>1.a)</p>
             <img src="../images/pmh/nodes/edgep1_ord.png" />
           </td>
           <td>
-            <p>b)</p>
+            <p>1.b)</p>
             <img src="../images/pmh/nodes/triap1_ord.png" /> 
           </td>
           <td>
-            <p>c)</p>
+            <p>1.c)</p>
             <img src="../images/pmh/nodes/quadp1_ord.png" />
           </td>
         </tr>
       </tbody> </table> </div>
       <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (a) edges, (b) triangles and (c) quadrangles.</span></tr>
+        <tr><span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (1.a) edges, (1.b) triangles and (1.c) quadrangles.</span></tr>
       </tbody> </table> </div>
     </p>
     <p align="center"> 
@@ -66,21 +147,21 @@
       <div align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
-            <p>d)</p>
+            <p>1.d)</p>
             <img src="../images/pmh/nodes/tetrap1_ord.png" />
           </td>
           <td>
-            <p>e)</p>
+            <p>1.e)</p>
             <img src="../images/pmh/nodes/hexap1_ord.png" />
           </td>
           <td>
-            <p>f)</p>
+            <p>1.f)</p>
             <img src="../images/pmh/nodes/pentap1_ord.png" />
           </td>
         </tr>
       </tbody> </table> </div>
       <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-2" class="caption"> <strong>Figure 2:</strong> Local order of nodes on Lagrange P1 (d) tetrahedrons, (e) hexahedrons and (f) pentahedrons.</span></tr>
+        <tr><span id="fig-2" class="caption"> <strong>Figure 2:</strong> Local order of nodes on Lagrange P1 (1.d) tetrahedrons, (1.e) hexahedrons and (1.f) pentahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
@@ -89,54 +170,54 @@
       <div align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
-            <p>g)</p>
+            <p>1.g)</p>
             <img src="../images/pmh/nodes/edgep2_ord.png" />
           </td>
           <td>
-            <p>h)</p>
+            <p>1.h)</p>
             <img src="../images/pmh/nodes/triap2_ord.png" />
           </td>
           <td>
-            <p>i)</p>
+            <p>1.i)</p>
             <img src="../images/pmh/nodes/quadp2_ord.png" />
           </td>
         </tr>
       </tbody> </table> </div>
       <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-3" class="caption"> <strong>Figure 3:</strong> Local order of nodes on Lagrange P2 (g) edges, (e) triangles and (f) quadrangles.</span></tr>
+        <tr><span id="fig-3" class="caption"> <strong>Figure 3:</strong> Local order of nodes on Lagrange P2 (1.g) edges, (1.h) triangles and (1.i) quadrangles.</span></tr>
       </tbody> </table> </div>
     </p>
 
     <p align="center"> 
 
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div align="center"> <table class="tb" width="60%"> <tbody>
         <tr>
           <td>
-            <p>j)</p>
+            <p>1.j)</p>
             <img src="../images/pmh/nodes/tetrap2_ord.png" />
           </td>
           <td>
-            <p>k)</p>
+            <p>1.k)</p>
             <img src="../images/pmh/nodes/hexap2_ord.png" />
           </td>
         </tr>
       </tbody> </table> </div>
       <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-4" class="caption"> <strong>Figure 4:</strong> Local order of nodes on Lagrange P2 (j) tetrahedrons and (k) hexahedrons.</span></tr>
+        <tr><span id="fig-4" class="caption"> <strong>Figure 4:</strong> Local order of nodes on Lagrange P2 (1.j) tetrahedrons and (1.k) hexahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
     <div class="back"><a href="#top">Back to top</a></div>
     
     <h3 id="eord">Local index of edges</h3>
-    <p>The local index of edges is determined from the vertex order (see <a href="#fig-1">Figure 1</a>). For triangles, the local edge index is shown in the next table:</p>
+    <p>The local index of edges is determined from the vertex order. See <a href="#fig-5">Figure 5</a> for edges and triangles; <a href="#fig-6">Figure 6</a> for quadrangles and tetrahedrons; <a href="#fig-7">Figure 7</a> for hexahedrons and pentahedrons.</p>
 
     <p align="center"> 
 
       <div align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
-            <p>d)</p>
+            <p>2.a)</p>
             <img src="../images/pmh/edges/edge.png" />
           </td>
           <td>
@@ -150,7 +231,7 @@
             </table>
           </td>
           <td>
-            <p>e)</p>
+            <p>2.b)</p>
             <img src="../images/pmh/edges/tria.png" />
           </td>
           <td>
@@ -168,7 +249,7 @@
         </tr>
       </tbody> </table> </div>
       <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-2" class="caption"> <strong>Figure 2:</strong> Local order of nodes on Lagrange P1 (d) tetrahedrons, (e) hexahedrons and (f) pentahedrons.</span></tr>
+        <tr><span id="fig-5" class="caption"> <strong>Figure 5:</strong> Local order of edges on (2.a) edges and (2.b) triangles.</span></tr>
       </tbody> </table> </div>
     </p>
 
@@ -176,7 +257,7 @@
       <div align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
-            <p>f)</p>
+            <p>2.c)</p>
             <img src="../images/pmh/edges/quad.png" />
           </td>
           <td>
@@ -193,7 +274,7 @@
             </table>
           </td>
           <td>
-            <p>a)</p>
+            <p>2.d)</p>
             <img src="../images/pmh/edges/tetra.png" />
           </td>
           <td>
@@ -214,7 +295,7 @@
         </tr>
       </tbody> </table> </div>
       <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (a) edges, (b) triangles and (c) quadrangles.</span></tr>
+        <tr><span id="fig-6" class="caption"> <strong>Figure 6:</strong> Local order of edges on (2.c) quadrangles and (2.d) tetrahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
@@ -223,7 +304,7 @@
       <div align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
-            <p>b)</p>
+            <p>2.e)</p>
             <img src="../images/pmh/edges/hexa.png" /> 
           </td>
           <td>
@@ -248,7 +329,7 @@
             </table>
           </td>
           <td>
-            <p>c)</p>
+            <p>2.f)</p>
             <img src="../images/pmh/edges/penta.png" />
           </td>
           <td>
@@ -272,7 +353,7 @@
         </tr>
       </tbody> </table> </div>
       <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (a) edges, (b) triangles and (c) quadrangles.</span></tr>
+        <tr><span id="fig-7" class="caption"> <strong>Figure 7:</strong> Local order of edges on (1.e) hexahedrons and (2.f) pentahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
@@ -280,62 +361,57 @@
     <div class="back"><a href="#top">Back to top</a></div>
     
     <h3 id="ford">Local order of faces</h3>
-    <p>The local index of faces is determined from the vertex order (see <a href="#fig-1">Figure 1</a>). For tetrahedra, the local face index is shown in the next table:</p>
+    <p>The local index of faces is determined from the vertex order. See <a href="#fig-8">Figure 8</a> for tetrahedrons and hexahedrons and <a href="#fig-9">Figure 9</a> for pentahedrons.</p>
 
     <p>
       <div align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
-            <p>b)</p>
+            <p>3.a)</p>
             <img src="../images/pmh/faces/tetra.png" /> 
           </td>
           <td>
             <table class="tb" align="left">
               <thead>
-                <tr> <th>Edge</th> <th>from</th> <th>to</th> </tr>
+                <td>Face</td> <td colspan="3">Vertices</td>
+              </thead>
+              <thead>
+                <th></th> <th>1st</th> <th>2nd</th> <th>3rd</th>
               </thead>
               <tbody>
-                <tr><td><var>e<sub>1</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>2</sub></var></td></tr>
-                <tr><td><var>e<sub>2</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>3</sub></var></td></tr>
-                <tr><td><var>e<sub>3</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>4</sub></var></td></tr>
-                <tr><td><var>e<sub>4</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>1</sub></var></td></tr>
-                <tr><td><var>e<sub>5</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>5</sub></var></td></tr>
-                <tr><td><var>e<sub>6</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>6</sub></var></td></tr>
-                <tr><td><var>e<sub>7</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>7</sub></var></td></tr>
-                <tr><td><var>e<sub>8</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>8</sub></var></td></tr>
-                <tr><td><var>e<sub>9</sub></var></td> <td><var>v<sub>5</sub></var></td> <td><var>v<sub>6</sub></var></td></tr>
-                <tr><td><var>e<sub>10</sub></var></td> <td><var>v<sub>6</sub></var></td> <td><var>v<sub>7</sub></var></td></tr>
-                <tr><td><var>e<sub>11</sub></var></td> <td><var>v<sub>7</sub></var></td> <td><var>v<sub>8</sub></var></td></tr>
-                <tr><td><var>e<sub>12</sub></var></td> <td><var>v<sub>8</sub></var></td> <td><var>v<sub>5</sub></var></td></tr>
+                <tr><td><var>f<sub>1</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>2</sub></var></td></tr>
+                <tr><td><var>f<sub>2</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>3</sub></var></td></tr>
+                <tr><td><var>f<sub>3</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>4</sub></var></td></tr>
+                <tr><td><var>f<sub>4</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>4</sub></var></td></tr>
               </tbody>
             </table>
           </td>
           <td>
-            <p>c)</p>
+            <p>3.b)</p>
             <img src="../images/pmh/faces/hexa.png" />
           </td>
           <td>
             <table class="tb" align="left">
               <thead>
-                <tr> <th>Edge</th> <th>from</th> <th>to</th> </tr>
+                <td>Face</td> <td colspan="3">Vertices</td>
+              </thead>
+              <thead>
+                <th></th> <th>1st</th> <th>2nd</th> <th>3rd</th> <th>4th</th>
               </thead>
               <tbody>
-                <tr><td><var>e<sub>1</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>2</sub></var></td></tr>
-                <tr><td><var>e<sub>2</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>3</sub></var></td></tr>
-                <tr><td><var>e<sub>3</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>1</sub></var></td></tr>
-                <tr><td><var>e<sub>4</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>4</sub></var></td></tr>
-                <tr><td><var>e<sub>5</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>5</sub></var></td></tr>
-                <tr><td><var>e<sub>6</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>6</sub></var></td></tr>
-                <tr><td><var>e<sub>7</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>5</sub></var></td></tr>
-                <tr><td><var>e<sub>8</sub></var></td> <td><var>v<sub>5</sub></var></td> <td><var>v<sub>6</sub></var></td></tr>
-                <tr><td><var>e<sub>9</sub></var></td> <td><var>v<sub>6</sub></var></td> <td><var>v<sub>4</sub></var></td></tr>
+                <tr><td><var>f<sub>1</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>2</sub></var></td></tr>
+                <tr><td><var>f<sub>2</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>5</sub></var></td> <td><var>v<sub>8</sub></var></td> <td><var>v<sub>4</sub></var></td></tr>
+                <tr><td><var>f<sub>3</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>6</sub></var></td> <td><var>v<sub>5</sub></var></td></tr>
+                <tr><td><var>f<sub>4</sub></var></td> <td><var>v<sub>5</sub></var></td> <td><var>v<sub>6</sub></var></td> <td><var>v<sub>7</sub></var></td> <td><var>v<sub>8</sub></var></td></tr>
+                <tr><td><var>f<sub>5</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>7</sub></var></td> <td><var>v<sub>6</sub></var></td></tr>
+                <tr><td><var>f<sub>6</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>8</sub></var></td> <td><var>v<sub>7</sub></var></td></tr>
               </tbody>
             </table>
           </td>
         </tr>
       </tbody> </table> </div>
       <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (a) edges, (b) triangles and (c) quadrangles.</span></tr>
+        <tr><span id="fig-8" class="caption"> <strong>Figure 8:</strong> Local index of faces on (3.a) tetrahedrons and (3.b) hexahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
@@ -343,124 +419,45 @@
       <div align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
-            <p>b)</p>
+            <p>3.c)</p>
             <img src="../images/pmh/faces/penta.png" /> 
           </td>
           <td>
             <table class="tb" align="left">
               <thead>
-                <tr> <th>Edge</th> <th>from</th> <th>to</th> </tr>
+                <td>Face</td> <td colspan="3">Vertices</td>
+              </thead>
+              <thead>
+                <th></th> <th>1st</th> <th>2nd</th> <th>3rd</th> <th>4th</th>
               </thead>
               <tbody>
-                <tr><td><var>e<sub>1</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>2</sub></var></td></tr>
-                <tr><td><var>e<sub>2</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>3</sub></var></td></tr>
-                <tr><td><var>e<sub>3</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>4</sub></var></td></tr>
-                <tr><td><var>e<sub>4</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>1</sub></var></td></tr>
-                <tr><td><var>e<sub>5</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>5</sub></var></td></tr>
-                <tr><td><var>e<sub>6</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>6</sub></var></td></tr>
-                <tr><td><var>e<sub>7</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>7</sub></var></td></tr>
-                <tr><td><var>e<sub>8</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>8</sub></var></td></tr>
-                <tr><td><var>e<sub>9</sub></var></td> <td><var>v<sub>5</sub></var></td> <td><var>v<sub>6</sub></var></td></tr>
-                <tr><td><var>e<sub>10</sub></var></td> <td><var>v<sub>6</sub></var></td> <td><var>v<sub>7</sub></var></td></tr>
-                <tr><td><var>e<sub>11</sub></var></td> <td><var>v<sub>7</sub></var></td> <td><var>v<sub>8</sub></var></td></tr>
-                <tr><td><var>e<sub>12</sub></var></td> <td><var>v<sub>8</sub></var></td> <td><var>v<sub>5</sub></var></td></tr>
+                <tr><td><var>f<sub>1</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>-</var></td></tr>
+                <tr><td><var>f<sub>2</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>6</sub></var></td> <td><var>v<sub>3</sub></var></td></tr>
+                <tr><td><var>f<sub>3</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>5</sub></var></td> <td><var>v<sub>4</sub></var></td></tr>
+                <tr><td><var>f<sub>4</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>5</sub></var></td> <td><var>v<sub>6</sub></var></td> <td><var>-</var></td></tr>
+                <tr><td><var>f<sub>5</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>6</sub></var></td> <td><var>v<sub>5</sub></var></td></tr>
+
               </tbody>
             </table>
           </td>
         </tr>
       </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (a) edges, (b) triangles and (c) quadrangles.</span></tr>
+      <div align="center"> <table class="tb" width="60%"> <tbody>
+        <tr><span id="fig-9" class="caption"> <strong>Figure 9:</strong> Local order of faces on (3.c) pentahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
     <div class="back"><a href="#top">Back to top</a></div>
-    
-    <h3 id="fe">Finite element types</h3>
-    <p>The local index of nodes (degrees of freedom) also depends on the finite element type. Nodes can be located on vertices, edges, faces and barycenter (here denoted by <var>b</var>). For segments, the local node index is shown in the next table:</p>
-    <div align="center">
-    <table>
-      <thead>
-        <tr> <th>FE type</th> <th>Nodes</th> </tr>
-      </thead>
-      <tbody class="l">
-        <tr><td>Lagrange P1</td> <td><var>v<sub>1</sub></var>, <var>v<sub>2</sub></var></td></tr>
-        <tr><td>Lagrange P2</td> <td><var>v<sub>1</sub></var>, <var>v<sub>2</sub></var>, <var>e<sub>1</sub></var></td></tr>
-      </tbody>
-    </table>
-    </div>
-    
-    <p>For triangles, the local node index is shown in the next table. </p>
-    <div align="center">
-    <table>
-      <thead>
-        <tr> <th>FE type</th> <th>Nodes</th> </tr>
-      </thead>
-      <tbody class="l">
-        <tr><td>Lagrange P1</td> <td><var>v<sub>1</sub></var>, <var>v<sub>2</sub></var>, <var>v<sub>3</sub></var></td></tr>
-        <tr><td>Lagrange P2</td> <td><var>v<sub>1</sub></var>, <var>v<sub>2</sub></var>, <var>v<sub>3</sub></var>, 
-                                     <var>e<sub>1</sub></var>, <var>e<sub>2</sub></var>, <var>e<sub>3</sub></var></td></tr>
-        <tr><td>Raviart-Thomas (edge)</td> <td><var>e<sub>1</sub></var>, <var>e<sub>2</sub></var>, <var>e<sub>3</sub></var></td></tr>
-        <tr><td>P1-bubble</td> <td><var>v<sub>1</sub></var>, <var>v<sub>2</sub></var>, <var>v<sub>3</sub></var>, <var>b</var></td></tr>
-      </tbody>
-    </table>
-    </div>
 
-    <p>For tetrahedra, the local node index is shown in the next table:</p>
-    <div align="center">
-    <table>
-      <thead>
-        <tr> <th>FE type</th> <th>Nodes</th> </tr>
-      </thead>
-      <tbody class="l">
-        <tr><td>Lagrange P1</td> <td><var>v<sub>1</sub></var>, <var>v<sub>2</sub></var>, <var>v<sub>3</sub></var>, <var>v<sub>4</sub></var></td></tr>
-        <tr><td>Lagrange P2</td> <td><var>v<sub>1</sub></var>, <var>v<sub>2</sub></var>, <var>v<sub>3</sub></var>, <var>v<sub>4</sub></var>, 
-                                     <var>e<sub>1</sub></var>, <var>e<sub>2</sub></var>, <var>e<sub>3</sub></var>, <var>e<sub>4</sub></var>,
-                                     <var>e<sub>5</sub></var>, <var>e<sub>6</sub></var></td></tr>
-        <tr><td>Raviart-Thomas (face)</td> <td><var>f<sub>1</sub></var>, <var>f<sub>2</sub></var>, <var>f<sub>3</sub></var>, <var>f<sub>4</sub></var></td></tr>
-        <tr><td>Whitney (edge)</td><td><var>e<sub>1</sub></var>, <var>e<sub>2</sub></var>, <var>e<sub>3</sub></var>, 
-                                       <var>e<sub>4</sub></var>, <var>e<sub>5</sub></var>, <var>e<sub>6</sub></var></td></tr>
-        <tr><td>P1-bubble</td> <td><var>v<sub>1</sub></var>, <var>v<sub>2</sub></var>, <var>v<sub>3</sub></var>, <var>v<sub>4</sub></var>, <var>b</var></td></tr>
-      </tbody>
-    </table>
-    </div>
 
-<p>We present a table that summarizes the finite element types supported by OpenNum:</p>
+    </article>
 
-    <div align="center">
-    <table>
-      <thead>
-        <tr> <th>Element</th> <th>FE type</th> <th><var>dim</var></th> <th><var>lnn</var></th> <th><var>lnv</var></th> <th><var>lne</var></th> <th><var>lnf</var></th> <th><var>nn</var>&ne;<var>mm</var></th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Segment 1D</td> <td>Lagrange P1</td> <td>1</td> <td>2</td> <td>2</td> <td>0</td> <td>0</td> <td>No</td></tr>
-        <tr><td>Segment 2D</td> <td>Lagrange P1</td> <td>2</td> <td>2</td> <td>2</td> <td>0</td> <td>0</td> <td>No</td></tr>
-        <tr><td>Segment 3D</td> <td>Lagrange P1</td> <td>3</td> <td>2</td> <td>2</td> <td>0</td> <td>0</td> <td>No</td></tr>
-        <tr><td>Triangle 2D</td> <td>Lagrange P1</td> <td>2</td> <td>3</td> <td>3</td> <td>3</td> <td>0</td> <td>No</td></tr>
-        <tr><td>Triangle 3D</td> <td>Lagrange P1</td> <td>3</td> <td>3</td> <td>3</td> <td>3</td> <td>0</td> <td>No</td></tr>
-        <tr><td>Triangle 2D</td> <td>Lagrange P2</td> <td>2</td> <td>3</td> <td>6</td> <td>3</td> <td>0</td> <td>Yes</td></tr>
-        <tr><td>Triangle 3D</td> <td>Lagrange P2</td> <td>3</td> <td>3</td> <td>6</td> <td>3</td> <td>0</td> <td>Yes</td></tr>
-        <tr><td>Triangle 2D</td> <td>Raviart-Thomas (edge)</td> <td>2</td> <td>3</td> <td>3</td> <td>3</td> <td>0</td> <td>Yes</td></tr>
-        <tr><td>Triangle 3D</td> <td>Raviart-Thomas (edge)</td> <td>3</td> <td>3</td> <td>3</td> <td>3</td> <td>0</td> <td>Yes</td></tr>
-        <tr><td>Triangle 2D</td> <td>P1-bubble</td> <td>2</td> <td>3</td> <td>4</td> <td>3</td> <td>0</td> <td>Yes</td></tr>
-        <tr><td>Triangle 3D</td> <td>P1-bubble</td> <td>3</td> <td>3</td> <td>4</td> <td>3</td> <td>0</td> <td>Yes</td></tr>
-        <tr><td>Tetrahedron 3D</td> <td>Lagrange P1</td> <td>3</td> <td>4</td> <td>4</td> <td>6</td> <td>4</td> <td>No</td></tr>
-        <tr><td>Tetrahedron 3D</td> <td>Lagrange P2</td> <td>3</td> <td>4</td> <td>10</td> <td>6</td> <td>4</td> <td>Yes</td></tr>
-        <tr><td>Tetrahedron 3D</td> <td>Raviart-Thomas (face)</td> <td>3</td> <td>4</td> <td>4</td> <td>6</td> <td>4</td> <td>Yes</td></tr>
-        <tr><td>Tetrahedron 3D</td> <td>Whitney (edge)</td> <td>3</td> <td>4</td> <td>6</td> <td>6</td> <td>4</td> <td>Yes</td></tr>
-        <tr><td>Tetrahedron 3D</td> <td>P1-bubble</td> <td>3</td> <td>4</td> <td>5</td> <td>6</td> <td>4</td> <td>Yes</td></tr>
-      </tbody>
-    </table>
-    </div>
-    
-    <!-- <p>These finite elements types must be transformed to a VTK cell type to be managed by the graphical interface. <span class="rev">Poner los casos que se transforman. Qué pasa con Raviart-Thomas y los otros tipos, ¿se reducen a P1?</span> In order to consider the reference numbering of nodes, edges, faces and elements, we create some integer fields explained in the <a href="vtk.xhtml#vtk+">VTK+ format</a>.</p> -->
-    
-    <p>The last column indicated whether the global index of nodes is different from the one for vertices. They only coincide for Lagrange P1 elements; we will see that for those elements <var>nn</var> is not written.</p>
-    <div class="back"><a href="#top">Back to top</a></div>
-        
+  </section>
 
-<!--    <hr />
-    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> -->
-  </body>
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
 </html>
 
