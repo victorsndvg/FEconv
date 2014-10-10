@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Feconv: Finite Element conversor</title>
+  <link href="../estilo.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+  <header>
+    <img src="../images/ico.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="bdf.xhtml">BDF</a></em></p>
+  </nav>
+
+  <nav class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="../description.xhtml">Description</a></li>
+      <li><a href="../install.xhtml">Install</a></li>
+      <li><a href="../formats.xhtml">Formats</a></li>
+      <li><a href="../examples.xhtml">Examples</a></li>
+      <li><a href=".../contribute.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+
+  </aside>
+
+
+  <section>
+
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
+    <ul>
+      <li><a href="#desc">General description</a>
+        <ul>
+          <li><a href="#bulk">The <em>Bulk data section</em></a></li>
+        </ul>
+      </li>
+      <li><a href="#feat">Features supported by feconv</a>
+        <ul>
+          <li><a href="#con">Mesh conectivity and node coordinates</a></li>
+          <li><a href="#ref">Boundary references</a></li>
+          <li><a href="#spc">Dirichlet conditions applied to nodes with <code>SPC</code> entries</a></li>
+          <li><a href="#force">Neumann conditions applied to nodes with <code>FORCE</code> entries</a></li>
+          <li><a href="#prob">Converting node references to edge and face references</a></li>
+        </ul>
+      </li>
+    </ul>
+
+    </nav>
+
+    <article> 
+
+    <h2 id="desc">1. General description</h2>
+      
+    <p>The mayority of the this information has been obtained from the document <a href="bdf/MD_Nastran_2006_Quick_Reference_Guide.pdf">MD Nastran 2006 Quick Reference Guide</a>, included in the help of the application <code>MD Nastran 2006</code>.</p>
+          
+    <p> A <em>Nastran datafile</em>, or <em>MD Nastran input data file</em>, is identified by the extensions .dat or .bdf. Its structure is shown in <a href="#fig-1">Figure 1</a>. The file can have five sections:</p>
+    <p align="center">
+      <img width="40%" src="../images/Nastran_Input_File.jpg" />
+      <br clear="all" />
+      <span id="fig-1" class="caption"> <strong>Figure 1:</strong> Structure of a <em>MD Nastran input data file</em>.</span>
+    </p>
+    <ul>
+      <li>the first two sections, <em>Nastran statements</em> and <em>File management section</em> are the only two that are optional and they can end with the optional delimiter <code>"ID A, B"</code>;</li>
+      <li>the <em>Executive control section</em> ends with the mandatory delimiter <code>"CEND"</code>;</li>
+      <li>the <em>Case control section</em> ends with the mandatory delimiter <code>"BEGIN BULK"</code>;</li>
+      <li>the <em>Bulk data section</em> ends with the mandatory delimiter <code>"ENDDATA"</code>.</li>
+    </ul>
+    <p>The <em>Bulk data section</em> is where the geometry model, mesh connectivities, finite element properties, materials, restrictions and loads are described (Those interested in using <code>MD Nastran</code> should note that only the loads referred in the <em>Case control section</em> are considered by <code>MD Nastran</code>).</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+      
+    <h3 id="bulk">The <em>Bulk data section</em></h3>
+    <p>The <em>Bulk data section</em> is composed of <em>entries</em>; each <em>entry</em> contains data distributed in <em>fields</em>. Each line has has 10 fields. The entry name is given in the first field of the first line. The tenth field in each line serves to indicate whether there is an additional line in the entry. An example of this structure can be seen in <a href="#fig-2">Figure 2</a>.</p>
+    <p align="center">
+      <img width="40%" src="../images/entrada.png" />
+      <br clear="all" />
+      <span id="fig-2" class="caption"> <strong>Figure 2:</strong> Example of an entry in the <em>Bulk data section</em>.</span>
+    </p>
+    <p>Data can only be integer, real o string. A string has at most 8 characters. Reals can be written in several ways; for example, 7.0, .7E1, 0.7+1, .70+1, 7.E+0 y 70.-1 are the same number. </p>
+    <p><code>MD Nastran</code> has three different formats for data in an entry:</p>
+    <ul>
+      <li><em>Free Field Format</em>: data fields are separated by commas;</li>
+      <li><em>Small Field Format</em>: there are 10 contiguous fields, each of them is 8 characters long;</li>
+      <li><em>Large Field Format</em>: there are 10 contiguous fields, each of them is 16 characters long.</li>
+    </ul>
+    <div class="back"><a href="#top">Back to top</a></div>
+      
+    <h2 id="feat">2. Features supported by feconv</h2>
+
+    <p>The valid extension of a <em>MD Nastran input data file</em> to be identified by <code>feconv</code> is the .bdf.</p>
+    <p>The data format admitted by <code>feconv</code> is the <em>Small Field Format</em>.</p>
+    <p> In <code>MD Nastran</code>, bi-dimensional models must lie down in the XY plane.</p>
+
+    <h3 id="con">Mesh conectivity and node coordinates</h3>
+    
+    <p>The FE types are defined as entries in the <em>Bulk data section</em>, described in Chapter 8 of the <a href="bdf/MD_Nastran_2006_Quick_Reference_Guide.pdf">MD Nastran 2006 Quick Reference Guide</a>. The name of the entries supported by <code>feconv</code> are <code>CTRIA3</code>, <code>CTRIA6</code>, <code>CQUAD4</code>, <code>CQUAD8</code>, <code>CTETRA</code>, <code>CPENTA</code> and <code>CHEXA</code>. Only <code>CTRIA3</code> and <code>CTETRA</code> has been tested. In <a href="#fig-3">Figure 3</a> and <a href="#fig-4">Figure 4</a> we show the definition of such entries.</p>
+    <p align="center">
+      <img width="40%" src="../images/CTRIA3.png" />
+      <br clear="all" />
+      <span id="fig-3" class="caption"> <strong>Figure 3:</strong> Definition of entry CTRIA3.</span>
+    </p>
+    <p align="center">
+      <img width="40%" src="../images/CTETRA.png" />
+      <br clear="all" />
+      <span id="fig-4" class="caption"> <strong>Figure 4:</strong> Definition of entry CTETRA.</span>
+    </p>
+<!--    <p>The finite elements <code>Tria6*</code> are elements that are converted to Raviart-Thomas (edge) triangular FE when passing to <a href="mfm.xhtml">MFM format</a>. Analogously, finite elements <code>Quad8*</code> are converted to Raviart-Thomas (edge) triangular FE. This feature has not been tested, so we recommend to use instead the capablities of <code>feconv</code> to transform to Raviart-Thomas FE.</p> -->
+    <p>Those entries store the connectivity of the mesh, that is, the content of variables <code>mm</code> and <code>nn</code> of the <a href="mfm.xhtml">MFM format</a>.</p>
+    <p>For <code>CTRIA3</code> and <code>CTETRA</code> entries, if the determinant of the matriz of the transformation to the reference element is negative, the last two vertices are exchanged to get a positive determinant.</p> 
+    <p>The node coordinates are defined in the <em>Bulk data section</em>, in the entry named <code>GRID</code>. That gives us the variable <code>z</code> of the <a href="mfm.xhtml">MFM format</a>. In <a href="#fig-5">Figure 5</a> we show the definition of such entry.</p>
+    <p align="center">
+      <img width="40%" src="../images/GRID.png" />
+      <br clear="all" />
+      <span id="fig-5" class="caption"> <strong>Figure 5:</strong> Definition of entry GRID.</span>
+    </p>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    <p>The domain references are useful to assign physical properties to subdomains. This information is collected from the <code>PID</code> field of the aforementioned entries. That gives us the variable <code>nsd</code> of the <a href="mfm.xhtml">MFM format</a>.</p>
+
+    <h3 id="ref">Boundary references</h3>
+    <p>References are useful to apply boundary conditions to the mesh. We distiguish between <em>natural boundary conditions</em>, also called <em>Neumann conditions</em>, and the <em>essential boundary conditions</em>, also called <em>Dirichlet conditions</em>. Dirichlet conditions are imposed as <em>Displacement</em> in <code>MD Nastran</code> and Neumann conditions are imposed as <em>Force</em>. Where both conditions are applied, Dirichlet prevails over Neumann.</p>
+    <p>Boundary conditions can be imposed on nodes, edges or faces. In the <a href="mfm.xhtml">MFM format</a>, those conditions are stored in variables <code>nrv</code>, <code>nra</code> and <code>nrc</code>, respectively. While it is easy to transform face and edge references to node ones, there can be problems doing the inverse conversion; these difficulties are described in section <a href="#prob">Converting node references to edge and face references</a>.</p>
+
+    <h3 id="spc">Dirichlet conditions applied to nodes with <code>SPC</code> entries</h3>
+
+    <p>Dirichlet conditions applied to nodes are read in <code>feconv</code> from entries <code>SPC</code> and <code>SPC1</code> in the <em>Bulk data section</em>. The definition of the entry <code>SPC</code> can be seen in <a href="#fig-6">Figure 6</a>.</p>
+    <p align="center">
+      <img width="40%" src="../images/spc.png" />
+      <br clear="all" />
+      <span id="fig-6" class="caption"> <strong>Figure 6:</strong> Definition of entry SPC.</span>
+    </p>
+
+    <p>Detection of entry <code>SPC</code> was included in <code>feconv</code> because is the default entry used in <code>Hypermesh</code> to set Dirichlet conditions applied to nodes. There are several issues associated with this entry that we describe below:</p> 
+    <ul>
+      <li>In order to know how many different conditions are present in the mesh, we cannot use the field <code>SID</code> since, as far as we know, <code>Hypermesh</code> always assigns it value 1; we consider instead the value of every displacement, written in the <code>Di</code> field, to group nodes by references.</li>
+      <li>6 different restriction degrees can be applied to every node (3 displacements and 3 rotations); every degree is identified in the <code>Ci</code> field with a number from 1 to 6.</li>
+      <li>Restrictions for the same node can be saved in different <code>SPC</code> entries. To manage them <code>Hypermesh</code> follows two rules:</li>
+      <ul>
+        <li>all the <code>SPC</code> entries for the same condition are contiguous, and</li>
+        <li>for the same condition, degrees are set in ascending order; for example, if fixed, degree 1 is set before degree 2.</li>
+      </ul>
+      <li><code>feconv</code> uses the previous rules to deal with <code>SPC</code> entries. As an example, consider one <code>SPC</code> entry that restrict degrees 1 and 2, and assign them value 8, another one that restrict degrees 3 and 4 with value 10 and a third one for  degree 2 with value 7; therefore, we have two reference conditions, the first one restricts degrees 1, 2, 3 and 4 with values 8, 8, 10, 10, respectively; the second one only restricts degree 2 with value 7.</li>
+      <li>We only know the total number of conditions after all have been read; thus, we use procedure <code>set_SPC</code> of module <code>module_desplazamientos</code> to store all the conditions due to <code>SPC</code> entries for each node; then, we call procedure <code>assign_SPC</code> to group nodes that belong to the same condition.</li>
+      <li>In <code>feconv</code>, when two conditions are assigned to the same node, the one with the biggest reference number will be assigned.</li>
+    </ul>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    <h3 id="force">Neumann conditions applied to nodes with <code>FORCE</code> entries</h3>
+
+    <p>A <code>FORCE</code> entry manages Neumann conditions. The module <code>module_fuerzas</code> deal with these entries in <code>feconv</code>.</p>
+    <p>Different Neumann conditions are set attending to the value assigned in the <code>Ni</code> field; the <code>SID</code> field is not considered. The definition of the entry <code>FORCE</code> can be seen in <a href="#fig-7">Figure 7</a>.</p>
+    <p align="center">
+      <img width="40%" src="../images/force.png" />
+      <br clear="all" />
+      <span id="fig-7" class="caption"> <strong>Figure 7:</strong> Definition of entry FORCE.</span>
+    </p>
+    <p>As it was explained for the <code>SPC</code> field, procedure <code>set_FORCE</code> saves all the conditions and procedure <code>assign_FORCE</code> asigns to node the condition with the biggest reference number, provided there is no Dirichlet condition applied to it.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    <h3 id="prob">Converting node references to edge and face references</h3>
+    <p>Many solvers require boundary conditions assigned to edges and faces. To do so, we have implemented in <code>feconv</code> two methods:</p>
+    <ul>
+      <li>to transform the node conditions read in <code>SPC</code>, <code>SPC1</code> and <code>FORCE</code> entries into edge and face conditions;</li>
+      <li>to interpret finite elements of smaller dimension as edge and face conditions.</li>
+    </ul>
+
+    <h4>Transforming node references</h4>
+    <p>The transformation of node references to edge references is done in procedure <code>dos</code>; to face references is done in procedures <code>tres</code> and <code>cuatro</code>.</p>
+    <p>The rules for the transformation are:</p>
+    <ul>
+      <li>if all the vertices of the <em>entity</em> (edge or face) have the same reference, this one is also applied to the entity;</li>
+      <li>if some vertex has no reference assigned (i.e. has reference 0) then no reference is assigned to the entity;</li>
+      <li>if the vertices have references of different type, the Neumann condition with the lowest reference number is assigned to the entity;</li>
+      <li>otherwise, the reference with the lowest reference number is assigned to the entity.</li>
+    </ul>
+    <p>These rules guarantee that the edges or faces that are in the border between two conditions have assigned Dirichlet over Neumann condition and also the biggest reference number.</p>
+    <p>You must aware that this rules can fail in some corners. Figure <a href="#fig-8">Figure 8</a> shows a border, as a bold line, between reference conditions 1 and 2. In the finite element of the corner, every vertex has reference 2, making unavoidable that the reference assigned to its edges (and face) will be also 2.</p>
+    <p align="center">
+      <img width="20%" src="../images/esquina.png" />
+      <br clear="all" />
+      <span id="fig-8" class="caption"> <strong>Figure 8:</strong> Asignment rules can fail in a corner.</span>
+    </p>
+    <p>In order to avoid such drawback, we have implemented an alternative way to apply edge and face conditions.</p>
+
+    <h4>Interpreting FE of smaller dimension</h4>
+    <p>The transformation we will describe here is preferred over the explaind in the previous section, since it does not present the aforementioned drawback. Both types of transformation are applied, but the present one has priority over the first transformation, because it is set after it.</p>
+    <p>Since the <a href="mfm.xhtml">MFM format</a> does not allow hybrid meshes, and this format is the "lingua franca" of <code>feconv</code>, all the finite elements of smaller dimension present in the input file are generally discarded. We have use them to indentify references.</p>
+    <p>In meshes composed of finite elements defined in <code>CTRIA3</code> or <code>CTRIA6</code> entries, every <code>CBEAM</code> entry is interpreted as an edge reference condition; the number associated to that reference is the value stored in the <code>PID</code> field.</p>
+    <p>In meshes composed of finite elements defined in <code>CTETRA</code> entries, every <code>CTRIA3</code> entry is interpreted as a face condition; the number associated to that reference is the value stored in the <code>PID</code> field.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+
+
+    </article>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
+</html>
+
+
