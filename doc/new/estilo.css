@@ -18,6 +18,7 @@ html, body {
 header {
   height: 10%;
   text-align: center;
+  background-color: SlateGray;
 }
 
 header img {
@@ -38,7 +39,7 @@ section {
 }
 
 nav.menu {
-  padding: 5px;
+  padding: 0px;
   margin: 0px 0px 0px 15px;
   float: left;
   width: 160px;
@@ -101,7 +102,7 @@ nav.topics {
 }
 
 nav.topics ul {
-  padding: 5px;
+  padding: 0px;
   margin: 0px 0px 0px 0px;
   list-style: none;
   display: block;
@@ -169,8 +170,8 @@ article {
 }
 
 aside {
-  padding: 15px;
-  margin: 0px 10px 10px 10px;
+  padding: 0px;
+  margin: 0px 0px 0px 0px;
   float: right;
   width: 180px;
 }
