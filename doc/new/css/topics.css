@@ -1,0 +1,80 @@
+nav.topics {
+  padding: 0px;
+  margin: 0px 0px 0px 0px;
+  position: relative;
+}
+
+nav.topics ul {
+  padding: 5px;
+  margin: 0px 0px 0px 0px;
+  list-style: none;
+  position: relative;
+}
+
+nav.topics ul ul {
+  padding: 0px;
+  margin: 0px 0px 0px 0px;
+}
+
+nav.topics ul li {
+  padding: 3px;
+  margin: 0px 0px 0px 10px;
+  float: left;
+  background-color: Lavender;
+  border-radius:10px;
+  box-shadow:2px 2px 2px #000000;
+}
+
+nav.topics ul li:hover ul {
+  display:block;
+}
+
+
+
+nav.topics ul li ul {
+  padding: 5px;
+  margin: 0px 0px 0px 10px;
+  display:none;
+  position: absolute;
+  background-color: Lavender;
+  width=auto;
+  box-shadow:2px 2px 2px #000000;
+}
+
+nav.topics ul li ul li {
+  padding: 0px;
+  margin: 5px 0px 0px 0px;
+  float: left;
+  display: block;
+  width:100%;
+  border-radius:0px;
+  box-shadow:0px 0px 0px #000000;
+}
+
+nav.topics ul li ul li:hover {
+  background-color: SlateGray;
+}
+
+nav.topics ul li ul li a {
+  padding: 0px;
+  margin: 0px 0px 0px 0px;
+  text-decoration: none;
+  font-weight: normal;
+  color: SlateGray;
+  width:100%;
+}
+
+nav.topics ul li a{
+  padding: 0px;
+  margin: 0px 0px 0px 0px;
+  text-decoration: none;
+  font-weight: bold;
+  color: Maroon;
+}
+
+
+nav.topics ul li a:hover{
+  color: White;
+
+}
+

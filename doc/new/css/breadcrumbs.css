@@ -1,0 +1,16 @@
+
+
+nav.breadcrumbs {
+  padding: 1px;
+  margin: 0px 0px 0px 0px;
+  text-indent: 10px;
+  background-color: SlateGray; 
+  color:White;
+}
+
+nav.breadcrumbs a {
+  color: White; 
+  font-weight: bold;
+  text-decoration: none;
+} 
+

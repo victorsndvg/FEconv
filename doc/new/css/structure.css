@@ -7,7 +7,9 @@
 /*Gainsboro 	DCDCDC 	220,220,220*/
 /*LightGrey 	D3D3D3 	211,211,211*/
 
+
 html, body {
+  display: block;
   height: 100%; 
   margin: 0; 
   padding: 0;
@@ -18,11 +20,9 @@ html, body {
 header {
   height: 10%;
   text-align: center;
-  background-color: SlateGray;
 }
 
 header img {
-  display: block;
   margin: 0% 2% 0% 0%;
   width: auto;
   height: auto;
@@ -38,125 +38,6 @@ section {
   height: 75%; 
 }
 
-nav.menu {
-  padding: 0px;
-  margin: 0px 0px 0px 15px;
-  float: left;
-  width: 160px;
-/*  height: 100%*/
-}
-
-
-.mnu ul {
-  display: block;
-  list-style-type: disc;
-  margin: 0px 0px 0px 0px;
-  padding: 5px;
-  text-align: center;
-} 
-
-.mnu ul li {
-  display: block;
-  padding: 1px;
-  margin: 5px 0px 0px 0px;
-  background-color: SlateGray; 
-/*  border-radius: 15px;
-  border-top: 2px solid;
-  border-top-color: White;
-  border-bottom: 2px solid;
-  border-bottom-color: Black;
-  border-left: 2px solid;
-  border-left-color: White;
-  border-right: 2px solid;
-  border-right-color: Black;*/
-} 
-
-.mnu ul li a {
-  color: White; 
-  font-weight: bold;
-  text-decoration: none;
-} 
-
-.mnu ul li:hover {
-  background-color: Maroon;
-} 
-
-nav.breadcrumbs {
-  padding: 1px;
-  margin: 0px 0px 0px 0px;
-  text-indent: 10px;
-  background-color: SlateGray; 
-  color:White
-}
-
-nav.breadcrumbs a {
-  color: White; 
-  font-weight: bold;
-  text-decoration: none;
-} 
-
-nav.topics {
-  padding: 0px;
-  margin: 0px 0px 0px 0px;
-  position: relative;
-}
-
-nav.topics ul {
-  padding: 0px;
-  margin: 0px 0px 0px 0px;
-  list-style: none;
-  display: block;
-}
-
-nav.topics ul ul {
-  padding: 0px;
-  margin: 0px 0px 0px 0px;
-  display: none;
-  float: left;
-/*  background-color: Lavender;*/
-}
-
-
-nav.topics ul li {
-  padding: 0px;
-  margin: 0px 0px 0px 10px;
-  display: block;
-  float: left;
-/*  background-color: Lavender;*/
-}
-
-nav.topics ul li:hover ul {
-  display: block;
-  list-style: disc;
-}
-
-nav.topics ul li ul li a {
-  text-decoration: none;
-  font-weight: bold;
-  color: SlateGray;
-  background-color: Lavender;
-}
-
-nav.topics ul li ul li a:hover {
-  background-color: SlateGray;
-}
-
-nav.topics ul li a{
-  padding: 5px;
-  margin: 0px 0px 0px 0px;
-  display:block;
-  text-decoration: none;
-  font-weight: bold;
-  color: Maroon;
-	  background-color: Lavender;
-}
-
-
-nav.topics ul li a:hover{
-  background-color: Maroon;
-  color: White;
-
-}
 
 article {
   padding: 1%;
@@ -170,8 +51,8 @@ article {
 }
 
 aside {
-  padding: 0px;
-  margin: 0px 0px 0px 0px;
+  padding: 15px;
+  margin: 0px 10px 10px 10px;
   float: right;
   width: 180px;
 }
@@ -191,6 +72,8 @@ footer {
 /*  border:solid 1px #000000;*/
   padding:0;
   border-collapse:collapse;
+  background-color: SlateGray;
+  color: White;
 }
 
 .maintable th{
@@ -203,7 +86,8 @@ footer {
 }
 
 .maintable td:hover{
-  background-color: GainsBoro;
+  background-color: Lavender;
+  color: White;
 }
 
 .centro {

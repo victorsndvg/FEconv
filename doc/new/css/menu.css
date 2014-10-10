@@ -1,0 +1,46 @@
+
+nav.menu {
+  padding: 5px;
+  margin: 0px 0px 0px 15px;
+  float: left;
+  width: 160px;
+/*  height: 100%*/
+}
+
+
+.mnu ul {
+  display: block;
+  list-style-type: disc;
+  margin: 0px 0px 0px 0px;
+  padding: 5px;
+  text-align: center;
+} 
+
+.mnu ul li {
+  display: block;
+  padding: 5px;
+  margin: 5px 0px 0px 0px;
+  background-color: SlateGray; 
+  border-radius:10px;
+  box-shadow:2px 2px 2px #000000;
+/*  border-radius: 15px;
+  border-top: 2px solid;
+  border-top-color: White;
+  border-bottom: 2px solid;
+  border-bottom-color: Black;
+  border-left: 2px solid;
+  border-left-color: White;
+  border-right: 2px solid;
+  border-right-color: Black;*/
+} 
+
+.mnu ul li a {
+  color: White; 
+  font-weight: bold;
+  text-decoration: none;
+} 
+
+.mnu ul li:hover {
+  background-color: Maroon;
+} 
+
