@@ -457,7 +457,9 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
           lnv = FEDB(tp)%lnv
           ! Build vtk conectivity array
           if(allocated(temp)) deallocate(temp)
-          allocate(temp, source=reshape(pc%el(j)%mm-1, (/1,pc%el(j)%nel*lnv/)))
+!          allocate(temp, source=reshape(pc%el(j)%mm-1, (/1,pc%el(j)%nel*lnv/)))
+          allocate(temp(1,pc%el(j)%nel*lnv))
+          temp(:,:) = reshape(pc%el(j)%mm-1, (/1,pc%el(j)%nel*lnv/))
           call set(connect, temp(1,:), &
             &(/(k,k=tnvpc+1,tnvpc+pc%el(j)%nel*lnv)/), fit=.false.)
           deallocate(temp)

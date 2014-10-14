@@ -1504,7 +1504,7 @@ end subroutine
 subroutine remove_coordinate(pmh, dim)
   type(pmh_mesh), intent(inout) :: pmh
   integer,        intent(in)    :: dim
-  integer                       :: i, newdim
+  integer                       :: i, j, k, newdim
   real(real64), allocatable     :: tempz(:,:)
 
   if(.not. allocated(pmh%pc)) call error('Not allocated mesh')
@@ -1518,7 +1518,8 @@ subroutine remove_coordinate(pmh, dim)
     newdim = pmh%pc(i)%dim-1
     allocate(tempz(newdim, pmh%pc(i)%nver))
 
-    tempz(1:newdim,:) = pmh%pc(i)%z([1:dim-1,dim+1:pmh%pc(i)%dim],:)
+!    tempz(1:newdim,:) = pmh%pc(i)%z([1:dim-1,dim+1:pmh%pc(i)%dim],:)
+    tempz(1:newdim,:) = pmh%pc(i)%z((/(j,j=1,dim-1),(j,j=dim+1,pmh%pc(i)%dim)/),:)
     call move_alloc(from=tempz,to=pmh%pc(i)%z)
 
     pmh%pc(i)%dim = newdim
