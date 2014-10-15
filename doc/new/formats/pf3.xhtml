@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Feconv: Finite Element conversor</title>
+  <link href="../css/structure.css" rel="stylesheet" type="text/css" />
+  <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
+  <link href="../css/menu.css" rel="stylesheet" type="text/css" />
+  <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+  <header>
+    <img src="../images/ico.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="pf3.xhtml">PF3</a></em></p>
+  </nav>
+
+  <nav class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="../description.xhtml">Description</a></li>
+      <li><a href="../install.xhtml">Install</a></li>
+      <li><a href="../formats.xhtml">Formats</a></li>
+      <li><a href="../options.xhtml">Options</a></li>
+      <li><a href="../underconstruction.xhtml">Examples</a></li>
+      <li><a href="../underconstruction.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+
+  </aside>
+
+
+  <section>
+
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
+      <ul>
+        <li><a href="#desc">Description</a></li>
+        <li><a href="#feat">Features supported by feconv</a>
+          <ul>
+            <li><a href="#fetypes">Finite element types</a></li><br/>
+            <li><a href="#vord">Locar order of nodes</a></li><br/>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+
+    <article> 
+    <h2 id="desc">1. Description</h2>
+
+    <p>The PF3 file format is used by <a href="http://www.cedrat.com/en/software/flux.html">Cedrat Flux</a>, software for electromagnetic and thermal simulations.</p>
+
+    <p>The main features of this format are:</p>
+    <ul>
+      <li>It can store hybrid meshes, that is, meshes that contain a several types of finite elements.</li>
+      <li>It can store coordinates, connectivities, references and fields at nodes.</li>
+      <li>The global indexing of nodes, edges, faces and elements are defined by integers. </li>
+      <li>The vertex coordinates and field data are defined by single precission floats.</li>
+    </ul>
+
+    <p>The structure of th PF3 mesh files starts with a header, followed by the regions names, elements description, coordinates and optionally a single field.</p>
+
+    <ul>
+      <li>PF3 header describes, among others, the space dimension, number of points, number of elements and number of regions</li>
+      <li>Element description consists of twelve integers, following we describe the most significant of them:
+        <ul>
+          <li>The 2nd, 3rd and 7th describes the element shape and order.</li>
+          <li>The 4th number represents the number of region to which the element belongs.</li>
+          <li>The 5th means the kind of topology; 4 for 3D elements, 3 for 2D elements and 2 for 1D elements.</li>
+          <li>The 8th number give us the number of nodes of the element.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>Feconv works with double precission floats, for proper reading of PF3 meshes you must use the options <a href="../options.xhtml#tol">-t</a> , to set the tolerance of the mesh, and <a href="../options.xhtml#reor">-r soft</a>, to check the node ordering for the first element and assume it for all the elements.</p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+
+
+    <h2 id="feat">2. Features supported by feconv</h2>
+
+    <p>PF3 contain plain text for most of the information and can contain binary data to assign names to regions. FEconv can only read the plain text and discards the binary data.</p>
+
+    <h4 id="fetypes">Finite element types</h4>
+
+    <p>The PF3 format describes a lot of different types of finite elements. In the following table you can see the finite elements allowed and its meaning in FEconv.</p>
+
+    <p> PF3 descriptors corresponds, respectively, with the 2nd, 3rd and 7th number of the 12 numbers of the element description. </p>
+
+    <p>
+    <div align="center">
+    <table class="tb" width="80%">
+      <thead>
+        <tr> <th width="30%">PF3 descriptor</th> <th align="left" width="30%">PF3 name</th>  <th align="left" width="30%">FE type</th> </tr>
+      </thead>
+      <tbody>
+        <tr><td>(2 , 2, 3)</td> <td align="left">Line first order</td> <td align="left">Edge Lagrange P1</td> </tr>
+        <tr><td>(2 , 3, 4)</td> <td align="left">Line second order</td> <td align="left">Edge Lagrange P2</td> </tr>
+        <tr><td>(3 , 7, 5)</td> <td align="left">Triangle first order</td> <td align="left">Triangle Lagrange P1</td> </tr>
+        <tr><td>(3 , 7, 6)</td> <td align="left">Triangle second order</td> <td align="left">Triangle Lagrange P2</td> </tr>
+        <tr><td>(4 , 202, 7)</td> <td align="left">Rectangle first order</td> <td align="left">Quadrilateral Lagrange P1</td> </tr>
+        <tr><td>(4 , 303, 8)</td> <td align="left">Rectangle second order</td> <td align="left">Quadrilateral Lagrange P2</td></tr>
+        <tr><td>(5 , 4, 10)</td> <td align="left">Tetrahedron first order</td> <td align="left">Tetrahedron Lagrange P1</td> </tr>
+        <tr><td>(5 , 15, 11)</td> <td align="left">Tetrahedron second order</td> <td align="left">Tetrahedron Lagrange P2</td> </tr>
+        <tr><td>(6 , 207, 12)</td> <td align="left">Prism first order</td> <td align="left">Wedge Lagrange P1</td> </tr>
+        <tr><td>(7 , 2202, 15)</td> <td align="left">Hexahedron first order</td> <td align="left">Hexahedron Lagrange P1</td> </tr>
+        <tr><td>(7 , 3303, 16)</td> <td align="left">Hexahedron second order</td> <td align="left">Hexahedron Lagrange P2</td> </tr>
+      </tbody>
+    </table>
+    </div>
+    </p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    
+    <h4 id="vord">Local order of nodes</h4>
+
+    <p>The ordering of the nodes has been deduced empirically. We have observed that the local order of nodes in each element respect the following rules:</p>
+
+    <p align="center"> 
+
+      <div id="fig-1" align="center"> <table class="tb" width="80%"> <tbody>
+        <tr>
+          <td>
+            <p>a)</p>
+            <img src="../images/pf3/edgep1_ord.png" />
+          </td>
+          <td>
+            <p>b)</p>
+            <img src="../images/pf3/triap1_ord.png" /> 
+          </td>
+          <td>
+            <p>c)</p>
+            <img src="../images/pf3/quadp1_ord.png" />
+          </td>
+        </tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (a) edges, (b) triangles and (c) quadrangles.</span></tr>
+      </tbody> </table> </div>
+    </p>
+    <p align="center"> 
+
+      <div id="fig-2" align="center"> <table class="tb" width="80%"> <tbody>
+        <tr>
+          <td>
+            <p>d)</p>
+            <img src="../images/pf3/tetrap1_ord.png" />
+          </td>
+          <td>
+            <p>e)</p>
+            <img src="../images/pf3/hexap1_ord.png" />
+          </td>
+          <td>
+            <p>f)</p>
+            <img src="../images/pf3/pentap1_ord.png" />
+          </td>
+        </tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 2:</strong> Local order of nodes on Lagrange P1 (d) tetrahedrons, (e) hexahedrons and (f) pentahedrons.</span></tr>
+      </tbody> </table> </div>
+    </p>
+
+    <p align="center"> 
+
+      <div id="fig-3" align="center"> <table class="tb" width="80%"> <tbody>
+        <tr>
+          <td>
+            <p>g)</p>
+            <img src="../images/pf3/edgep2_ord.png" />
+          </td>
+          <td>
+            <p>h)</p>
+            <img src="../images/pf3/triap2_ord.png" />
+          </td>
+          <td>
+            <p>i)</p>
+            <img src="../images/pf3/quadp2_ord.png" />
+          </td>
+        </tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 3:</strong> Local order of nodes on Lagrange P2 (g) edges, (e) triangles and (f) quadrangles.</span></tr>
+      </tbody> </table> </div>
+    </p>
+
+    <p align="center"> 
+
+      <div id="fig-4" align="center"> <table class="tb" width="80%"> <tbody>
+        <tr>
+          <td>
+            <p>j)</p>
+            <img src="../images/pf3/tetrap2_ord.png" />
+          </td>
+          <td>
+            <p>k)</p>
+            <img src="../images/pf3/hexap2_ord.png" />
+          </td>
+        </tr>
+      </tbody> </table> 
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 4:</strong> Local order of nodes on Lagrange P2 (j) tetrahedrons and (k) hexahedrons.</span></tr>
+      </tbody> </table> </div>
+    </p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    </article>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
+</html>
+

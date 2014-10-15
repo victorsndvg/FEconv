@@ -28,8 +28,8 @@
       <li><a href="../install.xhtml">Install</a></li>
       <li><a href="../formats.xhtml">Formats</a></li>
       <li><a href="../options.xhtml">Options</a></li>
-      <li><a href="../examples.xhtml">Examples</a></li>
-      <li><a href=".../contribute.xhtml">How to contribute</a></li>
+      <li><a href="../underconstruction.xhtml">Examples</a></li>
+      <li><a href="../underconstruction.xhtml">How to contribute</a></li>
     </ul>
   </nav>
 
@@ -139,7 +139,7 @@
 
     <p align="center"> 
 
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-1" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>a)</p>
@@ -154,14 +154,14 @@
             <img src="../images/unv/quadp1_ord.png" />
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (a) edges, (b) triangles and (c) quadrangles.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (a) edges, (b) triangles and (c) quadrangles.</span></tr>
       </tbody> </table> </div>
     </p>
     <p align="center"> 
 
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-2" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>d)</p>
@@ -176,15 +176,15 @@
             <img src="../images/unv/pentap1_ord.png" />
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-2" class="caption"> <strong>Figure 2:</strong> Local order of nodes on Lagrange P1 (d) tetrahedrons, (e) hexahedrons and (f) pentahedrons.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 2:</strong> Local order of nodes on Lagrange P1 (d) tetrahedrons, (e) hexahedrons and (f) pentahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
     <p align="center"> 
 
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-3" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>g)</p>
@@ -199,15 +199,15 @@
             <img src="../images/unv/quadp2_ord.png" />
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-3" class="caption"> <strong>Figure 3:</strong> Local order of nodes on Lagrange P2 (g) edges, (e) triangles and (f) quadrangles.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 3:</strong> Local order of nodes on Lagrange P2 (g) edges, (e) triangles and (f) quadrangles.</span></tr>
       </tbody> </table> </div>
     </p>
 
     <p align="center"> 
 
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-4" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>j)</p>
@@ -218,9 +218,9 @@
             <img src="../images/unv/hexap2_ord.png" />
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-4" class="caption"> <strong>Figure 4:</strong> Local order of nodes on Lagrange P2 (j) tetrahedrons and (k) hexahedrons.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 4:</strong> Local order of nodes on Lagrange P2 (j) tetrahedrons and (k) hexahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
@@ -242,7 +242,7 @@
 
     <p>The field values can be located at nodes, on elements or at nodes on elements. Feconv only allows fields at nodes and on elements; data at nodes on elements will be processed to calculate the average of all node values ​​and store it on the element barycenter.</p>
 
-    <p>Field identification, in addition to its name, is given by the information of the problem solved. <a href="http://www.code-aster.org">Code Aster</a> defines the relationship between these information and the field name through <a href="http://www.code-aster.org/V2/doc/default/en/man_u/u7/u7.02.01.pdf">lire_resu</a> function, you can use <a href="options.xhtml#ca"><code>-ca</code></a> option to read/write <a href="http://www.code-aster.org">Code Aster</a> UNV files.</p>
+    <p>Field identification, in addition to its name, is given by the information of the problem solved. <a href="http://www.code-aster.org">Code Aster</a> defines the relationship between these information and the field name through <a href="http://www.code-aster.org/V2/doc/default/en/man_u/u7/u7.02.01.pdf">lire_resu</a> function, you can use <a href="../options.xhtml#ca"><code>-ca</code></a> option to read/write <a href="http://www.code-aster.org">Code Aster</a> UNV files.</p>
 
     <div class="back"><a href="#top">Back to top</a></div>
 

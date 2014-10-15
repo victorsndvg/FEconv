@@ -28,8 +28,8 @@
       <li><a href="../install.xhtml">Install</a></li>
       <li><a href="../formats.xhtml">Formats</a></li>
       <li><a href="../options.xhtml">Options</a></li>
-      <li><a href="../examples.xhtml">Examples</a></li>
-      <li><a href=".../contribute.xhtml">How to contribute</a></li>
+      <li><a href="../underconstruction.xhtml">Examples</a></li>
+      <li><a href="../underconstruction.xhtml">How to contribute</a></li>
     </ul>
   </nav>
 
@@ -68,10 +68,10 @@
     <p>The mayority of the this information has been obtained from the document <a href="bdf/MD_Nastran_2006_Quick_Reference_Guide.pdf">MD Nastran 2006 Quick Reference Guide</a>, included in the help of the application <code>MD Nastran 2006</code>.</p>
           
     <p> A <em>Nastran datafile</em>, or <em>MD Nastran input data file</em>, is identified by the extensions .dat or .bdf. Its structure is shown in <a href="#fig-1">Figure 1</a>. The file can have five sections:</p>
-    <p align="center">
+    <p id="fig-1" align="center">
       <img width="40%" src="../images/Nastran_Input_File.jpg" />
       <br clear="all" />
-      <span id="fig-1" class="caption"> <strong>Figure 1:</strong> Structure of a <em>MD Nastran input data file</em>.</span>
+      <span class="caption"> <strong>Figure 1:</strong> Structure of a <em>MD Nastran input data file</em>.</span>
     </p>
     <ul>
       <li>the first two sections, <em>Nastran statements</em> and <em>File management section</em> are the only two that are optional and they can end with the optional delimiter <code>"ID A, B"</code>;</li>
@@ -84,10 +84,10 @@
       
     <h3 id="bulk">The <em>Bulk data section</em></h3>
     <p>The <em>Bulk data section</em> is composed of <em>entries</em>; each <em>entry</em> contains data distributed in <em>fields</em>. Each line has has 10 fields. The entry name is given in the first field of the first line. The tenth field in each line serves to indicate whether there is an additional line in the entry. An example of this structure can be seen in <a href="#fig-2">Figure 2</a>.</p>
-    <p align="center">
+    <p id="fig-2" align="center">
       <img width="40%" src="../images/entrada.png" />
       <br clear="all" />
-      <span id="fig-2" class="caption"> <strong>Figure 2:</strong> Example of an entry in the <em>Bulk data section</em>.</span>
+      <span class="caption"> <strong>Figure 2:</strong> Example of an entry in the <em>Bulk data section</em>.</span>
     </p>
     <p>Data can only be integer, real o string. A string has at most 8 characters. Reals can be written in several ways; for example, 7.0, .7E1, 0.7+1, .70+1, 7.E+0 y 70.-1 are the same number. </p>
     <p><code>MD Nastran</code> has three different formats for data in an entry:</p>
@@ -107,24 +107,24 @@
     <h3 id="con">Mesh conectivity and node coordinates</h3>
     
     <p>The FE types are defined as entries in the <em>Bulk data section</em>, described in Chapter 8 of the <a href="bdf/MD_Nastran_2006_Quick_Reference_Guide.pdf">MD Nastran 2006 Quick Reference Guide</a>. The name of the entries supported by <code>feconv</code> are <code>CTRIA3</code>, <code>CTRIA6</code>, <code>CQUAD4</code>, <code>CQUAD8</code>, <code>CTETRA</code>, <code>CPENTA</code> and <code>CHEXA</code>. Only <code>CTRIA3</code> and <code>CTETRA</code> has been tested. In <a href="#fig-3">Figure 3</a> and <a href="#fig-4">Figure 4</a> we show the definition of such entries.</p>
-    <p align="center">
+    <p id="fig-3" align="center">
       <img width="40%" src="../images/CTRIA3.png" />
       <br clear="all" />
-      <span id="fig-3" class="caption"> <strong>Figure 3:</strong> Definition of entry CTRIA3.</span>
+      <span class="caption"> <strong>Figure 3:</strong> Definition of entry CTRIA3.</span>
     </p>
-    <p align="center">
+    <p id="fig-4" align="center">
       <img width="40%" src="../images/CTETRA.png" />
       <br clear="all" />
-      <span id="fig-4" class="caption"> <strong>Figure 4:</strong> Definition of entry CTETRA.</span>
+      <span class="caption"> <strong>Figure 4:</strong> Definition of entry CTETRA.</span>
     </p>
 <!--    <p>The finite elements <code>Tria6*</code> are elements that are converted to Raviart-Thomas (edge) triangular FE when passing to <a href="mfm.xhtml">MFM format</a>. Analogously, finite elements <code>Quad8*</code> are converted to Raviart-Thomas (edge) triangular FE. This feature has not been tested, so we recommend to use instead the capablities of <code>feconv</code> to transform to Raviart-Thomas FE.</p> -->
     <p>Those entries store the connectivity of the mesh, that is, the content of variables <code>mm</code> and <code>nn</code> of the <a href="mfm.xhtml">MFM format</a>.</p>
     <p>For <code>CTRIA3</code> and <code>CTETRA</code> entries, if the determinant of the matriz of the transformation to the reference element is negative, the last two vertices are exchanged to get a positive determinant.</p> 
     <p>The node coordinates are defined in the <em>Bulk data section</em>, in the entry named <code>GRID</code>. That gives us the variable <code>z</code> of the <a href="mfm.xhtml">MFM format</a>. In <a href="#fig-5">Figure 5</a> we show the definition of such entry.</p>
-    <p align="center">
+    <p id="fig-5" align="center">
       <img width="40%" src="../images/GRID.png" />
       <br clear="all" />
-      <span id="fig-5" class="caption"> <strong>Figure 5:</strong> Definition of entry GRID.</span>
+      <span class="caption"> <strong>Figure 5:</strong> Definition of entry GRID.</span>
     </p>
     <div class="back"><a href="#top">Back to top</a></div>
 
@@ -137,10 +137,10 @@
     <h3 id="spc">Dirichlet conditions applied to nodes with <code>SPC</code> entries</h3>
 
     <p>Dirichlet conditions applied to nodes are read in <code>feconv</code> from entries <code>SPC</code> and <code>SPC1</code> in the <em>Bulk data section</em>. The definition of the entry <code>SPC</code> can be seen in <a href="#fig-6">Figure 6</a>.</p>
-    <p align="center">
+    <p id="fig-6" align="center">
       <img width="40%" src="../images/spc.png" />
       <br clear="all" />
-      <span id="fig-6" class="caption"> <strong>Figure 6:</strong> Definition of entry SPC.</span>
+      <span class="caption"> <strong>Figure 6:</strong> Definition of entry SPC.</span>
     </p>
 
     <p>Detection of entry <code>SPC</code> was included in <code>feconv</code> because is the default entry used in <code>Hypermesh</code> to set Dirichlet conditions applied to nodes. There are several issues associated with this entry that we describe below:</p> 
@@ -162,10 +162,10 @@
 
     <p>A <code>FORCE</code> entry manages Neumann conditions. The module <code>module_fuerzas</code> deal with these entries in <code>feconv</code>.</p>
     <p>Different Neumann conditions are set attending to the value assigned in the <code>Ni</code> field; the <code>SID</code> field is not considered. The definition of the entry <code>FORCE</code> can be seen in <a href="#fig-7">Figure 7</a>.</p>
-    <p align="center">
+    <p id="fig-7" align="center">
       <img width="40%" src="../images/force.png" />
       <br clear="all" />
-      <span id="fig-7" class="caption"> <strong>Figure 7:</strong> Definition of entry FORCE.</span>
+      <span class="caption"> <strong>Figure 7:</strong> Definition of entry FORCE.</span>
     </p>
     <p>As it was explained for the <code>SPC</code> field, procedure <code>set_FORCE</code> saves all the conditions and procedure <code>assign_FORCE</code> asigns to node the condition with the biggest reference number, provided there is no Dirichlet condition applied to it.</p>
     <div class="back"><a href="#top">Back to top</a></div>
@@ -188,10 +188,10 @@
     </ul>
     <p>These rules guarantee that the edges or faces that are in the border between two conditions have assigned Dirichlet over Neumann condition and also the biggest reference number.</p>
     <p>You must aware that this rules can fail in some corners. Figure <a href="#fig-8">Figure 8</a> shows a border, as a bold line, between reference conditions 1 and 2. In the finite element of the corner, every vertex has reference 2, making unavoidable that the reference assigned to its edges (and face) will be also 2.</p>
-    <p align="center">
+    <p id="fig-8" align="center">
       <img width="20%" src="../images/esquina.png" />
       <br clear="all" />
-      <span id="fig-8" class="caption"> <strong>Figure 8:</strong> Asignment rules can fail in a corner.</span>
+      <span class="caption"> <strong>Figure 8:</strong> Asignment rules can fail in a corner.</span>
     </p>
     <p>In order to avoid such drawback, we have implemented an alternative way to apply edge and face conditions.</p>
 

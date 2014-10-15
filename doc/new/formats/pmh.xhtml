@@ -9,6 +9,7 @@
   <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="../css/menu.css" rel="stylesheet" type="text/css" />
   <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+  <link href="../css/highlight.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
@@ -18,7 +19,7 @@
   </header>
 
   <nav class="breadcrumbs">
-    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Description</a>><a href="pmh.xhtml">PMH</a></em></p>
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="pmh.xhtml">PMH</a></em></p>
   </nav>
 
   <nav class="menu mnu">
@@ -28,8 +29,8 @@
       <li><a href="../install.xhtml">Install</a></li>
       <li><a href="../formats.xhtml">Formats</a></li>
       <li><a href="../options.xhtml">Options</a></li>
-      <li><a href="../examples.xhtml">Examples</a></li>
-      <li><a href=".../contribute.xhtml">How to contribute</a></li>
+      <li><a href="../underconstruction.xhtml">Examples</a></li>
+      <li><a href="../underconstruction.xhtml">How to contribute</a></li>
     </ul>
   </nav>
 
@@ -44,12 +45,17 @@
     <nav id="top" class="topics">
     <ul>
       <li><a href="#desc">Description</a></li>
-      <li><a href="#var">Variables</a></li>
       <li><a href="#fe">Finite element types</a>
         <ul>
-          <li><a href="#vord">Local order of vertices</a></li><br/>
+          <li><a href="#vord">Local index of vertices</a></li><br/>
           <li><a href="#eord">Local index of edges</a></li><br/>
-          <li><a href="#ford">Local order of faces</a></li><br/>
+          <li><a href="#ford">Local index of faces</a></li><br/>
+        </ul>
+      </li>
+      <li><a href="#imp">Implementation</a>
+        <ul>
+          <li><a href="#var">Variables</a></li><br/>
+          <li><a href="#ds">Data structure</a></li><br/>
         </ul>
       </li>
     </ul>
@@ -58,41 +64,32 @@
     <article> 
 
     <h2 id="desc">1. Description</h2>
-    <div class="back"><a href="#top">Back to top</a></div>
-    
-    <h2 id="var">2. Variables</h2>
-    <p>The meaning of the variables involved in the format PMH is the following:</p>
+
+    <p>The format PMH (<em>Piecewise Mesh</em>) is based on the format <a href="mfm.xhtml">MFM</a>. The file extension for the format PMH is also <em>.pmh</em>.</p>
+
+    <p>The main features of this format are:</p>
     <ul>
-      <li><var>pc</var>: vector of pieces that compose the mesh,</li>
-      <li><var>ztol</var>: mesh coordinates tolerance,</li>
-      <li><var>z</var>: double precision matrix (<var>dim</var> &times; <var>nver</var>) where <var>z(i,j)</var> is the <var>i</var>-th coordinate of the <var>j</var>-th vertex of the mesh.</li>
-      <li><var>el</var>: vector of element groups,</li>
-      <li><var>fi</var>: vector of fields associated to nodes or elements,</li>
-      <li><var>nel</var>: total number of elements,</li>
-      <li><var>nnod</var>: total number of nodes (degrees of freedom),</li>
-      <li><var>nver</var>: total number of vertices,</li>
-      <li><var>dim</var>: space dimension,</li>
-      <li><var>tdim</var>: topological dimension,</li>
-      <li><var>lnn</var>: local number of nodes per element,</li>
-      <li><var>lnv</var>: local number of vertices per element,</li>
-      <li><var>lne</var>: local number of edges per element and</li>
-      <li><var>lnf</var>: local number of faces per element.</li>
-      <li><var>ref</var>: integer vector (<var>nel</var>) where <var>ref(k)</var> is a reference number associated to the <var>k</var>-th entity of the element group.</li>
-    </ul>    
-
-    <p>The global indexing of nodes, vertices and elements must start in one and be consecutive.</p>
-    <p>To define the previous arrays is important to follow a strict rule to locally index the finite element entities. We will see these rules in the next sections.</p>
+      <li>It can store piecewise meshes, each piece identify independent parts of a whole.</li>
+      <li>It can store hybrid meshes, that is, meshes that contain several types of finite elements.</li>
+      <li>It can store parameter dependant fields at nodes or on elements</li>
+      <li>The global indexing of vertices and nodes of the mesh can differ when nodes do not coincide with vertices. </li>
+      <li>The global indexing of vertices and nodes is saved locally by element in integer arrays. </li>
+      <li>Every vertex, edge, face and element in the mesh has a reference number associated to it.</li>
+      <li>The reference numbers for vertices, edges, faces and elements are saved locally by element in integer arrays.</li>
+      <li>Only the vertex coordinates are saved in a double precision array. Lagrange P2 node coordinates are calculated at the midpoints of the line joining two vertices.</li>
+      <li>Correct local ordering of nodes at elements ensures positive jacobian in groups of elements with maximal topological dimension.</li>
+    </ul>
     <div class="back"><a href="#top">Back to top</a></div>
 
 
-    <h2 id="fe">3. Finite element types</h2>
+    <h2 id="fe">2. Finite element types</h2>
 
     <p>We present a table that summarizes the finite element types supported by feconv:</p>
 
     <div align="center">
     <table class="tb">
       <thead>
-        <th>Element</th> <th>FE type</th> <th><var>tdim</var></th> <th><var>lnn</var></th> <th><var>lnv</var></th> <th><var>lne</var></th> <th><var>lnf</var></th> <th><var>nn</var>&ne;<var>mm</var></th>
+        <th>Geometric entity</th> <th>FE type</th> <th><var>tdim</var></th> <th><var>lnn</var></th> <th><var>lnv</var></th> <th><var>lne</var></th> <th><var>lnf</var></th> <th><var>nn</var>&ne;<var>mm</var></th>
       </thead>
       <tbody>
         <tr><td>Edge</td> <td>Lagrange P1</td> <td>1</td> <td>2</td> <td>2</td> <td>0</td> <td>0</td> <td>No</td></tr>
@@ -126,7 +123,7 @@
 
     <p align="center"> 
 
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-1" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>1.a)</p>
@@ -141,14 +138,14 @@
             <img src="../images/pmh/nodes/quadp1_ord.png" />
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-1" class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (1.a) edges, (1.b) triangles and (1.c) quadrangles.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 1:</strong> Local index of nodes on Lagrange P1 (1.a) edges, (1.b) triangles and (1.c) quadrangles.</span></tr>
       </tbody> </table> </div>
     </p>
     <p align="center"> 
 
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div  id="fig-2" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>1.d)</p>
@@ -163,15 +160,15 @@
             <img src="../images/pmh/nodes/pentap1_ord.png" />
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-2" class="caption"> <strong>Figure 2:</strong> Local order of nodes on Lagrange P1 (1.d) tetrahedrons, (1.e) hexahedrons and (1.f) pentahedrons.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 2:</strong> Local index of nodes on Lagrange P1 (1.d) tetrahedrons, (1.e) hexahedrons and (1.f) pentahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
     <p align="center"> 
 
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-3"  align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>1.g)</p>
@@ -186,15 +183,15 @@
             <img src="../images/pmh/nodes/quadp2_ord.png" />
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-3" class="caption"> <strong>Figure 3:</strong> Local order of nodes on Lagrange P2 (1.g) edges, (1.h) triangles and (1.i) quadrangles.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 3:</strong> Local index of nodes on Lagrange P2 (1.g) edges, (1.h) triangles and (1.i) quadrangles.</span></tr>
       </tbody> </table> </div>
     </p>
 
     <p align="center"> 
 
-      <div align="center"> <table class="tb" width="60%"> <tbody>
+      <div id="fig-4" align="center"> <table class="tb" width="60%"> <tbody>
         <tr>
           <td>
             <p>1.j)</p>
@@ -205,9 +202,9 @@
             <img src="../images/pmh/nodes/hexap2_ord.png" />
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-4" class="caption"> <strong>Figure 4:</strong> Local order of nodes on Lagrange P2 (1.j) tetrahedrons and (1.k) hexahedrons.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 4:</strong> Local index of nodes on Lagrange P2 (1.j) tetrahedrons and (1.k) hexahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
@@ -218,7 +215,7 @@
 
     <p align="center"> 
 
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-5" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>2.a)</p>
@@ -251,14 +248,14 @@
             </table>
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-5" class="caption"> <strong>Figure 5:</strong> Local order of edges on (2.a) edges and (2.b) triangles.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 5:</strong> Local index of edges on (2.a) edges and (2.b) triangles.</span></tr>
       </tbody> </table> </div>
     </p>
 
     <p>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-6" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>2.c)</p>
@@ -297,15 +294,15 @@
             </table>
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-6" class="caption"> <strong>Figure 6:</strong> Local order of edges on (2.c) quadrangles and (2.d) tetrahedrons.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 6:</strong> Local index of edges on (2.c) quadrangles and (2.d) tetrahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
 
     <p>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-7" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>2.e)</p>
@@ -355,20 +352,20 @@
             </table>
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-7" class="caption"> <strong>Figure 7:</strong> Local order of edges on (1.e) hexahedrons and (2.f) pentahedrons.</span></tr>
+      </tbody> </table> 
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 7:</strong> Local index of edges on (1.e) hexahedrons and (2.f) pentahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
 
     <div class="back"><a href="#top">Back to top</a></div>
     
-    <h3 id="ford">Local order of faces</h3>
+    <h3 id="ford">Local index of faces</h3>
     <p>The local index of faces is determined from the vertex order. See <a href="#fig-8">Figure 8</a> for tetrahedrons and hexahedrons and <a href="#fig-9">Figure 9</a> for pentahedrons.</p>
 
     <p>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-8" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>3.a)</p>
@@ -377,10 +374,10 @@
           <td>
             <table class="tb" align="left">
               <thead>
-                <td>Face</td> <td colspan="3">Vertices</td>
+                <td></td> <td colspan="3">Vertices</td>
               </thead>
               <thead>
-                <th></th> <th>1st</th> <th>2nd</th> <th>3rd</th>
+                <th>Face</th> <th>1st</th> <th>2nd</th> <th>3rd</th>
               </thead>
               <tbody>
                 <tr><td><var>f<sub>1</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>2</sub></var></td></tr>
@@ -397,10 +394,10 @@
           <td>
             <table class="tb" align="left">
               <thead>
-                <td>Face</td> <td colspan="3">Vertices</td>
+                <td></td> <td colspan="3">Vertices</td>
               </thead>
               <thead>
-                <th></th> <th>1st</th> <th>2nd</th> <th>3rd</th> <th>4th</th>
+                <th>Face</th> <th>1st</th> <th>2nd</th> <th>3rd</th> <th>4th</th>
               </thead>
               <tbody>
                 <tr><td><var>f<sub>1</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>4</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>2</sub></var></td></tr>
@@ -413,14 +410,14 @@
             </table>
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
-        <tr><span id="fig-8" class="caption"> <strong>Figure 8:</strong> Local index of faces on (3.a) tetrahedrons and (3.b) hexahedrons.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 8:</strong> Local index of faces on (3.a) tetrahedrons and (3.b) hexahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
 
     <p>
-      <div align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-9" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>3.c)</p>
@@ -429,10 +426,10 @@
           <td>
             <table class="tb" align="left">
               <thead>
-                <td>Face</td> <td colspan="3">Vertices</td>
+                <td></td> <td colspan="3">Vertices</td>
               </thead>
               <thead>
-                <th></th> <th>1st</th> <th>2nd</th> <th>3rd</th> <th>4th</th>
+                <th>Face</th> <th>1st</th> <th>2nd</th> <th>3rd</th> <th>4th</th>
               </thead>
               <tbody>
                 <tr><td><var>f<sub>1</sub></var></td> <td><var>v<sub>1</sub></var></td> <td><var>v<sub>3</sub></var></td> <td><var>v<sub>2</sub></var></td> <td><var>-</var></td></tr>
@@ -445,11 +442,75 @@
             </table>
           </td>
         </tr>
-      </tbody> </table> </div>
-      <div align="center"> <table class="tb" width="60%"> <tbody>
-        <tr><span id="fig-9" class="caption"> <strong>Figure 9:</strong> Local order of faces on (3.c) pentahedrons.</span></tr>
+      </tbody> </table>
+      <table class="tb" width="60%"> <tbody>
+        <tr><span class="caption"> <strong>Figure 9:</strong> Local index of faces on (3.c) pentahedrons.</span></tr>
       </tbody> </table> </div>
     </p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    <h2 id="imp">3. Implementation</h2>
+
+
+    <h3 id="var">Variables</h3>
+    <p>The meaning of the variables involved in the format PMH are the following:</p>
+    <ul>
+      <li><var>pc</var>: vector of pieces that compose the mesh,</li>
+      <li><var>ztol</var>: mesh coordinates tolerance,</li>
+      <li><var>z</var>: double precision matrix (<var>dim</var> &times; <var>nver</var>) where <var>z(i,j)</var> is the <var>i</var>-th coordinate of the <var>j</var>-th vertex of the mesh.</li>
+      <li><var>el</var>: vector of element groups,</li>
+      <li><var>fi</var>: vector of fields associated to nodes or elements,</li>
+      <li><var>nel</var>: total number of elements,</li>
+      <li><var>nnod</var>: total number of nodes (degrees of freedom),</li>
+      <li><var>nver</var>: total number of vertices,</li>
+      <li><var>dim</var>: space dimension,</li>
+      <li><var>tdim</var>: topological dimension,</li>
+      <li><var>lnn</var>: local number of nodes per element,</li>
+      <li><var>lnv</var>: local number of vertices per element,</li>
+      <li><var>lne</var>: local number of edges per element and</li>
+      <li><var>lnf</var>: local number of faces per element.</li>
+      <li><var>ref</var>: integer vector (<var>nel</var>) where <var>ref(k)</var> is a reference number associated to the <var>k</var>-th entity of the element group.</li>
+    </ul>    
+
+    <p>The global indexing of nodes, vertices and elements must start in one and be consecutive.</p>
+    <p>To define the previous arrays is important to follow a strict rule to locally index the finite element entities. We will see these rules in the next sections.</p>
+
+    <h3 id="ds">Data structure</h3>
+
+    <p>The structure of data storing for PMH meshes and fields in <code>Fortran</code></p>
+
+    <pre class="highlight">
+        <span class="hl kwa">type field</span>
+           <span class="hl kwb">character</span>(<span class="hl kwd">maxpath</span>)        :: name       <span class="hl com">!Field name</span>
+           <span class="hl kwb">real</span>(<span class="hl kwd">real64</span>), <span class="hl kwc">allocatable</span> :: param(:)   <span class="hl com">!Parameter values</span>
+           <span class="hl kwb">real</span>(<span class="hl kwd">real64</span>), <span class="hl kwc">allocatable</span> :: val(:,:,:) <span class="hl com">!Field value for each parameter</span>
+        <span class="hl kwa">end type</span>
+        <br/>
+        <span class="hl kwa">type elgroup</span>
+           <span class="hl kwb">integer</span>                    :: nel  = <span class="hl num">0</span> <span class="hl com">!Total number of elements</span>
+           <span class="hl kwb">integer</span>                    :: type = <span class="hl num">0</span> <span class="hl com">!Element type (one of those defined in module_fe_database_pmh)</span>
+           <span class="hl kwb">integer</span>,     <span class="hl kwc">allocatable</span>   :: nn(:,:)  <span class="hl com">!Global numbering of nodes</span>
+           <span class="hl kwb">integer</span>,     <span class="hl kwc">allocatable</span>   :: mm(:,:)  <span class="hl com">!Global numbering of vertices</span>
+           <span class="hl kwb">integer</span>,     <span class="hl kwc">allocatable</span>   :: ref(:)   <span class="hl com">!Reference numbering</span>
+           <span class="hl kwb">type</span>(<span class="hl kwd">field</span>), <span class="hl kwc">allocatable</span>   :: fi(:)    <span class="hl com">Fields on elements</span>
+        <span class="hl kwa">end type</span>
+        <br/>
+        <span class="hl kwa">type piece</span>
+           <span class="hl kwb">integer</span>                    :: nnod = <span class="hl num">0</span> <span class="hl com">!Total number of nodes</span>
+           <span class="hl kwb">integer</span>                    :: nver = <span class="hl num">0</span> <span class="hl com">!Total number of vertices</span>
+           <span class="hl kwb">integer</span>                    :: dim  = <span class="hl num">0</span> <span class="hl com">!Space dimension of the node/vertex coordinates</span>
+           <span class="hl kwb">real</span>(<span class="hl kwd">real64</span>),  <span class="hl kwc">allocatable</span> :: z(:,:)   <span class="hl com">!Vertex coordinates</span>
+           <span class="hl kwb">type</span>(<span class="hl kwd">elgroup</span>), <span class="hl kwc">allocatable</span> :: el(:)    <span class="hl com">!Element groups</span>
+           <span class="hl kwb">type</span>(<span class="hl kwd">field</span>),   <span class="hl kwc">allocatable</span> :: fi(:)    <span class="hl com">!Fields at nodes</span>
+        <span class="hl kwa">end type</span>
+        <br/>
+        <span class="hl kwa">type pmh_mesh</span>
+           <span class="hl kwb">type</span>(<span class="hl kwd">piece</span>), <span class="hl kwc">allocatable</span>   :: pc(:) <span class="hl com">!Pieces that compose the mesh</span>
+           <span class="hl kwb">real</span>(<span class="hl kwd">real64</span>)               :: ztol = <span class="hl sym">epsilon</span>(<span class="hl num">0._real64</span>) <span class="hl com">!Mesh tolerance</span>
+        <span class="hl kwa">end type</span> 
+    </pre>
+
 
     <div class="back"><a href="#top">Back to top</a></div>
 

@@ -98,7 +98,7 @@ hr {
   background-color: gray;
 }
 
-code, pre {
+code {
   font-family: monospace;
   font-size: medium;
 }
@@ -130,7 +130,7 @@ table.tb {
 }
 
 table.tb th {
-  font-weight: normal;
+  font-weight: bold;
   padding: 9px 7px;
   border-bottom: 2px solid;
 }
@@ -148,16 +148,10 @@ tbody.l {
   text-align: left;
 }
 
-pre, code {
+code {
   font-family: 'Courier New', FreeMono, Courier, monospace; 
 } /* font-size:110%; */
 
-pre.xml	{
-  margin-left: 20px; 
-  margin-right: 20px; 
-  padding: 10px; 
-  background-color: GainsBoro; 
-}
 
 .back {
   text-align: right;
