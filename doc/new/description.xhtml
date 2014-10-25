@@ -9,11 +9,14 @@
   <link href="css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="css/menu.css" rel="stylesheet" type="text/css" />
   <link href="css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="js/btn.js"></script>
+
 </head>
 
-<body>
+<body onload="showbtn()">
 
-  <header>
+  <header>	
     <img src="images/ico.png"/>
   </header>
 
@@ -50,15 +53,19 @@
 
     <article>
 
-      <h2 id="intro">1. Description</h2>
+      <h2 id="intro"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Description</h2>
 
+      <div id="div1">
       <p>Program <code>feconv</code> converts finite element (FE) mesh files between several formats; it can also transform the FE type of the mesh and/or perform    a bandwidth optimization. Some conversion capabilities are also present for mesh fields. Please, visit the EXAMPLES section, in the help invoked by <code>feconv -h</code>, to know more details.</p>
 
-    <div class="back"><a href="#top">Back to top</a></div>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
-      <h2 id="sum">2. Summary</h2>
+      <h2 id="sum"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Summary</h2>
 
-        <h3>The available input mesh formats are:</h3>
+        <div id="div2">
+        <h3><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> The available input mesh formats are:</h3>
+        <div id="div3">
         <ul>
           <li>ANSYS (<strong>.msh</strong>)</li>
           <li>I-Deas Universal (<strong>.unv</strong>)</li>
@@ -72,8 +79,10 @@
           <li>FreFem++ Tetrahedral Lagrange P1 Mesh (<strong>.mesh</strong>)</li>
           <li>Gmsh MSH ASCII (<strong>.msh</strong>)</li>
         </ul>
+        </div>
  
-        <h3>The available output mesh formats are:</h3>
+        <h3><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/> The available output mesh formats are:</h3>
+        <div id="div4">
         <ul>
           <li>ANSYS (<strong>.msh</strong>)</li>
           <li>I-Deas Universal (<strong>.unv</strong>)</li>
@@ -85,9 +94,10 @@
           <li>FreFem++ Tetrahedral and/or Triangular Lagrange P1 Mesh (<strong>.msh</strong>)</li>
           <li>FreFem++ Tetrahedral Lagrange P1 Mesh (<strong>.mesh</strong>)</li>
         </ul>
+        </div>
  
-
-        <h3>The field formats supported by feconv can be classified using dichotomic rules:</h3>
+        <h3><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/> The field formats supported by feconv can be classified using dichotomic rules:</h3>
+        <div id="div5">
         <ul>
           <li><strong>I</strong>/<strong>O</strong>: Field format states that fields are saved INSIDE/OUTSIDE the mesh file <a href="#note1">[1]</a>.</li>
           <li><strong>N</strong>/<strong>U</strong>: Field format states that fields are NAMED/UNNAMED.</li>
@@ -95,9 +105,9 @@
           <li><strong>P</strong>/<strong>A</strong>: Field format states that PARAMETRIZED/ALONE fields can be saved <a href="#note2">[2]</a>.</li>
         </ul>
 
-        <h4>The current available (both input and output) field formats are:</h4>
+        <h4><input type="button" onclick="return toggleMe(this,'div6')" class="btn" value="-"/> The current available (both input and output) field formats are:</h4>
 
-        <p />
+        <div id="div6">
         <div>
         <table class="tb">
           <thead>
@@ -140,13 +150,14 @@
 	<p id="note3"><strong>[3]</strong> "r", "i", "o" means that the option is required, ignored or optional, respectively. See explanation
     for options -if, -in, -of and -on to know more about their use.</p>
  
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
+      </div>
+      </div>
 
+      <h2 id="license"><input type="button" onclick="return toggleMe(this,'div7')" class="btn" value="-"/> 3. License</h2>
 
-
-    <div class="back"><a href="#top">Back to top</a></div>
-
-      <h2 id="license">3. License</h2>
-
+      <div id="div7">
       <p>«Copyright 2012 Iban Constenla, Victor Sande, Francisco Pena»</p>
 
       <p>This program is free software: you can redistribute it and/or modify
@@ -163,7 +174,7 @@
       along with this program.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
 
       <div class="back"><a href="#top">Back to top</a></div>
-
+      </div>
 
 
     </article>

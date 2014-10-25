@@ -9,10 +9,12 @@
   <link href="css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="css/menu.css" rel="stylesheet" type="text/css" />
   <link href="css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="js/btn.js"></script>
+
 </head>
 
-<body>
-
+<body onload="showbtn()">
   <header>
     <img src="images/ico.png"/>
   </header>
@@ -50,8 +52,9 @@
 
     <article>
 
-      <h2 id="install">1. Install</h2>
+      <h2 id="install"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Install</h2>
     
+        <div id="div1">
         <p>To install this program, you must have previously installed <a href="http://www.gnu.org/software/make/"><code>make</code></a> in your system and a Fortran 2003 compiler. At the present time, only the <a href="http://gcc.gnu.org/wiki/GFortran">GNU Fortran compiler</a>, <code>gfortran</code>, and the <a href="http://software.intel.com/en-us/intel-compilers"> Intel Fortran compiler</a>, <code>ifort</code>, are supported.</p>
         <p>Go to <a href="http://sourceforge.net/projects/feconv/">http://sourceforge.net/projects/feconv/</a> and download the package <code>feconv_<em>&lt;date&gt;</em>.tar.gz</code>, where <code><em>&lt;date&gt;</em></code> is the date of the release.</p>
         <p> Open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the installation folder and type:</p>
@@ -60,17 +63,21 @@
         </pre>
         <p>where <code>&lt;compiler&gt;</code> can be "gfortran" or "ifort" and <code>&lt;os&gt;</code> can be "linux" or "windows" (for Mac OS X, "linux" is the valid option).</p>
 
-      <div class="back"><a href="#top">Back to top</a></div>
+        <div class="back"><a href="#top">Back to top</a></div>
+        </div>
 
-      <h2 id="testing">2. Testing</h2>
+      <h2 id="testing"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Testing</h2>
 
+        <div id="div2">
         <p>This code has been tested in the following platforms:</p>
         <ul>
           <li>Ubuntu 12.04 LTS:      gfortran 4.6.3,   make 3.81</li>
           <li>Mac OS X 10.8.3:       gfortran 4.6.2,   make 3.81</li>
         </ul>
 
-      <div class="back"><a href="#top">Back to top</a></div>
+        <div class="back"><a href="#top">Back to top</a></div>
+        </div>
+
     </article>
 
   </section>

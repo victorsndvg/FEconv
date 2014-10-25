@@ -9,9 +9,12 @@
   <link href="css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="css/menu.css" rel="stylesheet" type="text/css" />
   <link href="css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="js/btn.js"></script>
+
 </head>
 
-<body>
+<body onload="showbtn()">
 
   <header>
     <img src="images/ico.png"/>
@@ -101,7 +104,9 @@
 
     <article> 
 
-    <h2 id="info">1. Info options</h2>
+    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Info options</h2>
+
+      <div id="div1">
       <p>
       <div align="left">
         <table class="tb" width="80%">
@@ -116,9 +121,11 @@
         </table>
       </div>
       </p>
-    <div class="back"><a href="#top">Back to top</a></div>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
-    <h2 id="meshread">2. Mesh read options</h2>
+    <h2 id="meshread"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Mesh read options</h2>
+      <div id="div2">
       <p>
       <div align="center">
         <table class="tb" width="80%">
@@ -146,9 +153,12 @@
         </table>
       </div>
       </p>
-    <div class="back"><a href="#top">Back to top</a></div>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
-    <h2 id="meshconv">3. Mesh conversion options</h2>
+    <h2 id="meshconv"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 3. Mesh conversion options</h2>
+
+      <div id="div3">
       <p>
       <div align="left">
         <table class="tb" width="80%">
@@ -176,9 +186,12 @@
         </table>
       </div>
       </p>
-    <div class="back"><a href="#top">Back to top</a></div>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
-    <h2 id="meshform">4. Related formats to MSH extension</h2>
+    <h2 id="meshform"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/> 4. Related formats to MSH extension</h2>
+
+      <div id="div4">
       <p>
       <div align="center">
         <table class="tb" width="80%">
@@ -198,9 +211,12 @@
         </table>
       </div>
       </p>
-    <div class="back"><a href="#top">Back to top</a></div>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
-    <h2 id="fieldopt">5. Field options</h2>
+    <h2 id="fieldopt"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/> 5. Field options</h2>
+
+      <div id="div5">
       <p>
       <div align="center">
         <table class="tb" width="80%">
@@ -240,8 +256,8 @@
         </table>
       </div>
       </p>
-    <div class="back"><a href="#top">Back to top</a></div>
-
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
 
     </article>

@@ -10,9 +10,12 @@
   <link href="../css/menu.css" rel="stylesheet" type="text/css" />
   <link href="../css/topics.css" rel="stylesheet" type="text/css" />
   <link href="../css/highlight.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="../js/btn.js"></script>
+
 </head>
 
-<body>
+<body onload="showbtn()">
 
   <header>
     <img src="images/ico.png"/>
@@ -63,8 +66,9 @@
 
     <article> 
 
-    <h2 id="desc">1. Description</h2>
+    <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Description</h2>
 
+    <div id="div1">
     <p>The format PMH (<em>Piecewise Mesh</em>) is based on the format <a href="mfm.xhtml">MFM</a>. The file extension for the format PMH is also <em>.pmh</em>.</p>
 
     <p>The main features of this format are:</p>
@@ -80,9 +84,12 @@
       <li>Correct local ordering of nodes at elements ensures positive jacobian in groups of elements with maximal topological dimension.</li>
     </ul>
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
 
 
-    <h2 id="fe">2. Finite element types</h2>
+    <h2 id="fe"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Finite element types</h2>
+
+    <div id="div2">
 
     <p>We present a table that summarizes the finite element types supported by feconv:</p>
 
@@ -117,8 +124,9 @@
         
 
     
-    <h3 id="vord">Local index of vertices</h3> 
+    <h3 id="vord"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> Local index of vertices</h3> 
 
+    <div id="div3">
     <p>The local index of nodes in each element are shown in <a href="#fig-1">Figure 1</a> for edges, triangles and quadrangles Lagrange P1; in <a href="#fig-2">Figure 2</a> for tetrahedrons, hexahedrons and pentahedron Lagrange P1; in <a href="#fig-3">Figure 3</a> for edges, triangles and quadrangles Lagrange P2; <a href="#fig-4">Figure 4</a> for tetrahedrons and hexahedrons Lagrange P2</p>
 
     <p align="center"> 
@@ -209,8 +217,11 @@
     </p>
 
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
     
-    <h3 id="eord">Local index of edges</h3>
+    <h3 id="eord"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/> Local index of edges</h3>
+
+    <div id="div4">
     <p>The local index of edges is determined from the vertex order. See <a href="#fig-5">Figure 5</a> for edges and triangles; <a href="#fig-6">Figure 6</a> for quadrangles and tetrahedrons; <a href="#fig-7">Figure 7</a> for hexahedrons and pentahedrons.</p>
 
     <p align="center"> 
@@ -360,8 +371,11 @@
 
 
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
     
-    <h3 id="ford">Local index of faces</h3>
+    <h3 id="ford"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/> Local index of faces</h3>
+
+    <div id="div5">
     <p>The local index of faces is determined from the vertex order. See <a href="#fig-8">Figure 8</a> for tetrahedrons and hexahedrons and <a href="#fig-9">Figure 9</a> for pentahedrons.</p>
 
     <p>
@@ -449,11 +463,16 @@
     </p>
 
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+    </div>
 
-    <h2 id="imp">3. Implementation</h2>
+    <h2 id="imp"><input type="button" onclick="return toggleMe(this,'div6')" class="btn" value="-"/> 3. Implementation</h2>
 
+    <div id="div6">
 
-    <h3 id="var">Variables</h3>
+    <h3 id="var"><input type="button" onclick="return toggleMe(this,'div7')" class="btn" value="-"/> Variables</h3>
+
+    <div id="div7">
     <p>The meaning of the variables involved in the format PMH are the following:</p>
     <ul>
       <li><var>pc</var>: vector of pieces that compose the mesh,</li>
@@ -475,8 +494,11 @@
 
     <p>The global indexing of nodes, vertices and elements must start in one and be consecutive.</p>
     <p>To define the previous arrays is important to follow a strict rule to locally index the finite element entities. We will see these rules in the next sections.</p>
+    </div>
 
-    <h3 id="ds">Data structure</h3>
+    <h3 id="ds"><input type="button" onclick="return toggleMe(this,'div8')" class="btn" value="-"/> Data structure</h3>
+
+    <div id="div8">
 
     <p>The structure of data storing for PMH meshes and fields in <code>Fortran</code></p>
 
@@ -513,6 +535,8 @@
 
 
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+    </div>
 
 
     </article>

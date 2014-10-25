@@ -9,9 +9,12 @@
   <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="../css/menu.css" rel="stylesheet" type="text/css" />
   <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="../js/btn.js"></script>
+
 </head>
 
-<body>
+<body onload="showbtn()">
 
   <header>
     <img src="../images/ico.png"/>
@@ -63,8 +66,9 @@
 
     <article> 
 
-    <h2 id="desc">1. General description</h2>
-      
+    <h2 id="desc"><input type="button" onclick="return toggleMe(this,'cont1')" class="btn" value="-"/> 1. General description</h2>
+
+    <div id="cont1">          
     <p>The mayority of the this information has been obtained from the document <a href="bdf/MD_Nastran_2006_Quick_Reference_Guide.pdf">MD Nastran 2006 Quick Reference Guide</a>, included in the help of the application <code>MD Nastran 2006</code>.</p>
           
     <p> A <em>Nastran datafile</em>, or <em>MD Nastran input data file</em>, is identified by the extensions .dat or .bdf. Its structure is shown in <a href="#fig-1">Figure 1</a>. The file can have five sections:</p>
@@ -82,7 +86,8 @@
     <p>The <em>Bulk data section</em> is where the geometry model, mesh connectivities, finite element properties, materials, restrictions and loads are described (Those interested in using <code>MD Nastran</code> should note that only the loads referred in the <em>Case control section</em> are considered by <code>MD Nastran</code>).</p>
     <div class="back"><a href="#top">Back to top</a></div>
       
-    <h3 id="bulk">The <em>Bulk data section</em></h3>
+    <h3 id="bulk"> <input type="button" onclick="return toggleMe(this,'cont11')" class="btn" value="-"/> The <em>Bulk data section</em></h3>
+     <div id="cont11">
     <p>The <em>Bulk data section</em> is composed of <em>entries</em>; each <em>entry</em> contains data distributed in <em>fields</em>. Each line has has 10 fields. The entry name is given in the first field of the first line. The tenth field in each line serves to indicate whether there is an additional line in the entry. An example of this structure can be seen in <a href="#fig-2">Figure 2</a>.</p>
     <p id="fig-2" align="center">
       <img width="40%" src="../images/entrada.png" />
@@ -97,14 +102,19 @@
       <li><em>Large Field Format</em>: there are 10 contiguous fields, each of them is 16 characters long.</li>
     </ul>
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+    </div>
       
-    <h2 id="feat">2. Features supported by feconv</h2>
+    <h2 id="feat"><input type="button" onclick="return toggleMe(this,'cont2')" class="btn" value="-"/> 2. Features supported by feconv</h2>
 
+    <div id="cont2">
     <p>The valid extension of a <em>MD Nastran input data file</em> to be identified by <code>feconv</code> is the .bdf.</p>
     <p>The data format admitted by <code>feconv</code> is the <em>Small Field Format</em>.</p>
     <p> In <code>MD Nastran</code>, bi-dimensional models must lie down in the XY plane.</p>
 
-    <h3 id="con">Mesh conectivity and node coordinates</h3>
+    <h3 id="con"><input type="button" onclick="return toggleMe(this,'cont21')" id="btn1" class="btn" value="-"/> Mesh conectivity and node coordinates</h3>
+
+    <div id="cont21">
     
     <p>The FE types are defined as entries in the <em>Bulk data section</em>, described in Chapter 8 of the <a href="bdf/MD_Nastran_2006_Quick_Reference_Guide.pdf">MD Nastran 2006 Quick Reference Guide</a>. The name of the entries supported by <code>feconv</code> are <code>CTRIA3</code>, <code>CTRIA6</code>, <code>CQUAD4</code>, <code>CQUAD8</code>, <code>CTETRA</code>, <code>CPENTA</code> and <code>CHEXA</code>. Only <code>CTRIA3</code> and <code>CTETRA</code> has been tested. In <a href="#fig-3">Figure 3</a> and <a href="#fig-4">Figure 4</a> we show the definition of such entries.</p>
     <p id="fig-3" align="center">
@@ -130,12 +140,18 @@
 
     <p>The domain references are useful to assign physical properties to subdomains. This information is collected from the <code>PID</code> field of the aforementioned entries. That gives us the variable <code>nsd</code> of the <a href="mfm.xhtml">MFM format</a>.</p>
 
-    <h3 id="ref">Boundary references</h3>
+    </div>
+
+    <h3 id="ref"><input type="button" onclick="return toggleMe(this,'cont22')" class="btn" value="-"/> Boundary references</h3>
+
+    <div id="cont22">
     <p>References are useful to apply boundary conditions to the mesh. We distiguish between <em>natural boundary conditions</em>, also called <em>Neumann conditions</em>, and the <em>essential boundary conditions</em>, also called <em>Dirichlet conditions</em>. Dirichlet conditions are imposed as <em>Displacement</em> in <code>MD Nastran</code> and Neumann conditions are imposed as <em>Force</em>. Where both conditions are applied, Dirichlet prevails over Neumann.</p>
     <p>Boundary conditions can be imposed on nodes, edges or faces. In the <a href="mfm.xhtml">MFM format</a>, those conditions are stored in variables <code>nrv</code>, <code>nra</code> and <code>nrc</code>, respectively. While it is easy to transform face and edge references to node ones, there can be problems doing the inverse conversion; these difficulties are described in section <a href="#prob">Converting node references to edge and face references</a>.</p>
+    </div>
 
-    <h3 id="spc">Dirichlet conditions applied to nodes with <code>SPC</code> entries</h3>
+    <h3 id="spc"><input type="button" onclick="return toggleMe(this,'cont23')" class="btn" value="-"/> Dirichlet conditions applied to nodes with <code>SPC</code> entries</h3>
 
+    <div id="cont23">
     <p>Dirichlet conditions applied to nodes are read in <code>feconv</code> from entries <code>SPC</code> and <code>SPC1</code> in the <em>Bulk data section</em>. The definition of the entry <code>SPC</code> can be seen in <a href="#fig-6">Figure 6</a>.</p>
     <p id="fig-6" align="center">
       <img width="40%" src="../images/spc.png" />
@@ -157,9 +173,11 @@
       <li>In <code>feconv</code>, when two conditions are assigned to the same node, the one with the biggest reference number will be assigned.</li>
     </ul>
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
 
-    <h3 id="force">Neumann conditions applied to nodes with <code>FORCE</code> entries</h3>
+    <h3 id="force"><input type="button" onclick="return toggleMe(this,'cont24')" class="btn" value="-"/> Neumann conditions applied to nodes with <code>FORCE</code> entries</h3>
 
+    <div id="cont24">
     <p>A <code>FORCE</code> entry manages Neumann conditions. The module <code>module_fuerzas</code> deal with these entries in <code>feconv</code>.</p>
     <p>Different Neumann conditions are set attending to the value assigned in the <code>Ni</code> field; the <code>SID</code> field is not considered. The definition of the entry <code>FORCE</code> can be seen in <a href="#fig-7">Figure 7</a>.</p>
     <p id="fig-7" align="center">
@@ -202,7 +220,8 @@
     <p>In meshes composed of finite elements defined in <code>CTETRA</code> entries, every <code>CTRIA3</code> entry is interpreted as a face condition; the number associated to that reference is the value stored in the <code>PID</code> field.</p>
     <div class="back"><a href="#top">Back to top</a></div>
 
-
+    </div>
+    </div>
 
     </article>
 

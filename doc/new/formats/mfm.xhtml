@@ -9,9 +9,12 @@
   <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="../css/menu.css" rel="stylesheet" type="text/css" />
   <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="../js/btn.js"></script>
+
 </head>
 
-<body>
+<body onload="showbtn()">
 
   <header>
     <img src="images/ico.png"/>
@@ -57,7 +60,9 @@
 
     <article> 
 
-    <h2 id="desc">1. Description</h2>
+    <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
+
+    <div id="div1">
     <p>The format MFM (<em>Modulef Formatted Mesh</em>) is a simplification of the format <em>NOPO</em> used in <a href="https://www.rocq.inria.fr/modulef/">Modulef</a>. The file extension for the format MFM is also <em>.mfm</em>.</p>
 
     <p>The main features of this format are:</p>
@@ -70,8 +75,10 @@
       <li>Only the vertex coordinates are saved in a double precision array (node coordinates must be constructed by the solvers).</li>
     </ul>
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
     
-    <h2 id="var">2. Variables</h2>
+    <h2 id="var"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Variables</h2>
+    <div id="div2">
     <p>The meaning of the variables involved in the format MFM is the following:</p>
     <ul>
       <li><var>nel</var>: total number of elements,</li>
@@ -94,9 +101,11 @@
     <p>The global indexing of nodes, vertices and elements must start in one and be consecutive.</p>
     <p>To define the previous arrays is important to follow a strict rule to locally index the finite element entities. We will see these rules in the next sections.</p>
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
 
-    <h2 id="fe">3. Finite element types</h2>
+    <h2 id="fe"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 3. Finite element types</h2>
 
+    <div id="div3">
 <p>We present a table that summarizes the finite element types supported by feconv:</p>
 
     <div align="center">
@@ -124,10 +133,10 @@
       </tbody>
     </table>
     </div>
-    
 
     
-    <h3 id="vord">Local order of vertices</h3>
+    <h3 id="vord"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/>  Local order of vertices</h3>
+    <div id="div4">
     <p>The local index of vertices in each element must respect the following rules (see <a href="#fig-1">Figure 1</a>):</p>
     <ul>
       <li><p> For triangles, the local index of the three vertices satisfies det (<var>v<sub>2</sub></var>-<var>v<sub>1</sub></var> | <var>v<sub>3</sub></var>-<var>v<sub>1</sub></var>) &gt; 0.</p></li>
@@ -139,8 +148,10 @@
       <span class="caption"> <strong>Figure 1:</strong> Local order of vertices, edges and faces.</span>
     </p>
     <div class="back"><a href="#top">Back to top</a></div>
-    
-    <h3 id="eord">Local index of edges</h3>
+    </div>    
+
+    <h3 id="eord"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/> Local index of edges</h3>
+    <div id="div5">
     <p>The local index of edges is determined from the vertex order (see <a href="#fig-1">Figure 1</a>). For triangles, the local edge index is shown in the next table:</p>
     <div align="center">
     <table class="tb">
@@ -171,8 +182,10 @@
     </table>
     </div>
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
     
-    <h3 id="ford">Local order of faces</h3>
+    <h3 id="ford"><input type="button" onclick="return toggleMe(this,'div6')" class="btn" value="-"/> Local order of faces</h3>
+    <div id="div6">
     <p>The local index of faces is determined from the vertex order (see <a href="#fig-1">Figure 1</a>). For tetrahedra, the local face index is shown in the next table:</p>
     <div align="center">
     <table class="tb">
@@ -187,7 +200,6 @@
       </tbody>  
     </table>
     </div>
-    <div class="back"><a href="#top">Back to top</a></div>
     
 
     <p>The local index of nodes (degrees of freedom) also depends on the finite element type. Nodes can be located on vertices, edges, faces and barycenter (here denoted by <var>b</var>). For segments, the local node index is shown in the next table:</p>
@@ -237,13 +249,14 @@
       </tbody>
     </table>
     </div>
+    </div>
 
 
     
     <p>The last column indicated whether the global index of nodes is different from the one for vertices. They only coincide for Lagrange P1 elements; we will see that for those elements <var>nn</var> is not written.</p>
     <div class="back"><a href="#top">Back to top</a></div>
 
-
+    </div>
     </article>
 
   </section>

@@ -9,9 +9,12 @@
   <link href="css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="css/menu.css" rel="stylesheet" type="text/css" />
   <link href="css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="js/btn.js"></script>
+
 </head>
 
-<body>
+<body onload="showbtn()">
 
   <header>
     <img src="images/ico.png"/>
@@ -50,9 +53,10 @@
 
     <article> 
 
-      <h2 id="meshform">1. Mesh formats</h2>
+      <h2 id="meshform"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Mesh formats</h2>
 
-      <h3>Feconv support the following mesh file formats:</h3>
+      <div id="div1">
+      <p>Feconv support the following mesh file formats:</p>
 
       <table class="tb">
         <thead>
@@ -99,6 +103,7 @@
       </table>
 
       <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
     </article>
 

@@ -9,9 +9,12 @@
   <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="../css/menu.css" rel="stylesheet" type="text/css" />
   <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="../js/btn.js"></script>
+
 </head>
 
-<body>
+<body onload="showbtn()">
 
   <header>
     <img src="../images/ico.png"/>
@@ -56,8 +59,9 @@
 
     <article> 
 
-    <h2 id="desc">1. Description</h2>
+    <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Description</h2>
 
+    <div id="div1">
     <p>The <a href="http://www.vtk.org/">Visualization Toolkit</a> (VTK) is an open-source, freely available software system for 3D computer graphics, image processing and visualization, distributed by <a href="http://www.kitware.com/">Kitware, Inc.</a>.</p>
 
     <p>The main features of this format are:</p>
@@ -74,13 +78,17 @@
     <p>The Visualization Toolkit supports five different dataset formats: structured points, structured grid, rectilinear grid, unstructured grid, and polygonal data. <code>feconv</code> only admits unstructured grid since it is the most useful dataset to store finite element meshes. In this regard, VTK only permit Lagrange P1 and P2 finite elements.</p>
 
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
 
-    <h2 id="feat">2. Features supported by feconv</h2>
+    <h2 id="feat"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Features supported by feconv</h2>
+
+    <div id="div2">
 
     <p>Feconv can only read and write serial binary VTK XML files containing <em>UnstructuredGrid</em> datasets with extension <em>.vtu</em> </p>
 
-    <h3 id="fetypes">VTK finite element types allowed in feconv</h3>
+    <h3 id="fetypes"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> VTK finite element types allowed in feconv</h3>
 
+    <div id="div3">
     <p>The VTK format describes a lot of different types of finite elements. In the following table you can see the finite elements allowed and its meaning in FEconv.</p>
 
     <p>
@@ -111,9 +119,11 @@
     </p>
 
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
     
-    <h3 id="vord">Local order of nodes</h3>
+    <h3 id="vord"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/> Local order of nodes</h3>
 
+    <div id="div4">
     <p>The local index of nodes in each element respect the following rules:</p>
 
     <p align="center"> 
@@ -133,8 +143,11 @@
     </p>
 
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
 
-    <h3 id="vtk+">VTK+ format</h3>
+    <h3 id="vtk+"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/> VTK+ format</h3>
+
+    <div id="div5">
     <p>The previous formats allow us to save the coordinates of the mesh nodes and the connectivity of the finite elements. However, there is not a standard way to save the reference numbering of nodes, edges, faces and elements. Since the VTK formats also permits to save integer fields associated to the mesh, we have proposed the next procedure to consider reference numbering:</p>
     <ol>
       <li>Given an edge or face with a non-zero reference number, include the edge or face as a finite element in the mesh;</li>
@@ -151,6 +164,8 @@
     <p>OpenNum recognizes both VTK legacy and VTK XML formats with the mentioned fields. If you plan to create files of these type, you should use the file extension <em>.vtk+</em> for VTK legacy and <em>.vtu+</em> for VTK XML <em>UnstructuredGrid</em>.</p>
 
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+    </div>
 
     </article>
 

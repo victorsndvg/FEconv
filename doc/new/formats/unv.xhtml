@@ -9,9 +9,12 @@
   <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="../css/menu.css" rel="stylesheet" type="text/css" />
   <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="../js/btn.js"></script>
+
 </head>
 
-<body>
+<body onload="showbtn()">
 
   <header>
     <img src="../images/ico.png"/>
@@ -56,7 +59,9 @@
     </nav>
 
     <article> 
-    <h2 id="desc">1. Description</h2>
+    <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
+
+    <div id="div1">
 
     <p>The Universal File formats were originally developed by the Structural Dynamics Research Corporation (SDRC) in the late 1960s and early 1970s to facilitate computer aided engineering (CAE). This format is described in the web page of the Structural Dynamics Research Lab at the <a href="http://sdrl.uc.edu">University of Cincinnati (UC-SDRL)</a>. The file extension for the format UNV is also <em>.unv</em>.</p>
 
@@ -74,22 +79,30 @@
       </ul>
     </ul>
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h2 id="feat"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/>  2. Features supported by feconv</h2>
+
+    <div id="div2">
+
+    <h3 id="node"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/>  Node datasets</h3>
 
 
-    <h2 id="feat">2. Features supported by feconv</h2>
-
-
-    <h3 id="node">Node datasets</h3>
-
+    <div id="div3">
     <p>The node dataset contains the node number and their coordinates among other information. Feconv supports the datasets <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2411.htm">2411</a> and <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_0781.htm">781</a> for reading node definition and uses the dataset <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2411.htm">2411</a> for writing node data.</p>
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
 
-    <h3 id="element">Element dataset</h3>
 
+    <h3 id="element"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/>  Element dataset</h3>
+
+    <div id="div4">
     <p>The element datasets contains the element number, element descriptor, number of nodes and their connectivities among other information. Feconv supports the dataset <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2412.htm">2412</a> for reading and writing element definition.</p>
 
 
-    <h4 id="fetypes">UNV finite element types allowed in feconv</h4>
+    <h4 id="fetypes"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/>  UNV finite element types allowed in feconv</h4>
+
+    <div id="div5">
 
     <p>The UNV format describes a lot of different types of finite elements. In the following table you can see the finite elements allowed and its meaning in FEconv.</p>
 
@@ -128,8 +141,11 @@
     </p>
 
     <div class="back"><a href="#top">Back to top</a></div>
-    
-    <h4 id="vord">Local order of nodes</h4>
+    </div>    
+
+    <h4 id="vord"><input type="button" onclick="return toggleMe(this,'div6')" class="btn" value="-"/>  Local order of nodes</h4>
+
+    <div id="div6">
 
     <p>There is no a formal specification about node ordering of UNV finite elements, it has been checked that the node order used in some software like <a href="http://www.salome-platform.org/">Salome</a>, <a href="http://www.code-aster.org">Code Aster</a> or <a href="http://www.ansys.com/Products/Simulation+Technology/Fluid+Dynamics/Fluid+Dynamics+Products/ANSYS+Fluent">Ansys Fluent</a> introduces the nodes sandwiched between the vertices.</p>
 
@@ -226,16 +242,22 @@
 
     <div class="back"><a href="#top">Back to top</a></div>
 
-    <h3 id="group">Group datasets</h3>
+    </div>
+    </div>
 
+    <h3 id="group"><input type="button" onclick="return toggleMe(this,'div7')" class="btn" value="-"/>  Group datasets</h3>
+
+    <div id="div7">
     <p>Groups behave as references, and are useful to apply boundary conditions, materials ans sources to the mesh. Groups can contain nodes, edges, faces or elements.</p>
 
     <p>The group datasets contains the group number, group name and a set of entities with their tags and entity types among other information. Feconv supports the dataset <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2467.htm">2467</a>, 2477,<a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2452.htm">2452</a>, <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2435.htm">2435</a>, <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2432.htm">2432</a> and <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2430.htm">2430</a> for reading groups definition. Feconv uses then dataset <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2467.htm">2467</a> for writing UNV groups.</p>
 
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
 
-    <h3 id="field">Field datasets</h3>
+    <h3 id="field"><input type="button" onclick="return toggleMe(this,'div8')" class="btn" value="-"/>  Field datasets</h3>
 
+    <div id="div8">
     <p>The field datasets contain the field descriptors and a set of entities with their values and entity numbers among other information. Feconv supports the dataset <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2414.htm">2414</a>, <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_0055.htm">55</a>, <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_0056.htm">56</a> and <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_0057.htm">57</a> for reading field definition. Feconv uses the dataset <a href="http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1/file-format-storehouse/unv_2414.htm">2414</a> for writing UNV fields.</p>
 
     <p>There may be scalar and vector fields, vector fields can have 3 componentes, 6 components for symmetric global tensors or 9 componentes for general tensors.</p>
@@ -245,6 +267,8 @@
     <p>Field identification, in addition to its name, is given by the information of the problem solved. <a href="http://www.code-aster.org">Code Aster</a> defines the relationship between these information and the field name through <a href="http://www.code-aster.org/V2/doc/default/en/man_u/u7/u7.02.01.pdf">lire_resu</a> function, you can use <a href="../options.xhtml#ca"><code>-ca</code></a> option to read/write <a href="http://www.code-aster.org">Code Aster</a> UNV files.</p>
 
     <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+    </div>
 
 
 
