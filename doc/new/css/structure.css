@@ -143,6 +143,27 @@ table.tb tr:hover td {
   background-color: GainsBoro; 
 }
 
+table.tb2 {
+  margin-left: auto;
+  margin-right: auto; /*margin: 45px; *width: 480px;*/ 
+  border-collapse: collapse;
+  text-align: center;
+}
+
+table.tb2 th {
+  font-weight: bold;
+  padding: 9px 7px;
+  border-bottom: 2px solid;
+}
+
+table.tb2 td {
+ padding: 8px 7px 0px 7px;
+}
+
+table.tb2 td:hover {
+  background-color: GainsBoro; 
+}
+
 tbody.l {
   padding: 8px 7px 0px 7px; 
   text-align: left;
