@@ -11,6 +11,13 @@
   <link href="css/topics.css" rel="stylesheet" type="text/css" />
 
   <script type="text/javascript" src="js/btn.js"></script>
+  <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#art").animate({opacity:'0'},0);
+      $("#art").animate({opacity:'1'},"slow");
+    });
+  </script>
 
 </head>
 
@@ -102,7 +109,7 @@
     </ul>
     </nav>
 
-    <article> 
+    <article id="art"> 
 
     <h2 id="info"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Info options</h2>
 
@@ -189,7 +196,7 @@
       <div class="back"><a href="#top">Back to top</a></div>
       </div>
 
-    <h2 id="meshform"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/> 4. Related formats to MSH extension</h2>
+    <h2 id="meshform"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/> 4. MSH extension</h2>
 
       <div id="div4">
       <p>

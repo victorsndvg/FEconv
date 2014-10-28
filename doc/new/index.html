@@ -11,6 +11,13 @@
   <link href="css/topics.css" rel="stylesheet" type="text/css" />
 
   <script type="text/javascript" src="js/btn.js"></script>
+  <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#sec").animate({opacity:'0'},0);
+      $("#sec").animate({opacity:'1'},"slow");
+    });
+  </script>
 
 </head>
 
@@ -42,7 +49,7 @@
   </aside>
 
 
-  <section>
+  <section id="sec">
 
         <table class="maintable">
         <tr>

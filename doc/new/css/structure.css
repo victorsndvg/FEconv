@@ -157,7 +157,8 @@ table.tb2 th {
 }
 
 table.tb2 td {
- padding: 8px 7px 0px 7px;
+  padding: 8px 7px 0px 7px;
+  vertical-align: middle;
 }
 
 table.tb2 td:hover {
@@ -194,4 +195,8 @@ code {
   text-align: center;
   padding: 0% 15% 0% 15%;
   font-size: larger; 
+}
+
+.textresize {
+  font-size: 0.7vw; 
 }

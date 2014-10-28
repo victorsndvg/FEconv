@@ -11,8 +11,8 @@
   <link href="../css/topics.css" rel="stylesheet" type="text/css" />
 
   <script type="text/javascript" src="../js/btn.js"></script>
-      <script type="text/javascript" src="../js/enlargeit.js"></script>
-      <script type="text/javascript">
+  <script type="text/javascript" src="../js/enlargeit.js"></script>
+  <script type="text/javascript">
         enl_ani = 0;
         enl_brdsize = 30;
         enl_shadow = 1;
@@ -23,7 +23,14 @@
         enl_keynav = 1;
         enl_wheelnav = 0;
         enl_titlebar=0;
-      </script>
+  </script>
+  <script type="text/javascript" src="../js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#art").animate({opacity:'0'},0);
+      $("#art").animate({opacity:'1'},"slow");
+    });
+  </script>
 
 </head>
 
@@ -71,7 +78,7 @@
       </ul>
     </nav>
 
-    <article> 
+    <article id="art"> 
     <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
 
     <div id="div1">
@@ -173,83 +180,68 @@
           <td width="30%">
             <p>a)</p>
             <img  src="../images/unv/edgep1_ord.png" width="30%" onclick="enlarge(this);" longdesc="../images/unv/edgep1_ord.png"/>
+            <p><span class="caption" align="center"> Edge Lagrange P1.</span></p>
           </td>
           <td width="30%">
             <p>b)</p>
             <img src="../images/unv/triap1_ord.png" width="65%" onclick="enlarge(this);" longdesc="../images/unv/triap1_ord.png"/> 
+            <p><span class="caption" align="center"> Triangle Lagrange P1.</span></p>
           </td>
           <td width="30%">
             <p>c)</p>
             <img src="../images/unv/quadp1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/quadp1_ord.png"/>
+            <p><span class="caption" align="center"> Quadrilateral Lagrange P1.</span></p>
           </td>
         </tr>
-      </tbody> </table>
-      <table class="tb" width="80%"> <tbody>
-        <tr><span class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (a) edges, (b) triangles and (c) quadrangles.</span></tr>
-      </tbody> </table> </div>
-    </p>
-    <p align="center"> 
-
-      <div id="fig-2" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
-          <td>
+          <td width="30%">
             <p>d)</p>
             <img src="../images/unv/tetrap1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/tetrap1_ord.png"/>
+            <p><span class="caption" align="center"> Tetrahedron Lagrange P1.</span></p>
           </td>
           <td>
             <p>e)</p>
-            <img src="../images/unv/hexap1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/hexap1_ord.png"/>
+            <img src="../images/unv/hexap1_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/unv/hexap1_ord.png"/>
+            <p><span class="caption" align="center"> Hexahedron Lagrange P1.</span></p>
           </td>
           <td>
             <p>f)</p>
             <img src="../images/unv/pentap1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/pentap1_ord.png"/>
+            <p><span class="caption" align="center"> Pentahedron Lagrange P1.</span></p>
           </td>
         </tr>
-      </tbody> </table>
-      <table class="tb" width="80%"> <tbody>
-        <tr><span class="caption"> <strong>Figure 2:</strong> Local order of nodes on Lagrange P1 (d) tetrahedrons, (e) hexahedrons and (f) pentahedrons.</span></tr>
-      </tbody> </table> </div>
-    </p>
-
-    <p align="center"> 
-
-      <div id="fig-3" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>g)</p>
-            <img src="../images/unv/edgep2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/edgep2_ord.png"/>
+            <img src="../images/unv/edgep2_ord.png" width="30%" onclick="enlarge(this);" longdesc="../images/unv/edgep2_ord.png"/>
+            <p><span class="caption" align="center"> Edge Lagrange P2.</span></p>
           </td>
           <td>
             <p>h)</p>
-            <img src="../images/unv/triap2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/triap2_ord.png"/>
+            <img src="../images/unv/triap2_ord.png" width="65%" onclick="enlarge(this);" longdesc="../images/unv/triap2_ord.png"/>
+            <p><span class="caption" align="center"> Triangle Lagrange P2.</span></p>
           </td>
           <td>
             <p>i)</p>
             <img src="../images/unv/quadp2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/quadp2_ord.png"/>
+            <p><span class="caption" align="center"> Quadrilateral Lagrange P2.</span></p>
           </td>
         </tr>
-      </tbody> </table>
-      <table class="tb" width="80%"> <tbody>
-        <tr><span class="caption"> <strong>Figure 3:</strong> Local order of nodes on Lagrange P2 (g) edges, (e) triangles and (f) quadrangles.</span></tr>
-      </tbody> </table> </div>
-    </p>
-
-    <p align="center"> 
-
-      <div id="fig-4" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>j)</p>
             <img src="../images/unv/tetrap2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/tetrap2_ord.png"/>
+            <p><span class="caption" align="center"> Tetrahedron Lagrange P2.</span></p>
           </td>
           <td>
             <p>k)</p>
-            <img src="../images/unv/hexap2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/hexap2_ord.png"/>
+            <img src="../images/unv/hexap2_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/unv/hexap2_ord.png"/>
+            <p><span class="caption" align="center"> Hexahedron Lagrange P2.</span></p>
           </td>
         </tr>
       </tbody> </table>
       <table class="tb" width="80%"> <tbody>
-        <tr><span class="caption"> <strong>Figure 4:</strong> Local order of nodes on Lagrange P2 (j) tetrahedrons and (k) hexahedrons.</span></tr>
+        <tr><span class="caption"><p><strong>Figure 1:</strong> Local order of nodes on UNV elements.</p></span></tr>
       </tbody> </table> </div>
     </p>
 

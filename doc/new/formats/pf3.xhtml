@@ -11,6 +11,26 @@
   <link href="../css/topics.css" rel="stylesheet" type="text/css" />
 
   <script type="text/javascript" src="../js/btn.js"></script>
+  <script type="text/javascript" src="../js/enlargeit.js"></script>
+  <script type="text/javascript">
+        enl_ani = 0;
+        enl_brdsize = 30;
+        enl_shadow = 1;
+        enl_center = 1;
+        enl_dark = 1;
+        enl_darkprct = 30;
+        enl_drgdrop = 0;
+        enl_keynav = 1;
+        enl_wheelnav = 0;
+        enl_titlebar=0;
+  </script>
+  <script type="text/javascript" src="../js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#art").animate({opacity:'0'},0);
+      $("#art").animate({opacity:'1'},"slow");
+    });
+  </script>
 
 </head>
 
@@ -24,7 +44,7 @@
     <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="pf3.xhtml">PF3</a></em></p>
   </nav>
 
-  <nav class="menu mnu">
+  <nav id="menu" class="menu mnu">
     <h2 align="center" >Home</h2>
     <ul>
       <li><a href="../description.xhtml">Description</a></li>
@@ -56,21 +76,21 @@
       </ul>
     </nav>
 
-    <article> 
+    <article id="art"> 
     <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
 
     <div id="div1">
-    <p>The PF3 file format is used by <a href="http://www.cedrat.com/en/software/flux.html">Cedrat Flux</a>, software for electromagnetic and thermal simulations.</p>
+    <p>The PF3 file format is used by  the software <a href="http://www.cedrat.com/en/software/flux.html">Flux</a>, for electromagnetic and thermal simulations, developed by <a href="http://www.cedrat.com">Cedrat</a>.</p>
 
     <p>The main features of this format are:</p>
     <ul>
       <li>It can store hybrid meshes, that is, meshes that contain a several types of finite elements.</li>
       <li>It can store coordinates, connectivities, references and fields at nodes.</li>
-      <li>The global indexing of nodes, edges, faces and elements are defined by integers. </li>
-      <li>The vertex coordinates and field data are defined by single precission floats.</li>
+      <li>The global indexing of nodes, vertices and elements must start in one and be consecutive.</li>
+      <li>The vertex coordinates and field data are given by single precission floats.</li>
     </ul>
 
-    <p>The structure of th PF3 mesh files starts with a header, followed by the regions names, elements description, coordinates and optionally a single field.</p>
+    <p>The structure of th PF3 mesh files starts with a header, followed by the region names, elements description, coordinates and optionally a single field.</p>
 
     <ul>
       <li>PF3 header describes, among others, the space dimension, number of points, number of elements and number of regions</li>
@@ -84,7 +104,7 @@
       </li>
     </ul>
 
-    <p>Feconv works with double precission floats, for proper reading of PF3 meshes you must use the options <a href="../options.xhtml#tol">-t</a> , to set the tolerance of the mesh, and <a href="../options.xhtml#reor">-r soft</a>, to check the node ordering for the first element and assume it for all the elements.</p>
+    <p>Feconv uses with double precission floats to work with coordinates and fields. For proper reading of PF3 meshes you must use the options <a href="../options.xhtml#tol">-t</a> , to set the tolerance of the mesh, and <a href="../options.xhtml#reor">-r soft</a>, to check the node ordering for the first element and assume it for all the elements.</p>
 
     <div class="back"><a href="#top">Back to top</a></div>
     </div>
@@ -93,12 +113,12 @@
     <h2 id="feat"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Features supported by feconv</h2>
 
     <div id="div2">
-    <p>PF3 contain plain text for most of the information and can contain binary data to assign names to regions. FEconv can only read the plain text and discards the binary data.</p>
+    <p>PF3 contains plain text for most of the information. It can contains binary data to assign names to regions. FEconv can only read the plain text and discards the binary data.</p>
 
     <h3 id="fetypes"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/>  Finite element types</h3>
 
     <div id="div3">
-    <p>The PF3 format describes a lot of different types of finite elements. In the following table you can see the finite elements allowed and its meaning in FEconv.</p>
+    <p>The PF3 format describes a lot of different types of finite elements. In the following table you can see the finite elements allowed by FEconv and its description in PMH.</p>
 
     <p> PF3 descriptors corresponds, respectively, with the 2nd, 3rd and 7th number of the 12 numbers of the element description. </p>
 
@@ -135,88 +155,73 @@
 
     <p align="center"> 
 
-      <div id="fig-1" align="center"> <table class="tb" width="80%"> <tbody>
+      <div id="fig-1" align="center"> <table class="tb2" width="80%"> <tbody>
         <tr>
           <td>
             <p>a)</p>
-            <img src="../images/pf3/edgep1_ord.png" />
+            <img src="../images/pf3/edgep1_ord.png" width="35%" onclick="enlarge(this);" longdesc="../images/pf3/edgep1_ord.png"/>
+            <p><span class="caption" align="center">Edge Lagrange P1.</span></p>
           </td>
           <td>
             <p>b)</p>
-            <img src="../images/pf3/triap1_ord.png" /> 
+            <img src="../images/pf3/triap1_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/pf3/triap1_ord.png"/> 
+            <p><span class="caption" align="center">Triangle Lagrange P1.</span></p>
           </td>
           <td>
             <p>c)</p>
-            <img src="../images/pf3/quadp1_ord.png" />
+            <img src="../images/pf3/quadp1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/pf3/quadp1_ord.png"/>
+            <p><span class="caption" align="center">Quadrilateral Lagrange P1.</span></p>
           </td>
         </tr>
-      </tbody> </table>
-      <table class="tb" width="80%"> <tbody>
-        <tr><span class="caption"> <strong>Figure 1:</strong> Local order of nodes on Lagrange P1 (a) edges, (b) triangles and (c) quadrangles.</span></tr>
-      </tbody> </table> </div>
-    </p>
-    <p align="center"> 
-
-      <div id="fig-2" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>d)</p>
-            <img src="../images/pf3/tetrap1_ord.png" />
+            <img src="../images/pf3/tetrap1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/pf3/tetrap1_ord.png"/>
+            <p><span class="caption" align="center">Tetrahedron Lagrange P1.</span></p>
           </td>
           <td>
             <p>e)</p>
-            <img src="../images/pf3/hexap1_ord.png" />
+            <img src="../images/pf3/hexap1_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/pf3/hexap1_ord.png"/>
+            <p><span class="caption" align="center">Hexahedron Lagrange P1.</span></p>
           </td>
           <td>
             <p>f)</p>
-            <img src="../images/pf3/pentap1_ord.png" />
+            <img src="../images/pf3/pentap1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/pf3/pentap1_ord.png"/>
+            <p><span class="caption" align="center">Pentahedron Lagrange P1.</span></p>
           </td>
         </tr>
-      </tbody> </table>
-      <table class="tb" width="80%"> <tbody>
-        <tr><span class="caption"> <strong>Figure 2:</strong> Local order of nodes on Lagrange P1 (d) tetrahedrons, (e) hexahedrons and (f) pentahedrons.</span></tr>
-      </tbody> </table> </div>
-    </p>
-
-    <p align="center"> 
-
-      <div id="fig-3" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>g)</p>
-            <img src="../images/pf3/edgep2_ord.png" />
+            <img src="../images/pf3/edgep2_ord.png" width="35%" onclick="enlarge(this);" longdesc="../images/pf3/edgep2_ord.png"/>
+            <p><span class="caption" align="center">Edge Lagrange P2.</span></p>
           </td>
           <td>
             <p>h)</p>
-            <img src="../images/pf3/triap2_ord.png" />
+            <img src="../images/pf3/triap2_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/pf3/triap2_ord.png"/>
+            <p><span class="caption" align="center">Triangle Lagrange P2.</span></p>
           </td>
           <td>
             <p>i)</p>
-            <img src="../images/pf3/quadp2_ord.png" />
+            <img src="../images/pf3/quadp2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/pf3/quadp2_ord.png"/>
+            <p><span class="caption" align="center">Quadrilateral Lagrange P2.</span></p>
           </td>
         </tr>
-      </tbody> </table>
-      <table class="tb" width="80%"> <tbody>
-        <tr><span class="caption"> <strong>Figure 3:</strong> Local order of nodes on Lagrange P2 (g) edges, (e) triangles and (f) quadrangles.</span></tr>
-      </tbody> </table> </div>
-    </p>
-
-    <p align="center"> 
-
-      <div id="fig-4" align="center"> <table class="tb" width="80%"> <tbody>
         <tr>
           <td>
             <p>j)</p>
-            <img src="../images/pf3/tetrap2_ord.png" />
+            <img src="../images/pf3/tetrap2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/pf3/tetrap2_ord.png"/>
+            <p><span class="caption" align="center">Tetrahedron Lagrange P2.</span></p>
           </td>
           <td>
             <p>k)</p>
-            <img src="../images/pf3/hexap2_ord.png" />
+            <img src="../images/pf3/hexap2_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/pf3/hexap2_ord.png"/>
+            <p><span class="caption" align="center">Hexahedron Lagrange P2.</span></p>
           </td>
         </tr>
       </tbody> </table> 
       <table class="tb" width="80%"> <tbody>
-        <tr><span class="caption"> <strong>Figure 4:</strong> Local order of nodes on Lagrange P2 (j) tetrahedrons and (k) hexahedrons.</span></tr>
+        <tr><span class="caption"><p><strong>Figure 1:</strong> Local order of nodes on PF3 elements.</p></span></tr>
       </tbody> </table> </div>
     </p>
 

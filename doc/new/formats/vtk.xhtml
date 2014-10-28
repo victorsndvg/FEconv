@@ -11,6 +11,13 @@
   <link href="../css/topics.css" rel="stylesheet" type="text/css" />
 
   <script type="text/javascript" src="../js/btn.js"></script>
+  <script type="text/javascript" src="../js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#art").animate({opacity:'0'},0);
+      $("#art").animate({opacity:'1'},"slow");
+    });
+  </script>
 
 </head>
 
@@ -57,7 +64,7 @@
       </ul>
     </nav>
 
-    <article> 
+    <article id="art"> 
 
     <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Description</h2>
 
