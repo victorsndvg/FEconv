@@ -22,12 +22,6 @@
         btn.style.margin="0px 0px 0px 0px";
         btn.style.paddingRight="3px";
         btn.style.paddingLeft="3px";
-/*  border:0px none Maroon
-
-
-  padding-left: 5px;
-  text-decoration: none;*/
-
       }
 
     }

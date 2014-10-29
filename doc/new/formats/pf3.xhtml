@@ -73,6 +73,14 @@
             <li><a href="#vord">Locar order of nodes</a></li><br/>
           </ul>
         </li>
+        <li><a href="#fstruc">File structure</a>
+          <ul>
+            <li><a href="#fheader">Header</a></li><br/>
+            <li><a href="#eldesc">Element description</a></li><br/>
+            <li><a href="#ncoords">Node coordinates</a></li><br/>
+            <li><a href="#flds">Field</a></li><br/>
+          </ul>
+        </li>
       </ul>
     </nav>
 
@@ -80,7 +88,7 @@
     <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
 
     <div id="div1">
-    <p>The PF3 file format is used by  the software <a href="http://www.cedrat.com/en/software/flux.html">Flux</a>, for electromagnetic and thermal simulations, developed by <a href="http://www.cedrat.com">Cedrat</a>.</p>
+    <p>The PF3 file format is used by the software <a href="http://www.cedrat.com/en/software/flux.html">Flux</a>, for electromagnetic and thermal simulations, developed by <a href="http://www.cedrat.com">Cedrat</a>.</p>
 
     <p>The main features of this format are:</p>
     <ul>
@@ -90,25 +98,10 @@
       <li>The vertex coordinates and field data are given by single precission floats.</li>
     </ul>
 
-    <p>The structure of th PF3 mesh files starts with a header, followed by the region names, elements description, coordinates and optionally a single field.</p>
-
-    <ul>
-      <li>PF3 header describes, among others, the space dimension, number of points, number of elements and number of regions</li>
-      <li>Element description consists of twelve integers, following we describe the most significant of them:
-        <ul>
-          <li>The 2nd, 3rd and 7th describes the element shape and order.</li>
-          <li>The 4th number represents the number of region to which the element belongs.</li>
-          <li>The 5th means the kind of topology; 4 for 3D elements, 3 for 2D elements and 2 for 1D elements.</li>
-          <li>The 8th number give us the number of nodes of the element.</li>
-        </ul>
-      </li>
-    </ul>
-
     <p>Feconv uses with double precission floats to work with coordinates and fields. For proper reading of PF3 meshes you must use the options <a href="../options.xhtml#tol">-t</a> , to set the tolerance of the mesh, and <a href="../options.xhtml#reor">-r soft</a>, to check the node ordering for the first element and assume it for all the elements.</p>
 
     <div class="back"><a href="#top">Back to top</a></div>
     </div>
-
 
     <h2 id="feat"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Features supported by feconv</h2>
 
@@ -228,6 +221,113 @@
     <div class="back"><a href="#top">Back to top</a></div>
     </div>
     </div>
+
+    <h2 id="fstruc"><input type="button" onclick="return toggleMe(this,'div7')" class="btn" value="-"/>  3. File structure</h2>
+
+    <div id="div7">
+    <p>The structure of the PF3 mesh files starts with a header, followed by the region names, elements description, coordinates and optionally a single field.</p>
+
+    <h3 id="fheader"><input type="button" onclick="return toggleMe(this,'div8')" class="btn" value="-"/>  Header</h3>
+
+    <div id="div8">
+    <p> The PF3 header describes, among others, the space dimension, number of points, number of elements and number of regions as follows:</p>
+    <pre>
+ Fichier cree par F3DXPE 1.0. Date: 18/01/13 16:49:20                            
+       3           NOMBRE DE DIMENSIONS DU DECOUPAGE                           
+      78           NOMBRE  D'ELEMENTS                                          
+      78           NOMBRE  D'ELEMENTS VOLUMIQUES                               
+       0           NOMBRE  D'ELEMENTS SURFACIQUES                              
+       0           NOMBRE  D'ELEMENTS LINEIQUES                                
+       0           NOMBRE  D'ELEMENTS PONCTUELS                                
+       0           NOMBRE DE MACRO-ELEMENTS                                    
+     195           NOMBRE DE POINTS                                            
+       1           NOMBRE DE REGIONS                                           
+       1           NOMBRE DE REGIONS VOLUMIQUES                                
+       0           NOMBRE DE REGIONS SURFACIQUES                               
+       0           NOMBRE DE REGIONS LINEIQUES                                 
+       0           NOMBRE DE REGIONS PONCTUELLES                               
+       0           NOMBRE DE REGIONS MACRO-ELEMENTAIRES                        
+      20           NOMBRE DE NOEUDS DANS 1 ELEMENT (MAX)                       
+      20           NOMBRE DE POINTS D'INTEGRATION / ELEMENT (MAX)    
+    </pre>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="eldesc"><input type="button" onclick="return toggleMe(this,'div9')" class="btn" value="-"/>  Element description</h3>
+
+    <div id="div9">
+
+    <p>The element description consists of twelve integers, following we describe the most significant of them:</p>
+      <ul>
+        <li>The 1st number give us the element numbering.</li>
+        <li>The 2nd, 3rd and 7th describes the element shape and order.</li>
+        <li>The 4th number represents the number of region to which the element belongs.</li>
+        <li>The 5th means the kind of topology; 4 for 3D elements, 3 for 2D elements and 2 for 1D elements.</li>
+        <li>The 8th number give us the number of nodes of the element.</li>
+      </ul>
+
+    <p>Here is an example showing the connectivities of a Lagrange P1 tetrahedral mesh:</p>
+    <pre>
+ DESCRIPTEUR DE TOPOLOGIE DES ELEMENTS                       
+              1        5        4        1        4        0       10        4        0        0        0        0
+             33       10       48       34
+              2        5        4        1        4        0       10        4        0        0        0        0
+             32       76       49       61
+              3        5        4        1        4        0       10        4        0        0        0        0
+              4       38       27       22
+              ...
+    </pre>
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    </div>
+
+    <h3 id="ncoords"><input type="button" onclick="return toggleMe(this,'div10')" class="btn" value="-"/>  Node coordinates</h3>
+
+    <div id="div10">
+
+    <p>The coordinates of the nodes are numbered consecutively starting at one. Note that by default PF3 work with single precission floats to express the values of the coordinates.</p>
+
+    <p>Look at the following example:</p>
+
+    <pre>
+ COORDONNEES DES NOEUDS                                      
+       1   0.1207407E-01  0.3235238E-02   0.000000    
+       2   0.1207407E-01 -0.3235238E-02   0.000000    
+       3   0.2076741E-01  0.5564609E-02   0.000000    
+       4   0.2076741E-01 -0.5564609E-02   0.000000    
+       5   0.1207407E-01  0.3235238E-02  0.6000000E-02
+       6   0.2076741E-01  0.5564609E-02  0.6000000E-02
+       7   0.2076741E-01 -0.5564609E-02  0.6000000E-02
+       8   0.1207407E-01 -0.3235238E-02  0.6000000E-02
+       ...
+ ==== DECOUPAGE  TERMINE  
+    </pre>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="flds"><input type="button" onclick="return toggleMe(this,'div11')" class="btn" value="-"/>  Field</h3>
+
+    <div id="div11">
+
+    <p>Optionally, PF3 files can contain a single field. This consists of a field name followed by the number of components and points and then a list of values. See the following example:</p>
+
+    <pre>
+ Table of the values of     TCelsius    (Local values on the nodes of the region PIECE)
+       1    25439 (Nb of components, nb of points)                               
+
+          24.01930    
+          20.15225    
+          28.82810    
+          164.0529    
+          163.7079    
+       ...
+    </pre>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+
+    </div>
+
 
     </article>
 
