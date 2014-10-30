@@ -55,6 +55,10 @@ nav.topics ul li ul li:hover {
   background-color: SlateGray;
 }
 
+nav.topics ul li ul li a:hover {
+  color: White;
+}
+
 nav.topics ul li ul li a {
   padding: 0px;
   margin: 0px 0px 0px 0px;

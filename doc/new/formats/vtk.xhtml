@@ -58,6 +58,7 @@
           <ul>
             <li><a href="#fetypes">Finite element types</a></li><br/>
             <li><a href="#vord">Local order of nodes</a></li><br/>
+            <li><a href="#fields">Fields</a></li><br/>
             <li><a href="#vtk+">VTK+ format</a></li><br/>
           </ul>
         </li>
@@ -148,6 +149,17 @@
             <p><span class="caption"> <strong>Figure 2:</strong> Local index of nodes on Lagrange P2 elements.</span></p>
       </div>
     </p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="fields"><input type="button" onclick="return toggleMe(this,'div6')" class="btn" value="-"/> Fields</h3>
+
+    <div id="div6">
+    <p>Field data is a general format without topological and geometric structure, and without a particular dimensionality. FEconv supports scalar and vector field data associated with the points or cells of a dataset.</p>
+
+    <p>More than one field of the same type can be included in a file. Each type of field has a data name associated with it and used to identify a particular field.</p>
+
 
     <div class="back"><a href="#top">Back to top</a></div>
     </div>

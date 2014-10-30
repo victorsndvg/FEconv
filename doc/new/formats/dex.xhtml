@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Feconv: Finite Element conversor</title>
+  <link href="../css/structure.css" rel="stylesheet" type="text/css" />
+  <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
+  <link href="../css/menu.css" rel="stylesheet" type="text/css" />
+  <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="../js/btn.js"></script>
+  <script type="text/javascript" src="../js/enlargeit.js"></script>
+  <script type="text/javascript">
+        enl_ani = 0;
+        enl_brdsize = 30;
+        enl_shadow = 1;
+        enl_center = 1;
+        enl_dark = 1;
+        enl_darkprct = 30;
+        enl_drgdrop = 0;
+        enl_keynav = 1;
+        enl_wheelnav = 0;
+        enl_titlebar=0;
+  </script>
+  <script type="text/javascript" src="../js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#art").animate({opacity:'0'},0);
+      $("#art").animate({opacity:'1'},"slow");
+    });
+  </script>
+
+</head>
+
+<body onload="showbtn()">
+
+  <header>
+    <img src="../images/ico.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="dex.xhtml">DEX</a></em></p>
+  </nav>
+
+  <nav id="menu" class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="../description.xhtml">Summary</a></li>
+      <li><a href="../install.xhtml">Install</a></li>
+      <li><a href="../formats.xhtml">Formats</a></li>
+      <li><a href="../options.xhtml">Options</a></li>
+      <li><a href="../underconstruction.xhtml">Examples</a></li>
+      <li><a href="../underconstruction.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+
+  </aside>
+
+
+  <section>
+
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
+      <ul>
+        <li><a href="#desc">Description</a></li>
+        <li><a href="#feat">Features supported by feconv</a></li>
+        <li><a href="#dstruc">Data sctructure</a></li>
+      </ul>
+    </nav>
+
+    <article id="art"> 
+    <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
+
+    <div id="div1">
+    <p>The DEX field format is used by the software <a href="http://www.cedrat.com/en/software/flux.html">Flux</a>, for electromagnetic and thermal simulations, developed by <a href="http://www.cedrat.com">Cedrat</a>.</p>
+
+    <p>The main features of this format are:</p>
+    <ul>
+      <li>It can only store a single field.</li>
+      <li>It contains node coordinates and field values.</li>
+      <li>It can only store fields at nodes.</li>
+      <li>It can store values over a specific region of the mesh.</li>
+      <li>All values are given by double precission floats.</li>
+    </ul>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h2 id="feat"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Features supported by feconv</h2>
+
+    <div id="div2">
+    <p>FEconv only supports scalar and vector fields with real values, complex fields are not allowed. </p>
+
+    <p>FEconv only supports fields over the whole mesh; it means that the number of nodes among mesh and field must agree.</p>
+
+    <p>In order to mantain the consistence, the ordering of node coordinates must agree among the field and the mesh data. </p>
+
+    <p>To avoid problems derived of units and scaling, FEconv will ignore DEX coordinates when reading.</p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h2 id="dstruc"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 3. Data structure</h2>
+
+    <div id="div3">
+    <p>DEX file contains a header between # characters with the name of the piece an the field, the number of reals, components and points. After the header, a row for each point; each row contains coordinates at first an then values.</p>
+
+    <p>Here an example of DEX file with a 3-comp vector field:</p>
+
+    <pre>
+  # NAME = PIECE FORMULA = mGradT
+  NB_REAL = 1 NB_COMP = 3 NB_POINT = 25419 #
+  16.8621677515026 32.8775510204082 0 -4612.18830812659 31808.9451403159 0
+  16.8621677515026 32.8316326530612 0 -4634.63895501794 32281.6593450258 0
+  16.8621677515026 32.7857142857143 0 -4659.58374690964 32756.7936736067 0
+  16.8621677515026 32.7397959183673 0 -4683.17968487141 33232.0115087418 0
+  16.8621677515026 32.6938775510204 0 -4705.4356971091 33708.4885003283 0
+    </pre>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+
+
+    </article>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
+</html>
+
