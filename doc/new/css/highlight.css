@@ -10,6 +10,7 @@ pre.highlight
 	margin-right: 20px;
 	padding: 10px;
 	background-color: #eed;
+        white-space: pre-wrap;
     }
 pre.hl	{ color:#000000; background-color:#ffffff; font-size:10pt; font-family:'Courier New';}
 .hl.num { color:#2928ff; }
