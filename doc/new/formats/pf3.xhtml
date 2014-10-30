@@ -9,6 +9,7 @@
   <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="../css/menu.css" rel="stylesheet" type="text/css" />
   <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+  <link href="../css/highlight.css" rel="stylesheet" type="text/css" />
 
   <script type="text/javascript" src="../js/btn.js"></script>
   <script type="text/javascript" src="../js/enlargeit.js"></script>
@@ -150,63 +151,63 @@
 
       <div id="fig-1" align="center"> <table class="tb2" width="80%"> <tbody>
         <tr>
-          <td>
+          <td width="30%">
             <p>a)</p>
             <img src="../images/pf3/edgep1_ord.png" width="35%" onclick="enlarge(this);" longdesc="../images/pf3/edgep1_ord.png"/>
             <p><span class="caption" align="center">Edge Lagrange P1.</span></p>
           </td>
-          <td>
+          <td width="30%">
             <p>b)</p>
             <img src="../images/pf3/triap1_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/pf3/triap1_ord.png"/> 
             <p><span class="caption" align="center">Triangle Lagrange P1.</span></p>
           </td>
-          <td>
+          <td width="30%">
             <p>c)</p>
             <img src="../images/pf3/quadp1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/pf3/quadp1_ord.png"/>
             <p><span class="caption" align="center">Quadrilateral Lagrange P1.</span></p>
           </td>
         </tr>
         <tr>
-          <td>
+          <td width="30%">
             <p>d)</p>
             <img src="../images/pf3/tetrap1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/pf3/tetrap1_ord.png"/>
             <p><span class="caption" align="center">Tetrahedron Lagrange P1.</span></p>
           </td>
-          <td>
+          <td width="30%">
             <p>e)</p>
             <img src="../images/pf3/hexap1_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/pf3/hexap1_ord.png"/>
             <p><span class="caption" align="center">Hexahedron Lagrange P1.</span></p>
           </td>
-          <td>
+          <td width="30%">
             <p>f)</p>
             <img src="../images/pf3/pentap1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/pf3/pentap1_ord.png"/>
             <p><span class="caption" align="center">Pentahedron Lagrange P1.</span></p>
           </td>
         </tr>
         <tr>
-          <td>
+          <td width="30%">
             <p>g)</p>
             <img src="../images/pf3/edgep2_ord.png" width="35%" onclick="enlarge(this);" longdesc="../images/pf3/edgep2_ord.png"/>
             <p><span class="caption" align="center">Edge Lagrange P2.</span></p>
           </td>
-          <td>
+          <td width="30%">
             <p>h)</p>
             <img src="../images/pf3/triap2_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/pf3/triap2_ord.png"/>
             <p><span class="caption" align="center">Triangle Lagrange P2.</span></p>
           </td>
-          <td>
+          <td width="30%">
             <p>i)</p>
             <img src="../images/pf3/quadp2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/pf3/quadp2_ord.png"/>
             <p><span class="caption" align="center">Quadrilateral Lagrange P2.</span></p>
           </td>
         </tr>
         <tr>
-          <td>
+          <td width="30%">
             <p>j)</p>
             <img src="../images/pf3/tetrap2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/pf3/tetrap2_ord.png"/>
             <p><span class="caption" align="center">Tetrahedron Lagrange P2.</span></p>
           </td>
-          <td>
+          <td width="30%">
             <p>k)</p>
             <img src="../images/pf3/hexap2_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/pf3/hexap2_ord.png"/>
             <p><span class="caption" align="center">Hexahedron Lagrange P2.</span></p>
@@ -231,7 +232,7 @@
 
     <div id="div8">
     <p> The PF3 header describes, among others, the space dimension, number of points, number of elements and number of regions as follows:</p>
-    <pre>
+    <pre class="highlight">
  Fichier cree par F3DXPE 1.0. Date: 18/01/13 16:49:20                            
        3           NOMBRE DE DIMENSIONS DU DECOUPAGE                           
       78           NOMBRE  D'ELEMENTS                                          
@@ -267,7 +268,7 @@
       </ul>
 
     <p>Here is an example showing the connectivities of a Lagrange P1 tetrahedral mesh:</p>
-    <pre>
+    <pre class="highlight">
  DESCRIPTEUR DE TOPOLOGIE DES ELEMENTS                       
               1        5        4        1        4        0       10        4        0        0        0        0
              33       10       48       34
@@ -289,7 +290,7 @@
 
     <p>Look at the following example:</p>
 
-    <pre>
+    <pre class="highlight">
  COORDONNEES DES NOEUDS                                      
        1   0.1207407E-01  0.3235238E-02   0.000000    
        2   0.1207407E-01 -0.3235238E-02   0.000000    
@@ -311,7 +312,7 @@
 
     <p>Optionally, PF3 files can contain a single field. This consists of a field name followed by the number of components and points and then a list of values. See the following example:</p>
 
-    <pre>
+    <pre class="highlight">
  Table of the values of     TCelsius    (Local values on the nodes of the region PIECE)
        1       195 (Nb of components, nb of points)                               
 
