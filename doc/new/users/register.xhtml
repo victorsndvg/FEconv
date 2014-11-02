@@ -5,28 +5,30 @@
 <head>
   <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
   <title>Feconv: Finite Element conversor</title>
-  <link href="css/structure.css" rel="stylesheet" type="text/css" />
-  <link href="css/breadcrumbs.css" rel="stylesheet" type="text/css" />
-  <link href="css/menu.css" rel="stylesheet" type="text/css" />
-  <link href="css/topics.css" rel="stylesheet" type="text/css" />
+  <link href="../css/structure.css" rel="stylesheet" type="text/css" />
+  <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
+  <link href="../css/menu.css" rel="stylesheet" type="text/css" />
+  <link href="../css/topics.css" rel="stylesheet" type="text/css" />
 
-  <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="../js/btn.js"></script>
+  <script type="text/javascript" src="../js/jquery-2.1.1.min.js"></script>
   <script>
     $(document).ready(function(){
       $("#art").animate({opacity:'0'},0);
       $("#art").animate({opacity:'1'},"slow");
     });
   </script>
+
 </head>
 
-<body>
+<body onload="showbtn()">
 
   <header>
     <img src="images/ico.png"/>
   </header>
 
   <nav class="breadcrumbs">
-    <p><em><a href="index.html">Home</a>><a href="description.xhtml">Description</a></em></p>
+    <p><em><a href="index.html">Home</a>><a href="register.xhtml">Register</a></em></p>
   </nav>
 
   <nav class="menu mnu">
@@ -41,28 +43,34 @@
     </ul>
   </nav>
 
+
   <aside class="mnu">
     <nav class="menu mnu">
       <h2 align="center" >Users</h2>
       <ul>
-        <li><a href="users/login.xhtml">Login</a></li>
-        <li><a href="users/survey.xhtml">Survey</a></li>
+        <li><a href="login.xhtml">Login</a></li>
+        <li><a href="survey.xhtml">Survey</a></li>
       </ul>
     </nav>
   </aside>
 
   <section>
 
-    <!-- Local section navigation menu -->
-    <nav id="top" class="topics">
-      <ul>
-        <li><a href="#intro">Description</a></li>
-        <li><a href="#license">License</a></li>
-        <li><a href="#install">Installation</a></li>
-      </ul>
-    </nav>
 
-    <!--article> Main content </article-->
+    <article id="art">
+
+      <div width="80%">
+      <form>
+
+        <label>Email:</label><input type="email"/><br/>
+        <label>Login:</label><input type="text"/><br/>
+        <label>Password:</label><input type="password"/><br/>
+        <label>Retype password:</label><input type="password"/><br/>
+
+      </form>
+      </div>
+
+    </article>
 
   </section>
 
