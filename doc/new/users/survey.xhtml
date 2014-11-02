@@ -19,6 +19,24 @@
     });
   </script>
 
+  <script>
+    function validateForm() {
+      var x = document.forms["survey"]["country"].value;
+      if (x==null || x=="") {
+        alert("Country must be filled out");
+        return false;
+      }
+
+      var x = document.forms["survey"]["email"].value;
+      if (x==null || x=="") {
+        alert("Email must be filled out");
+        return false;
+      }
+      var re = /\S+@\S+\.\S+/;
+      return re.test(x)
+
+    };
+  </script>
 </head>
 
 <body onload="showbtn()">
@@ -59,10 +77,10 @@
     <article id="art">
 
       <div width="80%">
-      <form>
+      <form name="survey" onsubmit="return validateForm()">
 
         <label>Country:</label><br/>
-        <input type="text"/><br/>
+        <input type="text" name="country"/><br/>
 
         <label>Bussines or organization name:</label><br/>
         <input type="text"/><br/>
@@ -108,14 +126,14 @@
         </ul>
 
         <label>Email:</label>
-        <input type="email" value="" aria-label="Email:  Must be a valid email address" title="Must be a valid email address"/>
+        <input type="email" name="email"/>
         <div>Must be a valid email address</div>
 
         <div>
           <table>
             <tbody>
               <tr>
-                <td><input type="submit" name="submit" value="Submit" id="ss-submit"/></td>  
+                <td><input type="submit" name="submit" value="Submit"/></td>  
               </tr>
             </tbody>
           </table>
