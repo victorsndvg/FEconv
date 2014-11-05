@@ -39,7 +39,7 @@
   </script>
 </head>
 
-<body onload="showbtn()">
+<body>
 
   <header>
     <img src="images/ico.png"/>
@@ -77,13 +77,17 @@
     <article id="art">
 
       <div width="80%">
-      <form name="survey" onsubmit="return validateForm()">
-
-        <label>Country:</label><br/>
-        <input type="text" name="country"/><br/>
+      <form name="survey" onsubmit="return validateForm()" action="enviado.xhtml">
+      <table>
+        <tr>
+        <label><span style="color:red">Required *</span>:</label><br/><br/><br/>
+        </tr>
+        <tr>
+        <label>Country <span style="color:red">*</span>:</label><br/>
+        <input type="text" name="country"/><br/><br/>
 
         <label>Bussines or organization name:</label><br/>
-        <input type="text"/><br/>
+        <input type="text"/><br/><br/>
 
         <label>Number of workers in your organization:</label><br/>
         <select>
@@ -93,8 +97,10 @@
           <option>More than 100</option>
         </select>
         <br/>
+        <br/>
+        </tr>
 
-
+        <tr>
         <label>Purpose of use:</label><br/>
         <select>
           <option></option>
@@ -103,7 +109,10 @@
           <option>Commercial</option>
         </select>
         <br/>
+        <br/>
+        </tr>
 
+        <tr>
         <label>Simulation software that you use:</label>
         <ul>
           <li><label><input type="checkbox"/>Comsol Multiphysics</label></li> 
@@ -113,7 +122,9 @@
           <li><label><input type="checkbox"/>OpenFoam</label></li>  
           <li><label><input type="checkbox"/>Other:</label><input type="text"/></li>
         </ul>
+        </tr>
 
+        <tr>
         <label>CAD software that you use:</label>
         <ul>
           <li><label><input type="checkbox"/>Salome platform</label></li> 
@@ -124,20 +135,27 @@
           <li><label><input type="checkbox"/>Salome platform</label></li> 
           <li><label><input type="checkbox"/>Other:</label><input type="text"/></li>
         </ul>
+        </tr>
 
-        <label>Email:</label>
+        <tr>
+        <label>Email <span style="color:red">*</span>:</label>
+        <br/>
         <input type="email" name="email"/>
         <div>Must be a valid email address</div>
+        </tr>
 
+        <tr>
         <div>
           <table>
             <tbody>
               <tr>
-                <td><input type="submit" name="submit" value="Submit"/></td>  
+                <td><input type="submit" name="submit"/></td>  
               </tr>
             </tbody>
           </table>
         </div>
+        </tr>
+      </table>
 
       </form>
       </div>
