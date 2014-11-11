@@ -91,6 +91,7 @@
 
     <p>The main features of this format are:</p>
     <ul>
+      <li>It can store several serializable objects like meshes, geometries, etc.</li>
       <li>It can store piecewise meshes, each piece is called record, and it is a separate part of the mesh with its own numbering.</li>
       <li>It can save hybrid meshes, that is, meshes that contain a several types of finite elements.</li>
       <li>It can store parameter dependant data at nodes or on elements.</li>
@@ -104,12 +105,12 @@
     <h2 id="feat"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Features supported by feconv</h2>
 
     <div id="div2">
-    <p>FEconv only supports MPHTXT mesh files with version 0.1 containing serializable objects. </p>
+    <p>FEconv only supports MPHTXT mesh files with version 0.1 containing serializable mesh objects. </p>
 
     <h3 id="fetypes"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/>  Finite element types</h3>
 
     <div id="div3">
-    <p>The MPHTXT format describes a lot of different types of finite elements. In the following table you can see the finite elements allowed by FEconv and its description in PMH.</p>
+    <p>The MPHTXT format describes a lot of different types of finite elements. In the following table you can see the finite elements allowed by FEconv and its <a href="pmh.xhtml#fe">description in PMH</a>.</p>
 
     <p>
     <div align="center">
@@ -126,13 +127,15 @@
         <tr><td>hex</td> <td align="left">Hexahedal element</td> <td align="left">Hexahedron Lagrange P1</td></tr>
         <tr><td>edg2</td> <td align="left">Edge element (P2)</td> <td align="left">Edge Lagrange P2</td> </tr>
         <tr><td>tri2</td> <td align="left">Triangular element (P2)</td> <td align="left">Triangle Lagrange P2</td> </tr>
-        <tr><td>quad2</td> <td align="left">Quadrilateral element (P2)</td> <td align="left">Quadrilateral Lagrange P2</td> </tr>
+        <tr><td>quad2</td> <td align="left">Quadrilateral element (P2*)</td> <td align="left">Quadrilateral Lagrange P2</td> </tr>
         <tr><td>tet2</td> <td align="left">Tetrahedral element (P2)</td> <td align="left">Tetrahedron Lagrange P2</td> </tr>
-        <tr><td>hex2</td> <td align="left">Hexahedral element (P2)</td> <td align="left">Hexahedron Lagrange P2</td> </tr>
+        <tr><td>hex2</td> <td align="left">Hexahedral element (P2*)</td> <td align="left">Hexahedron Lagrange P2</td> </tr>
       </tbody>
     </table>
     </div>
     </p>
+
+    <p>* Note that second order quadrangles and hexahedrons contain nodes on the barycenter of each face and element. FEconv translates this kind of element to a Lagrange P2 element ignoring the nodes on the barycenter when reading MPHTXT files. Feconv calculate this nodes during MPHTXT file writing.</p>
 
     <div class="back"><a href="#top">Back to top</a></div>
     </div>    
@@ -195,7 +198,7 @@
           <td>
             <p>i)</p>
             <img src="../images/mph/quadp2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/mph/quadp2_ord.png"/>
-            <p><span class="caption" align="center"> Quadrilateral Lagrange P2.</span></p>
+            <p><span class="caption" align="center"> Quadrilateral P2*.</span></p>
           </td>
         </tr>
         <tr>
@@ -207,7 +210,7 @@
           <td>
             <p>k)</p>
             <img src="../images/mph/hexap2_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/mph/hexap2_ord.png"/>
-            <p><span class="caption" align="center"> Hexahedron Lagrange P2.</span></p>
+            <p><span class="caption" align="center"> Hexahedron P2*.</span></p>
           </td>
         </tr>
       </tbody> </table>
@@ -215,8 +218,6 @@
         <tr><span class="caption"><p><strong>Figure 1:</strong> Local order of nodes on MPH elements.</p></span></tr>
       </tbody> </table> </div>
     </p>
-
-    <p>Note that second order quadrangles and hexahedrons contain nodes on the barycenter of each face and element. FEconv translates this kind of element to a Lagrange P2 element ignoring the nodes on the barycenter when reading MPHTXT files. Feconv calculate this nodes during MPHTXT file writing.</p>
 
     <div class="back"><a href="#top">Back to top</a></div>
 
@@ -229,7 +230,7 @@
     <p>The MPHTXT file format has a global version number. The first entry in each file is the file format, indicating the major and minor file version by two integers.</p>
     <p>After the file version, the file contains a number of tags, stored as strings wich gives an identification for each record stored in the file.</p>
     <p>Then the number of types and, optionally, the serializable object identifiers of this types.</p>
-    <p>Finally, MPHTXT file contains objects with the serialized data in the file. The data contained in each object are space dimension, coordinates, element types and connectivities among others. You can see a summary of this data in <a href="#fig-4">Figure 4</a>.</p>
+    <p>Finally, MPHTXT file contains objects with the serialized data in the file. The data contained in each object are space dimension, coordinates, element types and connectivities among others. You can see a summary of this data in <a href="#fig-4">Figure 4</a>, obtained from the COMSOL manual.</p>
 
     <p id="fig-4" align="center">
     <img src="../images/mph/mphvars.png" width="50%"/>

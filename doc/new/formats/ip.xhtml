@@ -42,7 +42,7 @@
   </header>
 
   <nav class="breadcrumbs">
-    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="dex.xhtml">DEX</a></em></p>
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="ip.xhtml">IP</a></em></p>
   </nav>
 
   <nav id="menu" class="menu mnu">
@@ -82,15 +82,15 @@
     <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
 
     <div id="div1">
-    <p>The DEX field format is used by the software <a href="http://www.cedrat.com/en/software/flux.html">Flux</a>, for electromagnetic and thermal simulations, developed by <a href="http://www.cedrat.com">Cedrat</a>.</p>
+    <p>The IP field format is used by the software <a href="http://www.ansys.com/Products/Simulation+Technology/Fluid+Dynamics/Fluid+Dynamics+Products/ANSYS+Fluent">Ansys Fluent</a>, for fluid dynamic simulations, developed by <a href="http://www.ansys.com">Ansys</a>.</p>
 
     <p>The main features of this format are:</p>
     <ul>
-      <li>It can only store a single field.</li>
-      <li>It contains node coordinates and field values.</li>
-      <li>It can only store fields at nodes.</li>
-      <li>It can store values over a specific region of the mesh.</li>
-      <li>All values are given by double precission floats.</li>
+      <li>It can store several fields.</li>
+      <li>It stores vector fields by components.</li>
+      <li>It can store fields over a single piece of the mesh.</li>
+      <li>It contains point coordinates and values on these points.</li>
+      <li>Depending on the version of the file it can store binary or text data in single or double precission floats.</li>
     </ul>
 
     <div class="back"><a href="#top">Back to top</a></div>
@@ -101,11 +101,18 @@
     <div id="div2">
 
     <ul>
-    <li>FEconv only supports scalar and vector fields with real values, complex fields are not allowed. </li>
-    <li>FEconv only supports fields over the whole mesh; it means that the number of nodes among mesh and field must agree.</li>
-    <li>To avoid problems derived of units and scaling, FEconv will ignore DEX coordinates when reading.</li>
-    <li>In order to mantain the consistence, the ordering of node coordinates must agree among the field and the mesh data.</li>
+      <li>FEconv only supports text based IP files.</li>
+      <li>FEconv can reads IP files with version 2 o 3 and writes IP files with version 3. </li>
+      <li>FEconv only supports fields over the whole mesh.</li>
+      <li>The number of points in the IP file must agree with the number of nodes or with the number of cells.</li>
+      <li>The ordering of point coordinates of the IP file must agree with the order of nodes or with the order of cells.</li>
+      <li>When reading IP files, FEconv assumes that if the number of points ​​corresponds to the number of elements of the mesh, it has found a field at elements.</li>
+      <li>When writing IP files, FEconv calculates the barycenter of elements to save fields at alements.</li>
     </ul>
+
+
+
+
 
     <div class="back"><a href="#top">Back to top</a></div>
     </div>
@@ -113,19 +120,33 @@
     <h2 id="dstruc"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 3. Data structure</h2>
 
     <div id="div3">
-    <p>DEX file contains a header between # characters with the name of the piece an the field, the number of reals, components and points. After the header, a row for each point; each row contains coordinates at first an then values.</p>
 
-    <p>Here an example of DEX file with a 3-comp vector field:</p>
+    <p>The format of the interpolation file is as follows:</p>
+
+    <ul>
+      <li>The first line is the interpolation file version. Version is 2 for files generated using ANSYS FLUENT 12.0 through 14.0, 3 for text files generated using ANSYS FLUENT 14.5, 4 for binary files generated using single precision ANSYS FLUENT 14.5, and 5 for files generated using double precision ANSYS FLUENT 14.5.</li>
+      <li>The second line is the dimension (2 or 3).</li>
+      <li>The third line is the total number of points.</li>
+      <li>The fourth line is the total number of field components (temperature, pressure, etc.) included.</li>
+      <li>Starting at the fifth line is a list of field component names.</li>
+      <li>After the field names is a section for each coordinate component x, y and (in 3D) z, for all the points.</li>
+      <li>At the end is a section for each list of the field component values at all the points in the same order as their names.</li>
+      <li>For version 3 interpolation files, the sections are bounded by “(” and “)”.</li>
+    </ul>
+
+    <p>You can see an example of version 3 IP file in the following lines:</p>
 
     <pre class="highlight">
-  # NAME = PIECE FORMULA = mGradT
-  NB_REAL = 1 NB_COMP = 3 NB_POINT = 25419 #
-  16.8621677515026 32.8775510204082 0 -4612.18830812659 31808.9451403159 0
-  16.8621677515026 32.8316326530612 0 -4634.63895501794 32281.6593450258 0
-  16.8621677515026 32.7857142857143 0 -4659.58374690964 32756.7936736067 0
-  16.8621677515026 32.7397959183673 0 -4683.17968487141 33232.0115087418 0
-  16.8621677515026 32.6938775510204 0 -4705.4356971091 33708.4885003283 0
-  ...
+ 3 
+ 2
+ 34800 
+ 3
+ x-velocity 
+ pressure 
+ y-velocity
+ (-0.068062
+ -0.0680413
+ ... 
     </pre>
 
     <div class="back"><a href="#top">Back to top</a></div>
