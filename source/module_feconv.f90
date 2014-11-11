@@ -31,6 +31,7 @@ use module_pf3, only: load_pf3,save_pf3
 !use module_tra, only: load_tra,save_tra
 use module_field_database, only: FLDB, id_mesh_ext, id_field_ext
 use module_mff, only: load_mff, save_mff
+use module_muf, only: load_muf, save_muf
 use module_freefem, only: save_freefem_msh, save_freefem_mesh, load_freefem_msh, load_freefem_mesh
 use module_pmh
 use module_fem_extract, only: extract_mesh, extract_ref
@@ -282,8 +283,9 @@ else
            read(str(p+1:q-1),*) infieldname
          end if
        endif
-      ! There is on and field extension is not 'mff'
-       if (id_field_ext(inext) /= id_field_ext('mff') .and. is_arg('-on')) then
+      ! There is on and field extension is not 'mff' and 'muf'
+       if ((id_field_ext(inext) /= id_field_ext('mff') .and. &
+          & id_field_ext(inext) /= id_field_ext('muf')) .and. is_arg('-on')) then
          str = get_post_arg('-on')
          p = index(str, '[')
          if (p == 0) then !a single field name
@@ -493,7 +495,7 @@ if(there_is_field .and. is_arg('-if')) then
     case('mff')
       call load_mff(pmh, infieldfile, infieldname)
     case('muf')
-      call error('muf field extension not implemented yet!')
+      call load_muf(pmh, infieldfile, infieldname)
     case('dex')
       call load_dex(pmh, infieldfile, infieldname)
     case('ip')
@@ -676,7 +678,7 @@ else
       case('mff')
         call save_mff(pmh, outfieldfile, outpath)
       case('muf')
-        call error('muf field extension not implemented yet!')
+        call save_muf(pmh, outfieldfile, outpath)
       case('dex')
         call save_dex(pmh, infieldname, outfieldname, outfieldfile)
       case('ip')
