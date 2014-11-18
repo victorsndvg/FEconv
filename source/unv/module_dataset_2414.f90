@@ -359,7 +359,7 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
   ! Change fieldname with de Code Aster option
   if(ca_opt) then ! Option Code aster
     if(is_ca_field_type(string(r9))) then
-      name = get_ca_field_name(string(r9), name)
+      name = get_ca_field_name(string(r9)) !name = get_ca_field_name(string(r9), name)
     endif
   endif
 
@@ -462,7 +462,7 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
       ! Node or element number. Record14
       read (unit=iu, fmt='(4I10)', iostat = ios) n_el, iexp, n_nod_el, nval
 
-      if(nval/=0) then
+      if(nval>6) then !if(nval/=0) then
         n_nod_el = n_nod_el*(nval/6) ! Number of rows with values
       endif
 
