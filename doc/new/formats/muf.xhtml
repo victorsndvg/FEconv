@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Feconv: Finite Element conversor</title>
+  <link href="../css/structure.css" rel="stylesheet" type="text/css" />
+  <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
+  <link href="../css/menu.css" rel="stylesheet" type="text/css" />
+  <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+  <link href="../css/highlight.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="../js/btn.js"></script>
+  <script type="text/javascript" src="../js/enlargeit.js"></script>
+  <script type="text/javascript">
+        enl_ani = 0;
+        enl_brdsize = 30;
+        enl_shadow = 1;
+        enl_center = 1;
+        enl_dark = 1;
+        enl_darkprct = 30;
+        enl_drgdrop = 0;
+        enl_keynav = 1;
+        enl_wheelnav = 0;
+        enl_titlebar=0;
+  </script>
+  <script type="text/javascript" src="../js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#art").animate({opacity:'0'},0);
+      $("#art").animate({opacity:'1'},"slow");
+    });
+  </script>
+
+</head>
+
+<body onload="showbtn()">
+
+  <header>
+    <img src="../images/ico.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="muf.xhtml">MUF</a></em></p>
+  </nav>
+
+  <nav id="menu" class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="../description.xhtml">Summary</a></li>
+      <li><a href="../install.xhtml">Install</a></li>
+      <li><a href="../formats.xhtml">Formats</a></li>
+      <li><a href="../options.xhtml">Options</a></li>
+      <li><a href="../examples.xhtml">Examples</a></li>
+      <li><a href="../underconstruction.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+    <nav class="menu mnu">
+      <h2 align="center" >Users</h2>
+      <ul>
+        <li><a href="../users/login.xhtml">Login</a></li>
+        <li><a href="../users/survey.xhtml">Survey</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <section>
+
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
+      <ul>
+        <li><a href="#desc">Description</a></li>
+        <li><a href="#feat">Features supported by feconv</a></li>
+        <li><a href="#dstruc">Data sctructure</a></li>
+      </ul>
+    </nav>
+
+    <article id="art"> 
+    <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
+
+    <div id="div1">
+    <p>The MUF (Modulef Unformatted Field) is a field format associated with the <a href="mum.xhtml">MUM</a> (Modulef Unformatted Mesh).</p>
+
+    <p>This field has the same characteristics as the <a href="mff.xhtml">MFF</a> (Modulef Formatted Field) but its written in the fortran unformatted file format. This files contains binary data.</p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+
+    </article>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
+</html>
+

@@ -57,16 +57,126 @@
 
     <!-- Local section navigation menu -->
     <nav id="top" class="topics">
-      <ul>
-        <li><a href="#intro">Description</a></li>
-        <li><a href="#license">License</a></li>
-        <li><a href="#install">Installation</a></li>
-      </ul>
+    <ul>
+      <p>
+      <li><a href="#info">Mesh conversion</a>
+        <ul>
+          <li><a href="#ex1">UNV to VTU</a></li><br/>
+          <li><a href="#ex2">BDF to PF3</a></li><br/>
+          <li><a href="#ex3">MPHTXT to MFM</a></li><br/>
+          <li><a href="#ex4">MSH (Ansys) to UNV</a></li><br/>
+          <li><a href="#ex5">PF3 to MSH (Ansys)</a></li><br/>
+          <li><a href="#ex6">MFM to MSH (FreeFem++)</a></li><br/>
+          <li><a href="#ex7">MSH (FreeFem++) to MPHTXT</a></li><br/>
+          <li><a href="#ex8">MSH (GMesh) to MUM</a></li><br/>
+          <li><a href="#ex9">MESH (FreeFem++) to MUM</a></li><br/>
+        </ul>
+      </li>
+      </p>
+      <p>
+      <li><a href="#info">Load external field</a>
+        <ul>
+          <li><a href="#ex10">Load MFF field</a></li><br/>
+          <li><a href="#ex11">Load MUF field</a></li><br/>
+          <li><a href="#ex12">Load IP field</a></li><br/>
+          <li><a href="#ex13">Load DEX field</a></li><br/>
+        </ul>
+      </li>
+      </p>
+      <p>
+      <li><a href="#info">Save external field</a>
+        <ul>
+          <li><a href="#ex14">Save MFF field</a></li><br/>
+          <li><a href="#ex15">Save MUF field</a></li><br/>
+          <li><a href="#ex16">Save IP field</a></li><br/>
+          <li><a href="#ex17">Save DEX field</a></li><br/>
+        </ul>
+      </li>
+      </p>
+      <p>
+      <li><a href="#info">Change field names</a>
+        <ul>
+          <li><a href="#ex18">A single field</a></li><br/>
+          <li><a href="#ex19">Several fields</a></li><br/>
+        </ul>
+      </li>
+      </p>
+    </ul>
     </nav>
 
-    <article id="art">
+    <article id="art"> 
+
+    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Mesh conversion</h2>
+
+      <div id="div1">
+        <table class="tb" width="80%">
+          <thead>
+          </thead>
+          <tbody>
+            <tr id="ex1"><td><h4 align="left">UNV (Universal file) mesh to VTU (Visualization Toolkit) mesh</h4><code>./feconv inputmesh.unv outputmesh.vtu</code></td></tr>
+            <tr id="ex2"><td><h4 align="left">BDF (Nastran) mesh to PF3 (Cedrat Flux) mesh:</h4><code>./feconv inputmesh.bdf outputmesh.pf3</code></td></tr>
+            <tr id="ex3"><td><h4 align="left">MPHTXT (Comsol) mesh to MFM (Modulef Formatted Mesh) mesh:</h4><code>./feconv inputmesh.mphtxt outputmesh.mfm</code></td></tr>
+            <tr id="ex4"><td><h4 align="left">MSH (Ansys) mesh to UNV (Universal file) mesh:</h4><code>./feconv inputmesh.msh outputmesh.unv</code></td></tr>
+            <tr id="ex5"><td><h4 align="left">PF3 (Cedrat) mesh to MSH (Ansys) mesh:</h4><code>./feconv -r soft -t 1.e-7 inputmesh.pf3 outputmesh.msh</code></td></tr>
+            <tr id="ex6"><td><h4 align="left">MFM (Modulef Formatted File) mesh to MSH (FreeFem++) mesh:</h4><code>./feconv -ff inputmesh.mfm outputmesh.msh</code></td></tr>
+            <tr id="ex7"><td><h4 align="left">MSH (FreeFem++) mesh to MPHTXT (Comsol) mesh:</h4><code>./feconv -ff inputmesh.msh outputmesh.mphtxt</code></td></tr>
+            <tr id="ex8"><td><h4 align="left">MSH (GMesh) mesh to MUM (Modulef Unformatted Mesh) mesh:</h4><code>./feconv -gm inputmesh.msh outputmesh.mum</code></td></tr>
+            <tr id="ex9"><td><h4 align="left">MESH (FreeFeem++) mesh to MUM (Modulef Unformatted File) mesh:</h4><code>./feconv -ff inputmesh.msh outputmesh.mum</code></td></tr>
+          </tbody>
+        </table>
+
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
 
+    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Load external fields</h2>
+
+      <div id="div2">
+        <table class="tb" width="80%">
+          <thead>
+          </thead>
+          <tbody>
+            <tr id="ex10"><td><h4 align="left">Load MFF field</h4><code>./feconv.exe -if inputfield.mff inputmesh.mfm outputmesh.unv</code></td></tr>
+            <tr id="ex11"><td><h4 align="left">Load MUF field</h4><code>./feconv.exe -if inputfield.muf inputmesh.mum outputmesh.unv</code></td></tr>
+            <tr id="ex12"><td><h4 align="left">Load IP field</h4><code>./feconv.exe -if inputfield.ip inputmesh.msh outputmesh.vtu</code></td></tr>
+            <tr id="ex13"><td><h4 align="left">Load DEX field</h4><code>./feconv.exe -r soft -t 1.e-7 -if inputfield.dex inputmesh.pf3 outputmesh.vtu</code></td></tr>
+          </tbody>
+        </table>
+
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
+
+    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 2. Save external fields</h2>
+
+      <div id="div3">
+        <table class="tb" width="80%">
+          <thead>
+          </thead>
+          <tbody>
+            <tr id="ex14"><td><h4 align="left">Save MFF field</h4><code>./feconv.exe -in filename -of outputfield.mff inputmesh.vtu outputmesh.mff</code></td></tr>
+            <tr id="ex15"><td><h4 align="left">Save MUF field</h4><code>./feconv.exe -in filename -of outputfield.muf inputmesh.vtu outputmesh.muf</code></td></tr>
+            <tr id="ex16"><td><h4 align="left">Save IP field</h4><code>./feconv.exe -in filename -of outputfield.ip inputmesh.vtu outputmesh.msh</code></td></tr>
+            <tr id="ex17"><td><h4 align="left">Save DEX field</h4><code>./feconv.exe -in filename -of outputfield.dex inputmesh.vtu outputmesh.pf3</code></td></tr>
+          </tbody>
+        </table>
+
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
+
+    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 2. Change field names</h2>
+
+      <div id="div3">
+        <table class="tb" width="80%">
+          <thead>
+          </thead>
+          <tbody>
+            <tr id="ex18"><td><h4 align="left">A single field</h4><code>./feconv.exe -in infilename -on outfilename inputmesh.vtu outputmesh.unv</code></td></tr>
+            <tr id="ex19"><td><h4 align="left">Several fields</h4><code>./feconv.exe -in [fn1,fn2,fn3] -of [ofn1,ofn2,ofn3] inputmesh.vtu outputmesh.muf</code></td></tr>
+          </tbody>
+        </table>
+
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
 
     </article>
@@ -79,3 +189,5 @@
 
 </body>
 </html>
+
+

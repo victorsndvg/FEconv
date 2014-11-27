@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Feconv: Finite Element conversor</title>
+  <link href="css/structure.css" rel="stylesheet" type="text/css" />
+  <link href="css/breadcrumbs.css" rel="stylesheet" type="text/css" />
+  <link href="css/menu.css" rel="stylesheet" type="text/css" />
+  <link href="css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="js/btn.js"></script>
+  <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#art").animate({opacity:'0'},0);
+      $("#art").animate({opacity:'1'},"slow");
+    });
+  </script>
+
+</head>
+
+<body onload="showbtn()">
+
+  <header>
+    <img src="images/ico.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="index.html">Home</a>><a href="refguide.xhtml">Reference guide</a></em></p>
+  </nav>
+
+  <nav class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="description.xhtml">Summary</a></li>
+      <li><a href="install.xhtml">Install</a></li>
+      <li><a href="formats.xhtml">Formats</a></li>
+      <li><a href="options.xhtml">Options</a></li>
+      <li><a href="examples.xhtml">Examples</a></li>
+      <li><a href="underconstruction.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+    <nav class="menu mnu">
+      <h2 align="center" >Users</h2>
+      <ul>
+        <li><a href="users/login.xhtml">Login</a></li>
+        <li><a href="users/survey.xhtml">Survey</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <section>
+
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
+    <ul>
+      <p>
+      <li><a href="#info">Info</a>
+        <ul>
+          <li><a href="#help">Show help</a></li><br/>
+          <li><a href="#vers">Show version</a></li><br/>
+          <li><a href="#list">List mesh and field info</a></li><br/>
+        </ul>
+      </li>
+      </p>
+      <p>
+      <li><a href="#meshread">Mesh read</a>
+        <ul>
+          <li><a href="#jaco">Force jacobian</a></li><br/>
+          <li><a href="#reor">Reorder nodes</a></li><br/>
+          <li><a href="#tol">Define tolerance</a></li><br/>
+          <li><a href="#piece">Read a single piece</a></li><br/>
+        </ul>
+      </li>
+      </p>
+      <p>
+      <li><a href="#meshconv">Mesh transformation</a>
+        <ul>
+          <li><a href="#l1">Transform to Lagrange P1</a></li><br/>
+          <li><a href="#l2">Transform to Lagrange P2</a></li><br/>
+          <li><a href="#nd">Transform to Nêdelec</a></li><br/>
+          <li><a href="#rt">Transform to Raviart-Thomas</a></li><br/>
+          <li><a href="#rcm">Bandwidth reduction (RCM)</a></li><br/>
+          <li><a href="#es">Extract submesh</a></li><br/>
+          <li><a href="#rc">Remove a component of the coordinates</a></li><br/>
+        </ul>
+      </li>
+      </p>
+      <p>
+      <li><a href="#meshform">MSH extension</a>
+        <ul>
+          <li><a href="#ff">FreeFEM++</a></li><br/>
+          <li><a href="#gm">GMSH</a></li><br/>
+        </ul>
+      </li>
+      </p>
+      <p>
+      <li><a href="#fieldopt">Field</a>
+        <ul>
+          <li><a href="#if">Input field file</a></li><br/>
+          <li><a href="#of">Output field file</a></li><br/>
+          <li><a href="#in">Input field name</a></li><br/>
+          <li><a href="#on">Output field name</a></li><br/>
+          <li><a href="#pad">Padding value</a></li><br/>
+          <li><a href="#cn">Cell to node</a></li><br/>
+          <li><a href="#ca">Code Aster (UNV)</a></li><br/>
+        </ul>
+      </li>
+      </p>
+    </ul>
+    </nav>
+
+    <article id="art"> 
+
+    <h2 id="info"><input type="button" onclick="return toggleMe(this,'note')" class="btn" value="-"/> 0. Notation</h2>
+
+    <div id="note">
+
+    <p>In the reference guide section we give a quick aproach to the use of the different FEconv options.</p>
+
+    <p>We use <code><strong>$(FECONV)</strong></code> to refer to the FEconv executable. Note that under Windows you must use <code><strong>feconv.exe</strong></code> to launch FEconv from <strong>cmd</strong> (Command prompt). If you use any POSIX distribution (UNIX, Linux) you must call the generated executable without any extension and preceded by the path to its location, such as <code><strong>./feconv</strong></code> if you are located in the same folder as the executable, using the command-line interpreter.</p>
+
+    <p>We also use <code><strong>$(IM)</strong></code> to refer to a input mesh with a valid extension, see <a href="description.xhtml#div2"> supported input mesh extensions</a>, and <code><strong>$(OM)</strong></code> to refer to a output mesh with a valid extension, see <a href="description.xhtml#div8"> supported output mesh extensions</a>. Both can contain absolute or relative paths.</p>
+
+    <p>To refer to a file name we use <code><em>&lt;file&gt;</em></code> </p>
+
+    <p>To refer to an integer we use <code><em>&lt;n&gt;</em></code>, for several integer values we use <code><em>[&lt;n1&gt;,&lt;n1&gt;,...]</em></code> and <code><em>&lt;val&gt;</em></code> for floating point.</p>
+
+    <p>Finally, we use <code><em>&lt;name&gt;</em></code> for alphanumeric strings that identify field names.</p>
+
+    </div>
+
+    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Info</h2>
+
+      <div id="div1">
+      <p>
+      <div align="left">
+        <table class="tb" width="80%">
+          <thead>
+            <tr><th>Example</th>  <th width="30%">Summary</th>  <th>Explanation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td align="left"><code>$(FECONV) <strong>-h</strong></code></td> <td align="left" id="help">Show context help</td> <td>See <a href="options.xhtml#help">option -h</a></td></tr>
+            <tr><td align="left"><code>$(FECONV) <strong>-v</strong></code></td> <td align="left" id="vers">Show FEconv version</td> <td>See <a href="options.xhtml#vers">option -v</a></td></tr>
+            <tr><td align="left"><code>$(FECONV) <strong>-l</strong></code> $(IM)</td> <td align="left" id="list">Show mesh file content</td> <td>See <a href="options.xhtml#list">option -l</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      </p>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
+
+    <h2 id="meshread"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Mesh read</h2>
+      <div id="div2">
+      <p>
+      <div align="center">
+        <table class="tb" width="80%">
+          <thead>
+          </thead>
+          <tbody>
+            <tr>
+              <td align="left" id="jaco"><code>$(FECONV) <strong>-j</strong> <em>{yes|no}</em> $(IM) $(OM)</code></td> 
+              <td align="left">Enforce or not positive jacobian</td>
+              <td>See <a href="options.xhtml#jaco">option -j</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="reor"><code>$(FECONV) <strong>-r</strong> <em>{hard|soft|sandwich}</em> $(IM) $(OM)</code></td> 
+              <td align="left">Node reordering methods</td>
+              <td>See <a href="options.xhtml#reor">option -r</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="tol"><code>$(FECONV) <strong>-t</strong><em>&lt;tolerance&gt;</em> $(IM) $(OM)</code> </td> 
+              <td align="left">Set mesh tolerance</td>
+              <td>See <a href="options.xhtml#tol">option -t</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="piece"><code>$(FECONV) <strong>-p</strong> <em>&lt;n&gt;</em> $(IM) $(OM) </code></td> 
+              <td align="left">Read a single piece</td>
+              <td>See <a href="options.xhtml#piece">option -p</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </p>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
+
+    <h2 id="meshconv"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 3. Mesh transformation</h2>
+
+      <div id="div3">
+      <p>
+      <div align="left">
+        <table class="tb" width="80%">
+          <thead>
+            <tr><th>Example</th>  <th width="30%">Summary</th>  <th>Explanation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td align="left" id="l1"><code>$(FECONV) <strong>-l1</strong> $(IM) $(OM)</code></td>
+              <td align="left">Convert to Lagrange P1 elements</td>
+              <td>See <a href="options.xhtml#l1">option -l1</a></td>
+            </tr>
+            <tr><td align="left" id="l2"><code>$(FECONV) <strong>-l2</strong> $(IM) $(OM)</code></td>
+              <td align="left">Convert to Lagrange P2 elements</td>
+              <td>See <a href="options.xhtml#l2">option -l2</a></td>
+            </tr>
+            <tr><td align="left" id="nd"><code>$(FECONV) <strong>-nd</strong> $(IM) $(OM)</code></td>
+              <td align="left">Convert to Whitney elements</td>
+              <td>See <a href="options.xhtml#nd">option -nd</a></td>
+            </tr>
+            <tr><td align="left" id="rt"><code>$(FECONV) <strong>-rt</strong> $(IM) $(OM)</code></td>
+              <td align="left">Conver to Raviart-Thomas elements</td>
+              <td>See <a href="options.xhtml#rt">option -rt</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="rcm"><code>$(FECONV) <strong>-cm</strong> $(IM) $(OM)</code></td> 
+              <td align="left">Bandwidth optimization </td>
+              <td>See <a href="options.xhtml#rcm">option -cm</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="es"><code>$(FECONV) <strong>-es</strong> <em>&lt;n&gt;</em> $(IM) $(OM)<br/>$(FECONV) <strong>-es</strong> <em>[&lt;n1&gt;,&lt;n2&gt;,...]</em> $(IM) $(OM)</code></td> 
+              <td align="left">Extract submesh</td>
+              <td>See <a href="options.xhtml#es">option -es</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="rc"><code>$(FECONV) <strong>-rc</strong> <em>&lt;comp&gt;</em> $(IM) $(OM)</code></td> 
+              <td align="left">Remove a component of the coordinates</td>
+              <td>See <a href="options.xhtml#rc">option -rc</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </p>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
+
+    <h2 id="meshform"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/> 4. MSH extension</h2>
+
+      <div id="div4">
+      <p>
+      <div align="center">
+        <table class="tb" width="80%">
+          <thead>
+            <tr><th>Example</th>  <th width="30%">Summary</th>  <th>Explanation</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td align="left" id="ff"><code>$(FECONV) <strong>-ff</strong> $(IM) $(OM)</code></td> 
+              <td align="left">Read/Write a FreeFem++ MSH file</td>
+              <td>See <a href="options.xhtml#ff">option -ff</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="gm"><code>$(FECONV) <strong>-gm</strong> $(IM) $(OM)</code></td> 
+              <td align="left">Read a GMesh MSH file</td>
+              <td>See <a href="options.xhtml#gm">option -gm</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </p>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
+
+    <h2 id="fieldopt"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/> 5. Field</h2>
+
+      <div id="div5">
+      <p>
+      <div align="center">
+        <table class="tb" width="80%">
+          <thead>
+            <tr><th>Example</th>  <th width="30%">Summary</th>  <th>Explanation</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td align="left" id="if"><code>$(FECONV) <strong>-if</strong> <em>&lt;file&gt;</em> $(IM) $(OM)</code></td> 
+              <td align="left">Load a external field file</td>
+              <td>See <a href="options.xhtml#if">option -if</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="of"><code>$(FECONV) <strong>-of</strong> <em>&lt;file&gt;</em> $(IM) $(OM)</code></td> 
+              <td align="left">Save a external field file</td>
+              <td>See <a href="options.xhtml#of">option -of</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="in"><code>$(FECONV) <strong>-if</strong> <em>&lt;file&gt;</em> <strong>-in</strong> <em>&lt;name&gt;</em> $(IM) $(OM) <br/>$(FECONV) <strong>-in</strong> <em>[&lt;name1&gt;,&lt;name2&gt;,&lt;name3&gt;,...]</em> $(IM) $(OM)</code></td> 
+              <td align="left">Specify the field names to read</td>
+              <td>See <a href="options.xhtml#in">option -in</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="on"><code>$(FECONV) <strong>-of</strong> <em>&lt;file&gt;</em> <strong>-on</strong> <em>&lt;name&gt;</em> $(IM) $(OM)<br/>$(FECONV) <strong>-on</strong> <em>[&lt;name1&gt;,&lt;name2&gt;,...]</em> $(IM) $(OM)</code></td> 
+              <td align="left">Specify the field names to write</td>
+              <td>See <a href="options.xhtml#on">option -on</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="pad"><code>$(FECONV) <strong>-pad</strong> <em>&lt;val&gt;</em> $(IM) $(OM)</code></td> 
+              <td align="left">Set a field padding value</td>
+              <td>See <a href="options.xhtml#pad">option -pad</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="cn"><code>$(FECONV) <strong>-cn</strong> $(IM) $(OM)</code></td> 
+              <td align="left">Convert elementwise field to nodewise</td>
+              <td>See <a href="options.xhtml#cn">option -cn</a></td>
+            </tr>
+            <tr>
+              <td align="left" id="ca"><code>$(FECONV) <strong>-ca</strong> $(IM) $(OM)</code></td> 
+              <td align="left">Read UNV Code Aster fields</td>
+              <td>See <a href="options.xhtml#ca">option -ca</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </p>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
+
+
+    </article>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
+</html>
+
+

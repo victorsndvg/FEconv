@@ -174,7 +174,7 @@ subroutine save_muf(pmh, outfield, path, param)
               enddo
             endif
             iu = get_unit() 
-            open (unit=iu, file=trim(filename), form='formatted', position='rewind', iostat=ios)
+            open (unit=iu, file=trim(filename), form='unformatted', position='rewind', iostat=ios)
             if (ios /= 0) call error('save/open, #'//trim(string(ios)))
             write(unit=iu, iostat = ios) size(pmh%pc(i)%z,2)*size(pmh%pc(i)%fi(j)%val,1)
             if (ios /= 0) call error('save_muf/header, #'//trim(string(ios)))
@@ -209,7 +209,7 @@ subroutine save_muf(pmh, outfield, path, param)
               endif
               ! write pmh%pc(i)%el(j)%nel
               iu = get_unit() 
-              open (unit=iu, file=trim(filename), form='formatted', position='rewind', iostat=ios)
+              open (unit=iu, file=trim(filename), form='unformatted', position='rewind', iostat=ios)
               if (ios /= 0) call error('save_muf/open, #'//trim(string(ios)))
               write(unit=iu, iostat = ios) pmh%pc(i)%el(j)%nel*size(pmh%pc(i)%el(j)%fi(k)%val,1)
               if (ios /= 0) call error('save_muf/header, #'//trim(string(ios)))
