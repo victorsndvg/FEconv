@@ -82,6 +82,8 @@
     <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
 
     <div id="div1">
+
+    <p> Some of the information provided here has been obtained on page 95 of the Ansys Fluent User Guide (version 15.0).</p>
     <p>The IP field format is used by the software <a href="http://www.ansys.com/Products/Simulation+Technology/Fluid+Dynamics/Fluid+Dynamics+Products/ANSYS+Fluent">Ansys Fluent</a>, for fluid dynamic simulations, developed by <a href="http://www.ansys.com">Ansys</a>.</p>
 
     <p>The main features of this format are:</p>
@@ -102,12 +104,12 @@
 
     <ul>
       <li>FEconv only supports text based IP files.</li>
-      <li>FEconv can reads IP files with version 2 o 3 and writes IP files with version 3. </li>
+      <li>FEconv can reads IP files with version 2 or 3 and writes IP files with version 3. </li>
       <li>FEconv only supports fields over the whole mesh.</li>
       <li>The number of points in the IP file must agree with the number of nodes or with the number of cells.</li>
       <li>The ordering of point coordinates of the IP file must agree with the order of nodes or with the order of cells.</li>
       <li>When reading IP files, FEconv assumes that if the number of points ​​corresponds to the number of elements of the mesh, it has found a field at elements.</li>
-      <li>When writing IP files, FEconv calculates the barycenter of elements to save fields at alements.</li>
+      <li>When writing IP files, FEconv calculates the barycenter of elements to save fields at elements.</li>
     </ul>
 
 
@@ -130,7 +132,7 @@
       <li>The fourth line is the total number of field components (temperature, pressure, etc.) included.</li>
       <li>Starting at the fifth line is a list of field component names.</li>
       <li>After the field names is a section for each coordinate component x, y and (in 3D) z, for all the points.</li>
-      <li>At the end is a section for each list of the field component values at all the points in the same order as their names.</li>
+      <li>At the end there is a section for each list of component values at all the points with the same order as their names.</li>
       <li>For version 3 interpolation files, the sections are bounded by “(” and “)”.</li>
     </ul>
 
@@ -147,6 +149,28 @@
  (-0.068062
  -0.0680413
  ... 
+ )
+ (-0.076062
+ -0.0760413
+ ... 
+ )
+ (-0.050000
+ -0.0500013
+ ... 
+ )
+ (10.123412
+ 10.1235000
+ ... 
+ )
+ (0.0123412
+ 0.01235000
+ ... 
+ )
+ (100.23412
+ 100.235000
+ ... 
+ )
+
     </pre>
 
     <div class="back"><a href="#top">Back to top</a></div>
