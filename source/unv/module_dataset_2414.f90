@@ -377,7 +377,7 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
   ! Integer analysis specific data. Record7 & record8
     read (unit=iu, fmt='(8I10)', iostat = ios) r10; if (ios /= 0) call error('dataset_2414/read')
     read (unit=iu, fmt='(6E13.5)', iostat = ios) r12; if (ios /= 0) call error('dataset_2414/read')
-    nparam = r10(4)+1
+    nparam = r10(4)
     paramval = r12(1)
   endif
 

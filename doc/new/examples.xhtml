@@ -9,6 +9,7 @@
   <link href="css/breadcrumbs.css" rel="stylesheet" type="text/css" />
   <link href="css/menu.css" rel="stylesheet" type="text/css" />
   <link href="css/topics.css" rel="stylesheet" type="text/css" />
+  <link href="css/highlight.css" rel="stylesheet" type="text/css" />
 
   <script type="text/javascript" src="js/btn.js"></script>
   <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
@@ -58,70 +59,60 @@
     <!-- Local section navigation menu -->
     <nav id="top" class="topics">
     <ul>
-      <p>
-      <li><a href="#info">Mesh conversion</a>
-        <ul>
-          <li><a href="#ex1">UNV to VTU</a></li><br/>
-          <li><a href="#ex2">BDF to PF3</a></li><br/>
-          <li><a href="#ex3">MPHTXT to MFM</a></li><br/>
-          <li><a href="#ex4">MSH (Ansys) to UNV</a></li><br/>
-          <li><a href="#ex5">PF3 to MSH (Ansys)</a></li><br/>
-          <li><a href="#ex6">MFM to MSH (FreeFem++)</a></li><br/>
-          <li><a href="#ex7">MSH (FreeFem++) to MPHTXT</a></li><br/>
-          <li><a href="#ex8">MSH (GMesh) to MUM</a></li><br/>
-          <li><a href="#ex9">MESH (FreeFem++) to MUM</a></li><br/>
-        </ul>
+      <li><a href="#gs">Getting started</a>
       </li>
-      </p>
-      <p>
-      <li><a href="#info">Load external field</a>
-        <ul>
-          <li><a href="#ex10">Load MFF field</a></li><br/>
-          <li><a href="#ex11">Load MUF field</a></li><br/>
-          <li><a href="#ex12">Load IP field</a></li><br/>
-          <li><a href="#ex13">Load DEX field</a></li><br/>
-        </ul>
+      <li><a href="#mconv">Mesh conversion</a>
       </li>
-      </p>
-      <p>
-      <li><a href="#info">Save external field</a>
-        <ul>
-          <li><a href="#ex14">Save MFF field</a></li><br/>
-          <li><a href="#ex15">Save MUF field</a></li><br/>
-          <li><a href="#ex16">Save IP field</a></li><br/>
-          <li><a href="#ex17">Save DEX field</a></li><br/>
-        </ul>
+      <li><a href="#lefi">Load external field</a>
       </li>
-      </p>
-      <p>
-      <li><a href="#info">Change field names</a>
-        <ul>
-          <li><a href="#ex18">A single field</a></li><br/>
-          <li><a href="#ex19">Several fields</a></li><br/>
-        </ul>
+      <li><a href="#sefi">Save external field</a>
       </li>
-      </p>
+      <li><a href="#chfina">Change field names</a>
+      </li>
     </ul>
     </nav>
 
     <article id="art"> 
 
-    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Mesh conversion</h2>
+    <h2 id="gs"><input type="button" onclick="return toggleMe(this,'div0')" class="btn" value="-"/> 1. Getting started</h2>
+
+      <div id="div0">
+        <p>The meshes and fields needed to make all this examples are located in the examples folder at the FEconv root directory. </p>
+        <p>In this samples, the execution of FEconv is done under linux and we use <span class="hl kwa">./feconv</span> to run FEconv executable. To run FEconv executable under Windows you must use <span class="hl kwa">feconv.exe</span> call instead of the previous linux call. </p>
+
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
+
+    <h2 id="mconv"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 2. Mesh conversion</h2>
 
       <div id="div1">
-        <table class="tb" width="80%">
+        <p>This samples shows how to convert several mesh <a href="formats.xhtml">formats</a> supported by FEconv. </p>
+        <p>This formats are identified by the file extension, due to the overlap among some extensions this samples introduce the <a href="options.xhtml#ff">option -ff</a> and the <a href="options.xhtml#gm">option -gm</a>, for reading FreeFem++ and GMesh mesh files respectively. </p>
+
+        <p>The <a href="options.xhtml#reor">option -r</a> and the <a href="options.xhtml#tol">option -t</a> must be used when reading single precission <a href="formats/pf3.xhtml">PF3</a> mesh files. </p>
+
+        <table class="tb" width="100%">
           <thead>
           </thead>
           <tbody>
-            <tr id="ex1"><td><h4 align="left">UNV (Universal file) mesh to VTU (Visualization Toolkit) mesh</h4><code>./feconv inputmesh.unv outputmesh.vtu</code></td></tr>
-            <tr id="ex2"><td><h4 align="left">BDF (Nastran) mesh to PF3 (Cedrat Flux) mesh:</h4><code>./feconv inputmesh.bdf outputmesh.pf3</code></td></tr>
-            <tr id="ex3"><td><h4 align="left">MPHTXT (Comsol) mesh to MFM (Modulef Formatted Mesh) mesh:</h4><code>./feconv inputmesh.mphtxt outputmesh.mfm</code></td></tr>
-            <tr id="ex4"><td><h4 align="left">MSH (Ansys) mesh to UNV (Universal file) mesh:</h4><code>./feconv inputmesh.msh outputmesh.unv</code></td></tr>
-            <tr id="ex5"><td><h4 align="left">PF3 (Cedrat) mesh to MSH (Ansys) mesh:</h4><code>./feconv -r soft -t 1.e-7 inputmesh.pf3 outputmesh.msh</code></td></tr>
-            <tr id="ex6"><td><h4 align="left">MFM (Modulef Formatted File) mesh to MSH (FreeFem++) mesh:</h4><code>./feconv -ff inputmesh.mfm outputmesh.msh</code></td></tr>
-            <tr id="ex7"><td><h4 align="left">MSH (FreeFem++) mesh to MPHTXT (Comsol) mesh:</h4><code>./feconv -ff inputmesh.msh outputmesh.mphtxt</code></td></tr>
-            <tr id="ex8"><td><h4 align="left">MSH (GMesh) mesh to MUM (Modulef Unformatted Mesh) mesh:</h4><code>./feconv -gm inputmesh.msh outputmesh.mum</code></td></tr>
-            <tr id="ex9"><td><h4 align="left">MESH (FreeFeem++) mesh to MUM (Modulef Unformatted File) mesh:</h4><code>./feconv -ff inputmesh.msh outputmesh.mum</code></td></tr>
+            <tr id="ex1"><td><h4 align="left"><a href="formats/unv.xhtml">UNV</a> (Universal file) mesh to <a href="formats/vtk.xhtml">VTU</a> (Visualization Toolkit) mesh:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl line">examples/mesh</span>.unv <span class="hl line">output</span>.vtu</pre></td></tr>
+            <tr id="ex2"><td><h4 align="left"><a href="formats/bdf.xhtml">bdf</a> (Nastran) mesh to <a href="formats/pf3.xhtml">PF3</a> (Cedrat Flux) mesh:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl line">examples/mesh</span>.bdf <span class="hl line">output</span>.pf3</pre></td></tr>
+            <tr id="ex3"><td><h4 align="left"><a href="formats/mphtxt.xhtml">MPHTXT</a> (Comsol) mesh to <a href="formats/mfm.xhtml">MFM</a> (Modulef Formatted Mesh) mesh:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl line">examples/mesh</span>.mphtxt <span class="hl line">output</span>.mfm</pre></td></tr>
+            <tr id="ex4"><td><h4 align="left"><a href="formats/ansysmsh.xhtml">MSH</a> (Ansys) mesh to <a href="formats/unv.xhtml">UNV</a> (Universal file) mesh:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl line">examples/ansys_mesh</span>.msh <span class="hl line">output</span>.unv</pre></td></tr>
+            <tr id="ex5"><td><h4 align="left"><a href="formats/pf3.xhtml">PF3</a> (Cedrat) mesh to <a href="formats/ansysmsh.xhtml">MSH</a> (Ansys) mesh:</h4> 
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-r</span> <span class="hl kwd">soft</span> <span class="hl kwb">-t</span> <span class="hl kwd">1.e-7</span> <span class="hl line">examples/mesh</span>.pf3 <span class="hl line">output</span>.msh</pre></td></tr>
+            <tr id="ex6"><td><h4 align="left"><a href="formats/mfm.xhtml">MFM</a> (Modulef Formatted File) mesh to <a href="formats/ffmsh.xhtml">MSH</a> (FreeFem++) mesh:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/mesh</span>.mfm <span class="hl line">output</span>.msh</pre></td></tr>
+            <tr id="ex7"><td><h4 align="left"><a href="formats/ffmsh.xhtml">MSH</a> (FreeFem++) mesh to <a href="formats/mphtxt.xhtml">MPHTXT</a> (Comsol) mesh:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/freefem_mesh</span>.msh <span class="hl line">output</span>.mphtxt</pre></td></tr>
+            <tr id="ex8"><td><h4 align="left"><a href="formats/gmshmsh.xhtml">MSH</a> (GMesh) mesh to <a href="formats/mum.xhtml">MUM</a> (Modulef Unformatted Mesh) mesh:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-gm</span> <span class="hl line">examples/ansys_mesh</span>.msh <span class="hl line">output</span>.mum</pre></td></tr>
+            <tr id="ex9"><td><h4 align="left"><a href="formats/mesh.xhtml">MESH</a> (FreeFeem++) mesh to <a href="formats/mum.xhtml">MUM</a> (Modulef Unformatted File) mesh:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/mesh</span>.mesh <span class="hl line">output</span>.mum</pre></td></tr>
           </tbody>
         </table>
 
@@ -129,55 +120,100 @@
       </div>
 
 
-    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Load external fields</h2>
+    <h2 id="lefi"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 3. Load external fields</h2>
 
       <div id="div2">
-        <table class="tb" width="80%">
+
+        <p>External field files can be loaded by using <a href="options.xhtml#if">option -if</a>, this examples shows how to use this option.</p>
+        <p>This examples also use the <a href="options.xhtml#reor">option -r</a> and the <a href="options.xhtml#tol">option -t</a> for reading single precission <a href="formats/pf3.xhtml">PF3</a> mesh files. </p>
+        <table class="tb" width="100%">
           <thead>
           </thead>
           <tbody>
-            <tr id="ex10"><td><h4 align="left">Load MFF field</h4><code>./feconv.exe -if inputfield.mff inputmesh.mfm outputmesh.unv</code></td></tr>
-            <tr id="ex11"><td><h4 align="left">Load MUF field</h4><code>./feconv.exe -if inputfield.muf inputmesh.mum outputmesh.unv</code></td></tr>
-            <tr id="ex12"><td><h4 align="left">Load IP field</h4><code>./feconv.exe -if inputfield.ip inputmesh.msh outputmesh.vtu</code></td></tr>
-            <tr id="ex13"><td><h4 align="left">Load DEX field</h4><code>./feconv.exe -r soft -t 1.e-7 -if inputfield.dex inputmesh.pf3 outputmesh.vtu</code></td></tr>
+            <tr id="ex10"><td><h4 align="left">Load <a href="formats/mff.xhtml">MFF</a> field:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/nodefield1</span>.mff <span class="hl line">examples/mesh</span>.mfm <span class="hl line">output</span>.unv</pre></td></tr>
+            <tr id="ex11"><td><h4 align="left">Load <a href="formats/muf.xhtml">MUF</a> field:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/cellfield1</span>.muf <span class="hl line">examples/mesh</span>.mum <span class="hl line">output</span>.unv</pre></td></tr>
+            <tr id="ex12"><td><h4 align="left">Load <a href="formats/ip.xhtml">IP</a> field:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/cellfield1</span>.ip <span class="hl line">examples/ansys_mesh</span>.msh <span class="hl line">output</span>.vtu</pre></td></tr>
+            <tr id="ex13"><td><h4 align="left">Load <a href="formats/dex.xhtml">DEX</a> field:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-r</span> <span class="hl kwd">soft</span> <span class="hl kwb">-t</span> <span class="hl kwd">1.e-7</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/nodefield1</span>.dex <span class="hl line">examples/mesh</span>.pf3 <span class="hl line">output</span>.vtu</pre></td></tr>
           </tbody>
         </table>
 
       <div class="back"><a href="#top">Back to top</a></div>
       </div>
 
-    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 2. Save external fields</h2>
+    <h2 id="sefi"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 4. Save external fields</h2>
 
       <div id="div3">
-        <table class="tb" width="80%">
+
+        <p>The <a href="options.xhtml#of">option -of</a> allows to save external field files, you can see its behaviour in the following examples. </p>
+        <p>With the <a href="options.xhtml#in">option -in</a> user can select a single field or several fields to be readed from the source file. </p>
+        <table class="tb" width="100%">
           <thead>
           </thead>
           <tbody>
-            <tr id="ex14"><td><h4 align="left">Save MFF field</h4><code>./feconv.exe -in filename -of outputfield.mff inputmesh.vtu outputmesh.mff</code></td></tr>
-            <tr id="ex15"><td><h4 align="left">Save MUF field</h4><code>./feconv.exe -in filename -of outputfield.muf inputmesh.vtu outputmesh.muf</code></td></tr>
-            <tr id="ex16"><td><h4 align="left">Save IP field</h4><code>./feconv.exe -in filename -of outputfield.ip inputmesh.vtu outputmesh.msh</code></td></tr>
-            <tr id="ex17"><td><h4 align="left">Save DEX field</h4><code>./feconv.exe -in filename -of outputfield.dex inputmesh.vtu outputmesh.pf3</code></td></tr>
+            <tr id="ex14"><td><h4 align="left">Save <a href="formats/mfm.xhtml">MFM</a> field</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield1</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/nodefield1</span>.mff <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mff</pre></td></tr>
+            <tr id="ex15"><td><h4 align="left">Save <a href="formats/muf.xhtml">MUF</a> field</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield2</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/nodefield2</span>.muf <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.muf</pre></td></tr>
+            <tr id="ex16"><td><h4 align="left">Save <a href="formats/ip.xhtml">IP</a> field</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">cellfield1</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/cellfield1</span>.ip <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.msh</pre></td></tr>
+            <tr id="ex17"><td><h4 align="left">Save <a href="formats/dex.xhtml">DEX</a> field</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield1</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/nodefield1</span>.dex <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.pf3</pre></td></tr>
           </tbody>
         </table>
 
       <div class="back"><a href="#top">Back to top</a></div>
       </div>
 
-    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 2. Change field names</h2>
+    <h2 id="chfina"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/> 5. Change field names</h2>
 
-      <div id="div3">
-        <table class="tb" width="80%">
+      <div id="div4">
+
+        <p>By combining the <a href="options.xhtml#in">option -in</a>, for selecting input fields, with <a href="options.xhtml#on">option -on</a> user can change the field names in the destinations file.</p>
+        <table class="tb" width="100%">
           <thead>
           </thead>
           <tbody>
-            <tr id="ex18"><td><h4 align="left">A single field</h4><code>./feconv.exe -in infilename -on outfilename inputmesh.vtu outputmesh.unv</code></td></tr>
-            <tr id="ex19"><td><h4 align="left">Several fields</h4><code>./feconv.exe -in [fn1,fn2,fn3] -of [ofn1,ofn2,ofn3] inputmesh.vtu outputmesh.muf</code></td></tr>
+            <tr id="ex18"><td><h4 align="left">A single field</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield1</span> <span class="hl kwb">-on</span> <span class="hl kwd">Temp</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.unv</pre></td></tr>
+            <tr id="ex19"><td><h4 align="left">Several fields</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">[nodefield1,cellfield1]</span> <span class="hl kwb">-on</span> <span class="hl kwd">[Temp,Press]</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.unv</pre></td></tr>
           </tbody>
         </table>
 
       <div class="back"><a href="#top">Back to top</a></div>
       </div>
 
+    <h2 id="chfina"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/> 6. Mesh transform</h2>
+
+      <div id="div5">
+        <p>There are several options for mesh transformation.</p>
+        <ul>
+          <li>With <a href="options.xhtml#l1">Option -l1</a> output mesh will contain Lagrange P1 finite elements. </li>
+          <li>With <a href="options.xhtml#l2">Option -l2</a> output mesh will contain Lagrange P2 finite elements. </li>
+          <li>With <a href="options.xhtml#nd">Option -nd</a> output mesh will contain Whitney (face) finite elements. </li>
+          <li>With <a href="options.xhtml#rt">Option -rt</a> output mesh will contain Raviart-Thomas finite elements. </li>
+        </ul>
+        <table class="tb" width="100%">
+          <thead>
+          </thead>
+          <tbody>
+            <tr id="ex18"><td><h4 align="left">Transform to Lagrange P1:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-l1</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.unv</pre></td></tr>
+            <tr id="ex18"><td><h4 align="left">Transform to Lagrange P2:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-l2</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.vtu</pre></td></tr>
+            <tr id="ex18"><td><h4 align="left">Transform to Whitney (face):</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-nd</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mfm</pre></td></tr>
+            <tr id="ex18"><td><h4 align="left">Transform to Raviart-Thomas:</h4>
+              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-rt</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mfm</pre></td></tr>
+          </tbody>
+        </table>
+
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
     </article>
 
