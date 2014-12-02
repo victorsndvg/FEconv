@@ -44,14 +44,14 @@ module_dataset.f90 module_FE_DB.f90 module_groups.f90 module_patran.f90 \
 module_mesh.f90 module_mfm.f90 module_mum.f90 module_fe_database_pmh.f90 \
 module_pmh.f90 module_utils_mphtxt.f90 module_write_mphtxt.f90 \
 module_read_mphtxt.f90 module_manage_mphtxt.f90 module_mphtxt.f90 \
-module_vtu.f90 module_pvd.f90 module_mff.f90 module_dataset_2467.f90 \
-module_dataset_2414.f90 module_dataset_2412.f90 module_dataset_2411.f90 \
-module_manage_unv.f90 module_unv.f90 module_utils_msh.f90 module_read_msh.f90 \
-module_ip.f90 module_cuthill_mckee.f90 module_transform.f90 \
-module_write_msh.f90 module_manage_msh.f90 module_msh.f90 module_dex.f90 \
-module_utils_pf3.f90 module_read_pf3.f90 module_write_pf3.f90 \
-module_manage_pf3.f90 module_pf3.f90 module_freefem.f90 \
-module_fem_extract_complex.f90 module_fem_extract_real.f90 \
+module_vtu.f90 module_pvd.f90 module_muf.f90 module_mff.f90 \
+module_dataset_2467.f90 module_dataset_2414.f90 module_dataset_2412.f90 \
+module_dataset_2411.f90 module_manage_unv.f90 module_unv.f90 \
+module_utils_msh.f90 module_read_msh.f90 module_ip.f90 \
+module_cuthill_mckee.f90 module_transform.f90 module_write_msh.f90 \
+module_manage_msh.f90 module_msh.f90 module_dex.f90 module_utils_pf3.f90 \
+module_read_pf3.f90 module_write_pf3.f90 module_manage_pf3.f90 module_pf3.f90 \
+module_freefem.f90 module_fem_extract_complex.f90 module_fem_extract_real.f90 \
 module_fem_extract.f90 module_gmsh.f90 module_feconv.f90
  
 # MODULE DEPENDENCIES
@@ -130,6 +130,8 @@ LIB_VTK_IO_READ.obj module_writevtu.obj module_pmh.obj \
 module_fe_database_pmh.obj
 module_pvd.obj: module_vtu.obj module_pmh.obj module_set.obj \
 module_os_dependant.obj
+module_muf.obj: module_compiler_intel.obj module_files.obj module_convers.obj \
+module_report.obj module_pmh.obj
 module_mff.obj: module_compiler_intel.obj module_files.obj module_convers.obj \
 module_report.obj module_pmh.obj
 module_dataset_2467.obj: module_dataset.obj module_mesh.obj module_cells.obj \
@@ -194,8 +196,8 @@ module_report.obj module_convers.obj module_files.obj module_alloc.obj \
 module_args.obj module_transform.obj module_cuthill_mckee.obj module_msh.obj \
 module_unv.obj module_patran.obj module_mfm.obj module_mum.obj module_vtu.obj \
 module_pvd.obj module_mphtxt.obj module_pf3.obj module_field_database.obj \
-module_mff.obj module_freefem.obj module_pmh.obj module_fem_extract.obj \
-module_gmsh.obj module_dex.obj module_ip.obj
+module_mff.obj module_muf.obj module_freefem.obj module_pmh.obj \
+module_fem_extract.obj module_gmsh.obj module_dex.obj module_ip.obj
  
 # INCLUDES
 includes = 

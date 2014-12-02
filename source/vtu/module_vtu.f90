@@ -1109,9 +1109,9 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
         do j=1, size(cdfnames,1)
           ! Discard references
           if(lcase(cdfnames(j)) == 'element_ref' .or. lcase(cdfnames(j)) == 'face_ref' .or. &
-             lcase(cdfnames(j)) == 'edge_ref') ncdf = ncdf -1
+             lcase(cdfnames(j)) == 'edge_ref') then; ncdf = ncdf -1;cycle;endif
           if(index(lcase(cdfnames(j)),'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
-             index(lcase(cdfnames(j)), 'nra_') /= 0) ncdf = ncdf -1
+             index(lcase(cdfnames(j)), 'nra_') /= 0) then; ncdf = ncdf -1;cycle;endif
           ! if -in option is present, discard unselected fields
           if(allocated(fieldnames)) then
             ffound = .false.
