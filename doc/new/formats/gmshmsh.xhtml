@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Feconv: Finite Element conversor</title>
+  <link href="../css/structure.css" rel="stylesheet" type="text/css" />
+  <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
+  <link href="../css/menu.css" rel="stylesheet" type="text/css" />
+  <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="../js/btn.js"></script>
+  <script type="text/javascript" src="../js/enlargeit.js"></script>
+  <script type="text/javascript">
+        enl_ani = 0;
+        enl_brdsize = 30;
+        enl_shadow = 1;
+        enl_center = 1;
+        enl_dark = 1;
+        enl_darkprct = 30;
+        enl_drgdrop = 0;
+        enl_keynav = 1;
+        enl_wheelnav = 0;
+        enl_titlebar=0;
+  </script>
+  <script type="text/javascript" src="../js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#art").animate({opacity:'0'},0);
+      $("#art").animate({opacity:'1'},"slow");
+    });
+  </script>
+
+</head>
+
+<body onload="showbtn()">
+
+  <header>
+    <img src="../images/ico.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="gmshmsh.xhtml">MSH (GMsh)</a></em></p>
+  </nav>
+
+  <nav class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="../description.xhtml">Summary</a></li>
+      <li><a href="../install.xhtml">Install</a></li>
+      <li><a href="../formats.xhtml">Formats</a></li>
+      <li><a href="../options.xhtml">Options</a></li>
+      <li><a href="../examples.xhtml">Examples</a></li>
+      <li><a href="../underconstruction.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+    <nav class="menu mnu">
+      <h2 align="center" >Users</h2>
+      <ul>
+        <li><a href="../users/login.xhtml">Login</a></li>
+        <li><a href="../users/survey.xhtml">Survey</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <section>
+
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
+      <ul>
+        <li><a href="#desc">Description</a></li>
+        <li><a href="#feat">Features supported by feconv</a>
+          <ul>
+            <li><a href="#node">Node coordinates</a></li><br/>
+            <li><a href="#element">Element connectivities</a></li><br/>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+
+    <article id="art"> 
+    <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
+
+    <div id="div1">
+
+    <p>The <a href="http://geuz.org/gmsh/doc/texinfo/gmsh.html#MSH-ASCII-file-format">MSH ASCII file format</a> described at this section is the native mesh format for <a href="http://geuz.org/gmsh/">GMsh</a>, a three-dimensional finite element mesh generator.</p>
+
+    <p>The main features of this format are:</p>
+    <ul>
+      <li>It can save hybrid meshes, that is, meshes that contain a several types of finite elements.</li>
+      <li>The global indexing of nodes and elements do not have to constitute a continuous list. </li>
+      <li>The vertex coordinates and field values are defined by floats. Floats can be both of single or double precission.</li>
+    </ul>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h2 id="feat"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/>  2. Features supported by feconv</h2>
+
+    <div id="div2">
+
+    <p>FEconv only support node coordinates and element connectivities when reading. FEconv can't write GMsh MSH files.</p>
+
+    <h3 id="node"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/>  Node coordinates</h3>
+
+    <div id="div3">
+       <p>Coordinates are described inside de Nodes section, the section surrounded by <code>$Nodes</code> and <code>$EndNodes</code> tags. First line contain the number of nodes and then it contains a list of rows with an integer node number and three float coordinates.</p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+
+    <h3 id="element"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/>  Element connectivities</h3>
+
+    <div id="div4">
+       <p>Connectivities are described inside de Elements section, the section surrounded by <code>$Elements</code> and <code>$EndElements</code> tags. First line contain the number of elements and then it contains a list of rows with a list of integers with the following meaning:</p>
+
+       <ul>
+         <li>1st integer: element numbering.</li>
+         <li>2nd integer: element type.</li>
+         <li>3rd integer: number of tags.</li>
+         <li>4th integer: physical entity (Group or reference).</li>
+         <li>4th integer: elementary entity.</li>
+         <li>Next integers: several node numbers that defines connectivities.</li>
+       </ul>
+
+
+
+    <h4 id="fetypes"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/>  MSH finite element types allowed in feconv</h4>
+
+    <div id="div5">
+
+    <p>The MSH format describes a lot of different types of finite elements. In the following table you can see the finite elements allowed and its meaning in FEconv.</p>
+
+    <p>
+    <div align="center">
+    <table class="tb" width="80%">
+      <thead>
+        <tr> <th width="30%">MSH descriptor</th> <th align="left" width="30%">MSH name</th>  <th align="left" width="30%"><a href="pmh.xhtml#fe">PMH FE types</a></th> </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td> <td align="left">2-node line</td> <td align="left">Edge Lagrange P1</td> </tr>
+        <tr><td>2</td> <td align="left">3-node triangle</td> <td align="left">Triangle Lagrange P1</td> </tr>
+        <tr><td>3</td> <td align="left">4-node quadrangle</td> <td align="left">Quadrilateral Lagrange P1</td> </tr>
+        <tr><td>4</td> <td align="left">4-node tetrahedron</td> <td align="left">Tetrahedron Lagrange P1</td> </tr>
+        <tr><td>5</td> <td align="left">8-node hexahedron</td> <td align="left">Hexahedron Lagrange P1</td> </tr>
+        <tr><td>6</td> <td align="left">6-node prism</td> <td align="left">Wedge Lagrange P1</td> </tr>
+        <tr><td>8</td> <td align="left">3-node second order line</td> <td align="left">Edge Lagrange P2</td> </tr>
+        <tr><td>9</td> <td align="left">6-node second order triangle</td> <td align="left">Triangle Lagrange P2</td> </tr>
+        <tr><td>11</td> <td align="left">10-node second order tetrahedron</td> <td align="left">Tetrahedron Lagrange P2</td> </tr>
+        <tr><td>15</td> <td align="left">1-node point</td> <td align="left">Node</td> </tr>
+        <tr><td>16</td> <td align="left">8-node second order quadrangle</td> <td align="left">Quadrilateral Lagrange P2</td></tr>
+        <tr><td>17</td> <td align="left">20-node second order hexahedron</td> <td align="left">Hexahedron Lagrange P2</td> </tr>
+      </tbody>
+    </table>
+    </div>
+    </p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>    
+
+    <h4 id="vord"><input type="button" onclick="return toggleMe(this,'div6')" class="btn" value="-"/>  Local order of nodes</h4>
+
+    <div id="div6">
+
+    <p>-------------------------------------------------FALTA---------------------------------------------</p>
+    <p>The MSH <a href="http://geuz.org/gmsh/doc/texinfo/gmsh.html#Node-ordering">node ordering</a> respect the following rules:</p>
+
+
+    <p>-----------------------------------------------ORDEN UNV!------------------------------------------</p>
+
+    <p align="center"> 
+
+      <div id="fig-1" align="center"> <table class="tb2" width="80%"> <tbody>
+        <tr>
+          <td width="30%">
+            <p>a)</p>
+            <img  src="../images/unv/edgep1_ord.png" width="30%" onclick="enlarge(this);" longdesc="../images/unv/edgep1_ord.png"/>
+            <p><span class="caption" align="center"> Edge Lagrange P1.</span></p>
+          </td>
+          <td width="30%">
+            <p>b)</p>
+            <img src="../images/unv/triap1_ord.png" width="65%" onclick="enlarge(this);" longdesc="../images/unv/triap1_ord.png"/> 
+            <p><span class="caption" align="center"> Triangle Lagrange P1.</span></p>
+          </td>
+          <td width="30%">
+            <p>c)</p>
+            <img src="../images/unv/quadp1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/quadp1_ord.png"/>
+            <p><span class="caption" align="center"> Quadrilateral Lagrange P1.</span></p>
+          </td>
+        </tr>
+        <tr>
+          <td width="30%">
+            <p>d)</p>
+            <img src="../images/unv/tetrap1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/tetrap1_ord.png"/>
+            <p><span class="caption" align="center"> Tetrahedron Lagrange P1.</span></p>
+          </td>
+          <td>
+            <p>e)</p>
+            <img src="../images/unv/hexap1_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/unv/hexap1_ord.png"/>
+            <p><span class="caption" align="center"> Hexahedron Lagrange P1.</span></p>
+          </td>
+          <td>
+            <p>f)</p>
+            <img src="../images/unv/pentap1_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/pentap1_ord.png"/>
+            <p><span class="caption" align="center"> Pentahedron Lagrange P1.</span></p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <p>g)</p>
+            <img src="../images/unv/edgep2_ord.png" width="30%" onclick="enlarge(this);" longdesc="../images/unv/edgep2_ord.png"/>
+            <p><span class="caption" align="center"> Edge Lagrange P2.</span></p>
+          </td>
+          <td>
+            <p>h)</p>
+            <img src="../images/unv/triap2_ord.png" width="65%" onclick="enlarge(this);" longdesc="../images/unv/triap2_ord.png"/>
+            <p><span class="caption" align="center"> Triangle Lagrange P2.</span></p>
+          </td>
+          <td>
+            <p>i)</p>
+            <img src="../images/unv/quadp2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/quadp2_ord.png"/>
+            <p><span class="caption" align="center"> Quadrilateral Lagrange P2.</span></p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <p>j)</p>
+            <img src="../images/unv/tetrap2_ord.png" width="50%" onclick="enlarge(this);" longdesc="../images/unv/tetrap2_ord.png"/>
+            <p><span class="caption" align="center"> Tetrahedron Lagrange P2.</span></p>
+          </td>
+          <td>
+            <p>k)</p>
+            <img src="../images/unv/hexap2_ord.png" width="60%" onclick="enlarge(this);" longdesc="../images/unv/hexap2_ord.png"/>
+            <p><span class="caption" align="center"> Hexahedron Lagrange P2.</span></p>
+          </td>
+        </tr>
+      </tbody> </table>
+      <table class="tb" width="80%"> <tbody>
+        <tr><span class="caption"><p><strong>Figure 1:</strong> Local order of nodes on MSH elements.</p></span></tr>
+      </tbody> </table> </div>
+    </p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    </div>
+    </div>
+
+    </div>
+
+    <h2 id="dstruc"><input type="button" onclick="return toggleMe(this,'div7')" class="btn" value="-"/> 3. Data structure</h2>
+
+    <div id="div7">
+    <p>Following you can see an example of GMsh MSH file supported by FEconv:</p>
+
+    <pre class="highlight">
+  $MeshFormat
+  2.2 0 8
+  $EndMeshFormat
+  $Nodes
+  6                      six mesh nodes:
+  1 0.0 0.0 0.0            node #1: coordinates (0.0, 0.0, 0.0)
+  2 1.0 0.0 0.0            node #2: coordinates (1.0, 0.0, 0.0)
+  ...
+  $EndNodes
+  $Elements
+  2                      two elements:
+  1 3 2 99 2 1 2 3 4       quad #1: type 3, physical 99, elementary 2, nodes 1 2 3 4
+  2 3 2 99 2 2 5 6 3       quad #2: type 3, physical 99, elementary 2, nodes 2 5 6 3
+  ...
+  $EndElements 
+    </pre>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+
+    </article>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
+</html>
+
