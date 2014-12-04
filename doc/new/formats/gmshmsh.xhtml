@@ -106,7 +106,7 @@
     <h3 id="node"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/>  Node coordinates</h3>
 
     <div id="div3">
-       <p>Coordinates are described inside de Nodes section, the section surrounded by <code>$Nodes</code> and <code>$EndNodes</code> tags. First line contain the number of nodes and then it contains a list of rows with an integer node number and three float coordinates.</p>
+       <p>Coordinates are described inside de Nodes section, the section surrounded by the <code>$Nodes</code> and <code>$EndNodes</code> tags. the First line contains the number of nodes, the rest of lines contains the integer node number and its correspondent 3 float coordinates.</p>
 
     <div class="back"><a href="#top">Back to top</a></div>
     </div>
@@ -115,14 +115,14 @@
     <h3 id="element"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/>  Element connectivities</h3>
 
     <div id="div4">
-       <p>Connectivities are described inside de Elements section, the section surrounded by <code>$Elements</code> and <code>$EndElements</code> tags. First line contain the number of elements and then it contains a list of rows with a list of integers with the following meaning:</p>
+       <p>Connectivities are described inside de Elements section, the section surrounded by the<code>$Elements</code> and <code>$EndElements</code> tags. The First line contains the number of elements, the rest of lines contains several integers with the following meaning:</p>
 
        <ul>
          <li>1st integer: element numbering.</li>
          <li>2nd integer: element type.</li>
          <li>3rd integer: number of tags.</li>
-         <li>4th integer: physical entity (Group or reference).</li>
-         <li>4th integer: elementary entity.</li>
+         <li>4th integer: physical entity. FEconv use this number to create <a href="../pmh.xhtml">PMH</a> element groups.</li>
+         <li>5th integer: elementary entity.</li>
          <li>Next integers: several node numbers that defines connectivities.</li>
        </ul>
 
@@ -253,7 +253,7 @@
     <h2 id="dstruc"><input type="button" onclick="return toggleMe(this,'div7')" class="btn" value="-"/> 3. Data structure</h2>
 
     <div id="div7">
-    <p>Following you can see an example of GMsh MSH file supported by FEconv:</p>
+    <p>Here you can see an example of GMsh MSH file supported by FEconv:</p>
 
     <pre class="highlight">
   $MeshFormat

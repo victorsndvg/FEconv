@@ -565,41 +565,43 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
       enddo
     endif
 
-    do j=1, size(pc%fi,1)
-      if(allocated(outfield)) then
-        if(allocated(infield)) then
-          do k=1,size(infield,1)
-            if(trim(pc%fi(j)%name) == infield(k)) fieldname = outfield(k)
-          enddo
-        elseif(size(outfield,1) == get_piece_num_fields(pc)) then
-          fieldname = outfield(k)
+    if(allocated(pc%fi)) then
+      do j=1, size(pc%fi,1)
+        if(allocated(outfield)) then
+          if(allocated(infield)) then
+            do k=1,size(infield,1)
+              if(trim(pc%fi(j)%name) == infield(k)) fieldname = outfield(k)
+            enddo
+          elseif(size(outfield,1) == get_piece_num_fields(pc)) then
+            fieldname = outfield(k)
+          else
+            call error('Number of field names must agree with the number of fields.')
+          endif
         else
-          call error('Number of field names must agree with the number of fields.')
+         fieldname = trim(pc%fi(j)%name)
         endif
-      else
-       fieldname = trim(pc%fi(j)%name)
-      endif
-      call info('    Writing node field: '//trim(fieldname))
-      if(size(pc%fi(j)%val,1) == 1) then
-        if (vtk_var_xml(nnod, trim(fieldname), pc%fi(j)%val(1,1:nnod,np)) /= 0) &
-          call error('Writing '//trim(fieldname))
-      elseif(size(pc%fi(j)%val,1) == 2) then      
-        if (vtk_var_xml(nnod, trim(fieldname), &
-          pc%fi(j)%val(1,1:nnod,np), pc%fi(j)%val(2,1:nnod,np), (/(real(0,R8P),i=1,nnod)/)) /= 0) &
-          call error('Writing '//trim(fieldname))
-      elseif(size(pc%fi(j)%val,1) == 3) then      
-        if (vtk_var_xml(nnod, trim(fieldname), &
-          real(pc%fi(j)%val(1,1:nnod,np),R8P), real(pc%fi(j)%val(2,1:nnod,np),R8P), &
-          real(pc%fi(j)%val(3,1:nnod,np),R8P)) /= 0) call error('Writing '//fieldname)
-      else
-!        call info('      Vector field with '// &
-!          & trim(string(size(pc%fi(j)%val,1)))//' components not supported. Skipped!')
-        if( vtk_var_xml(nnod,size(pc%fi(j)%val,1),trim(fieldname),&
-          & reshape(transpose(pc%fi(j)%val(:,1:nnod,np)),(/nnod, size(pc%fi(j)%val,1)/)) ) /= 0) &
+        call info('    Writing node field: '//trim(fieldname))
+        if(size(pc%fi(j)%val,1) == 1) then
+          if (vtk_var_xml(nnod, trim(fieldname), pc%fi(j)%val(1,1:nnod,np)) /= 0) &
+            call error('Writing '//trim(fieldname))
+        elseif(size(pc%fi(j)%val,1) == 2) then      
+          if (vtk_var_xml(nnod, trim(fieldname), &
+            pc%fi(j)%val(1,1:nnod,np), pc%fi(j)%val(2,1:nnod,np), (/(real(0,R8P),i=1,nnod)/)) /= 0) &
+            call error('Writing '//trim(fieldname))
+        elseif(size(pc%fi(j)%val,1) == 3) then      
+          if (vtk_var_xml(nnod, trim(fieldname), &
+            real(pc%fi(j)%val(1,1:nnod,np),R8P), real(pc%fi(j)%val(2,1:nnod,np),R8P), &
+            real(pc%fi(j)%val(3,1:nnod,np),R8P)) /= 0) call error('Writing '//fieldname)
+        else
+  !        call info('      Vector field with '// &
+  !          & trim(string(size(pc%fi(j)%val,1)))//' components not supported. Skipped!')
+          if( vtk_var_xml(nnod,size(pc%fi(j)%val,1),trim(fieldname),&
+            & reshape(transpose(pc%fi(j)%val(:,1:nnod,np)),(/nnod, size(pc%fi(j)%val,1)/)) ) /= 0) &
             & call error('Writing '//fieldname)
-      endif
-      if(present(param)) param = pc%fi(j)%param(np)
-    enddo
+        endif
+        if(present(param)) param = pc%fi(j)%param(np)
+      enddo
+    endif
 
     call VTU_end_pointdata()
 

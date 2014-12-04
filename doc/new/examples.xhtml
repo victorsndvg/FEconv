@@ -78,7 +78,6 @@
 
       <div id="div0">
         <p>The meshes and fields needed to make all this examples are located in the examples folder at the FEconv root directory. </p>
-        <p>In this samples, the execution of FEconv is done under linux and we use <span class="hl kwa">./feconv</span> to run FEconv executable. To run FEconv executable under Windows you must use <span class="hl kwa">feconv.exe</span> call instead of the previous linux call. </p>
 
       <div class="back"><a href="#top">Back to top</a></div>
       </div>
@@ -96,23 +95,23 @@
           </thead>
           <tbody>
             <tr id="ex1"><td><h4 align="left"><a href="formats/unv.xhtml">UNV</a> (Universal file) mesh to <a href="formats/vtk.xhtml">VTU</a> (Visualization Toolkit) mesh:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl line">examples/mesh</span>.unv <span class="hl line">output</span>.vtu</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl line">examples/mesh</span>.unv <span class="hl line">output</span>.vtu</pre></td></tr>
             <tr id="ex2"><td><h4 align="left"><a href="formats/bdf.xhtml">bdf</a> (Nastran) mesh to <a href="formats/pf3.xhtml">PF3</a> (Cedrat Flux) mesh:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl line">examples/mesh</span>.bdf <span class="hl line">output</span>.pf3</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl line">examples/mesh</span>.bdf <span class="hl line">output</span>.pf3</pre></td></tr>
             <tr id="ex3"><td><h4 align="left"><a href="formats/mphtxt.xhtml">MPHTXT</a> (Comsol) mesh to <a href="formats/mfm.xhtml">MFM</a> (Modulef Formatted Mesh) mesh:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl line">examples/mesh</span>.mphtxt <span class="hl line">output</span>.mfm</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl line">examples/mesh</span>.mphtxt <span class="hl line">output</span>.mfm</pre></td></tr>
             <tr id="ex4"><td><h4 align="left"><a href="formats/ansysmsh.xhtml">MSH</a> (Ansys) mesh to <a href="formats/unv.xhtml">UNV</a> (Universal file) mesh:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl line">examples/ansys_mesh</span>.msh <span class="hl line">output</span>.unv</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl line">examples/ansys_mesh</span>.msh <span class="hl line">output</span>.unv</pre></td></tr>
             <tr id="ex5"><td><h4 align="left"><a href="formats/pf3.xhtml">PF3</a> (Cedrat) mesh to <a href="formats/ansysmsh.xhtml">MSH</a> (Ansys) mesh:</h4> 
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-r</span> <span class="hl kwd">soft</span> <span class="hl kwb">-t</span> <span class="hl kwd">1.e-7</span> <span class="hl line">examples/mesh</span>.pf3 <span class="hl line">output</span>.msh</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-r</span> <span class="hl kwd">soft</span> <span class="hl kwb">-t</span> <span class="hl kwd">1.e-7</span> <span class="hl line">examples/mesh</span>.pf3 <span class="hl line">output</span>.msh</pre></td></tr>
             <tr id="ex6"><td><h4 align="left"><a href="formats/mfm.xhtml">MFM</a> (Modulef Formatted File) mesh to <a href="formats/ffmsh.xhtml">MSH</a> (FreeFem++) mesh:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/mesh</span>.mfm <span class="hl line">output</span>.msh</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/mesh</span>.mfm <span class="hl line">output</span>.msh</pre></td></tr>
             <tr id="ex7"><td><h4 align="left"><a href="formats/ffmsh.xhtml">MSH</a> (FreeFem++) mesh to <a href="formats/mphtxt.xhtml">MPHTXT</a> (Comsol) mesh:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/freefem_mesh</span>.msh <span class="hl line">output</span>.mphtxt</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/freefem_mesh</span>.msh <span class="hl line">output</span>.mphtxt</pre></td></tr>
             <tr id="ex8"><td><h4 align="left"><a href="formats/gmshmsh.xhtml">MSH</a> (GMesh) mesh to <a href="formats/mum.xhtml">MUM</a> (Modulef Unformatted Mesh) mesh:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-gm</span> <span class="hl line">examples/ansys_mesh</span>.msh <span class="hl line">output</span>.mum</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-gm</span> <span class="hl line">examples/ansys_mesh</span>.msh <span class="hl line">output</span>.mum</pre></td></tr>
             <tr id="ex9"><td><h4 align="left"><a href="formats/mesh.xhtml">MESH</a> (FreeFeem++) mesh to <a href="formats/mum.xhtml">MUM</a> (Modulef Unformatted File) mesh:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/mesh</span>.mesh <span class="hl line">output</span>.mum</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/mesh</span>.mesh <span class="hl line">output</span>.mum</pre></td></tr>
           </tbody>
         </table>
 
@@ -131,13 +130,13 @@
           </thead>
           <tbody>
             <tr id="ex10"><td><h4 align="left">Load <a href="formats/mff.xhtml">MFF</a> field:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/nodefield1</span>.mff <span class="hl line">examples/mesh</span>.mfm <span class="hl line">output</span>.unv</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/nodefield1</span>.mff <span class="hl line">examples/mesh</span>.mfm <span class="hl line">output</span>.unv</pre></td></tr>
             <tr id="ex11"><td><h4 align="left">Load <a href="formats/muf.xhtml">MUF</a> field:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/cellfield1</span>.muf <span class="hl line">examples/mesh</span>.mum <span class="hl line">output</span>.unv</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/cellfield1</span>.muf <span class="hl line">examples/mesh</span>.mum <span class="hl line">output</span>.unv</pre></td></tr>
             <tr id="ex12"><td><h4 align="left">Load <a href="formats/ip.xhtml">IP</a> field:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/cellfield1</span>.ip <span class="hl line">examples/ansys_mesh</span>.msh <span class="hl line">output</span>.vtu</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/cellfield1</span>.ip <span class="hl line">examples/ansys_mesh</span>.msh <span class="hl line">output</span>.vtu</pre></td></tr>
             <tr id="ex13"><td><h4 align="left">Load <a href="formats/dex.xhtml">DEX</a> field:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-r</span> <span class="hl kwd">soft</span> <span class="hl kwb">-t</span> <span class="hl kwd">1.e-7</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/nodefield1</span>.dex <span class="hl line">examples/mesh</span>.pf3 <span class="hl line">output</span>.vtu</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-r</span> <span class="hl kwd">soft</span> <span class="hl kwb">-t</span> <span class="hl kwd">1.e-7</span> <span class="hl kwb">-if</span> <span class="hl line">examples/field/nodefield1</span>.dex <span class="hl line">examples/mesh</span>.pf3 <span class="hl line">output</span>.vtu</pre></td></tr>
           </tbody>
         </table>
 
@@ -155,13 +154,13 @@
           </thead>
           <tbody>
             <tr id="ex14"><td><h4 align="left">Save <a href="formats/mfm.xhtml">MFM</a> field</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield1</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/nodefield1</span>.mff <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mff</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield1</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/nodefield1</span>.mff <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mff</pre></td></tr>
             <tr id="ex15"><td><h4 align="left">Save <a href="formats/muf.xhtml">MUF</a> field</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield2</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/nodefield2</span>.muf <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.muf</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield2</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/nodefield2</span>.muf <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.muf</pre></td></tr>
             <tr id="ex16"><td><h4 align="left">Save <a href="formats/ip.xhtml">IP</a> field</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">cellfield1</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/cellfield1</span>.ip <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.msh</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">cellfield1</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/cellfield1</span>.ip <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.msh</pre></td></tr>
             <tr id="ex17"><td><h4 align="left">Save <a href="formats/dex.xhtml">DEX</a> field</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield1</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/nodefield1</span>.dex <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.pf3</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield1</span> <span class="hl kwb">-of</span> <span class="hl line">examples/field/nodefield1</span>.dex <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.pf3</pre></td></tr>
           </tbody>
         </table>
 
@@ -178,9 +177,9 @@
           </thead>
           <tbody>
             <tr id="ex18"><td><h4 align="left">A single field</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield1</span> <span class="hl kwb">-on</span> <span class="hl kwd">Temp</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.unv</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">nodefield1</span> <span class="hl kwb">-on</span> <span class="hl kwd">Temp</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.unv</pre></td></tr>
             <tr id="ex19"><td><h4 align="left">Several fields</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">[nodefield1,cellfield1]</span> <span class="hl kwb">-on</span> <span class="hl kwd">[Temp,Press]</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.unv</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-in</span> <span class="hl kwd">[nodefield1,cellfield1]</span> <span class="hl kwb">-on</span> <span class="hl kwd">[Temp,Press]</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.unv</pre></td></tr>
           </tbody>
         </table>
 
@@ -202,13 +201,13 @@
           </thead>
           <tbody>
             <tr id="ex18"><td><h4 align="left">Transform to Lagrange P1:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-l1</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.unv</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-l1</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.unv</pre></td></tr>
             <tr id="ex18"><td><h4 align="left">Transform to Lagrange P2:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-l2</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.vtu</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-l2</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.vtu</pre></td></tr>
             <tr id="ex18"><td><h4 align="left">Transform to Whitney (face):</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-nd</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mfm</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-nd</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mfm</pre></td></tr>
             <tr id="ex18"><td><h4 align="left">Transform to Raviart-Thomas:</h4>
-              <pre><span class="hl kwa">./feconv</span> <span class="hl kwb">-rt</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mfm</pre></td></tr>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-rt</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mfm</pre></td></tr>
           </tbody>
         </table>
 
