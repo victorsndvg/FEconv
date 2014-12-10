@@ -287,17 +287,25 @@ subroutine check_interface_names(izones)
   integer                       :: i, j, count
 
   if(allocated(izones%names)) then
+    call info('Checking mesh references')
     do i=1,size(izones%names,1)
       count = 0
-      if(trim(izones%types(i))/='interior') cycle
+      if(trim(izones%types(i))=='interior') then
       do j=1,size(izones%names,1)
         if(i == j .or. count>1) cycle
         if(index(trim(izones%names(i)),trim(izones%names(j))) > 0) count = count + 1
         if(count>1) then
+          print*, 'Reference '//trim(string(izones%id(i)))//' ('//trim(izones%types(i))//&
+            ') named "'//trim(izones%names(i))//'"'
           izones%id(i) = 0
-          print*, 'Found contact surface: '//trim(izones%names(i))
         endif
       enddo
+!      if(izones%id(i) /= 0) print*, 'Zone '//trim(string(izones%id(i)))//' named "'//& 
+!         trim(izones%names(i))//'" of type '//trim(izones%types(i)) 
+      else
+        print*, 'Reference '//trim(string(izones%id(i)))//' ('//trim(izones%types(i))//&
+          ') named "'//trim(izones%names(i))//'"'
+      endif
     enddo
   endif
 
@@ -472,7 +480,7 @@ subroutine build_cells(faces,cells, pmh)
       if(size(pmh%pc(1)%el,1)<group) then
         call extend_elgroup(pmh%pc(1)%el,group)
         numcell = 0
-        print*, 'Building high order elements group : '//trim(FEDB(ct)%desc)
+        call info('Building high order elements group : '//trim(FEDB(ct)%desc))
       endif
       if(pmh%pc(1)%el(group)%type == 0) pmh%pc(1)%el(group)%type = ct
 
@@ -583,7 +591,10 @@ subroutine build_cells(faces,cells, pmh)
             else
               call set(pmh%pc(1)%el(group)%mm,faces%mm(i)%data(mod(posinsubcell(2)+2,4)+1),face(aux4),numcell)
             endif
-print*, numcell,'-', trim(string(pmh%pc(1)%el(group)%mm(:,numcell)))
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Checking wedges orientation
+!print*, numcell,'-', trim(string(pmh%pc(1)%el(group)%mm(:,numcell)))
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             nodesadded(ac) = nodesadded(ac) + snn
           endif
         !!!!!!!!!!!!!!!!!!!!!!!!!
