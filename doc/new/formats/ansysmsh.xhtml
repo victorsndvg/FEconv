@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Feconv: Finite Element conversor</title>
+  <link href="../css/structure.css" rel="stylesheet" type="text/css" />
+  <link href="../css/breadcrumbs.css" rel="stylesheet" type="text/css" />
+  <link href="../css/menu.css" rel="stylesheet" type="text/css" />
+  <link href="../css/topics.css" rel="stylesheet" type="text/css" />
+  <link href="../css/highlight.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript" src="../js/btn.js"></script>
+  <script type="text/javascript" src="../js/enlargeit.js"></script>
+  <script type="text/javascript">
+        enl_ani = 0;
+        enl_brdsize = 30;
+        enl_shadow = 1;
+        enl_center = 1;
+        enl_dark = 1;
+        enl_darkprct = 30;
+        enl_drgdrop = 0;
+        enl_keynav = 1;
+        enl_wheelnav = 0;
+        enl_titlebar=0;
+  </script>
+  <script type="text/javascript" src="../js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#art").animate({opacity:'0'},0);
+      $("#art").animate({opacity:'1'},"slow");
+    });
+  </script>
+
+</head>
+
+<body onload="showbtn()">
+
+  <header>
+    <img src="../images/ico.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="ansysmsh.xhtml">MSH (Ansys)</a></em></p>
+  </nav>
+
+  <nav class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="../description.xhtml">Summary</a></li>
+      <li><a href="../install.xhtml">Install</a></li>
+      <li><a href="../formats.xhtml">Formats</a></li>
+      <li><a href="../options.xhtml">Options</a></li>
+      <li><a href="../examples.xhtml">Examples</a></li>
+      <li><a href="../underconstruction.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+    <nav class="menu mnu">
+      <h2 align="center" >Users</h2>
+      <ul>
+        <li><a href="../users/login.xhtml">Login</a></li>
+        <li><a href="../users/survey.xhtml">Survey</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <section>
+
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
+      <ul>
+        <li><a href="#desc">Description</a></li>
+        <li><a href="#feat">Features supported by feconv</a>
+          <ul>
+            <li><a href="#node">Finite element types</a></li><br/>
+            <li><a href="#element">Cells</a></li><br/>
+            <li><a href="#group">Group datasets</a></li><br/>
+            <li><a href="#fields">Field datasets</a></li><br/>
+          </ul>
+        </li>
+        <li><a href="#fstruc">File structure</a>
+          <ul>
+            <li><a href="#comm">Comments</a></li><br/>
+            <li><a href="#head">Header</a></li><br/>
+            <li><a href="#dim">Dimensions</a></li><br/>
+            <li><a href="#node">Nodes</a></li><br/>
+            <li><a href="#cell">Cells</a></li><br/>
+            <li><a href="#face">Faces</a></li><br/>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+
+    <article id="art"> 
+    <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
+
+    <div id="div1">
+
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h2 id="feat"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/>  2. Features supported by feconv</h2>
+
+    <div id="div2">
+
+    <h3 id="node"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/>  Node datasets</h3>
+
+    <div id="div3">
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="fetypes"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/>  MSH finite element types allowed in feconv</h3>
+
+    <div id="div5">
+
+    <p>The MSH (Ansys) format describes a lot of different types of finite elements. The elements may have different descriptors, the meaning of these descriptors changes if these elements are in a cells section or in a faces section.</p>
+
+    <p>In the following table you can see the finite elements allowed in a Faces section and its meaning in FEconv.</p>
+    <p>
+    <div align="center">
+    <table class="tb" width="80%">
+      <thead>
+        <tr> <th width="30%">MSH face descriptor</th> <th align="left" width="30%">MSH face name</th>  <th align="left" width="30%"><a href="pmh.txt">PMH</a> FE type</th> </tr>
+      </thead>
+      <tbody>
+        <tr><td>0</td> <td align="left">Mixed</td> <td align="left">-</td> </tr>
+        <tr><td>2</td> <td align="left">Linear</td> <td align="left">Triangle Lagrange P1</td> </tr>
+        <tr><td>3</td> <td align="left">Triangular</td> <td align="left">Tetrahedron Lagrange P1</td> </tr>
+        <tr><td>4</td> <td align="left">Quadrilateral</td> <td align="left">Quadrilateral Lagrange P1</td> </tr>
+      </tbody>
+    </table>
+    </div>
+    </p>
+
+    <p>In the following table you can see the finite elements allowed in a Cell section and its meaning in FEconv.</p>
+    <p>
+    <div align="center">
+    <table class="tb" width="80%">
+      <thead>
+        <tr> <th width="30%">MSH cell descriptor</th> <th align="left" width="30%">MSH cell name</th>  <th align="left" width="30%"><a href="pmh.txt">PMH</a> FE type</th> </tr>
+      </thead>
+      <tbody>
+        <tr><td>0</td> <td align="left">Mixed</td> <td align="left">-</td> </tr>
+        <tr><td>1</td> <td align="left">Triangular</td> <td align="left">Triangle Lagrange P1</td> </tr>
+        <tr><td>2</td> <td align="left">Tetrahedral</td> <td align="left">Tetrahedron Lagrange P1</td> </tr>
+        <tr><td>3</td> <td align="left">Quadrilateral</td> <td align="left">Quadrilateral Lagrange P1</td> </tr>
+        <tr><td>4</td> <td align="left">Hexahedral</td> <td align="left">Hexahedron Lagrange P1</td> </tr>
+        <tr><td>6</td> <td align="left">Wedge</td> <td align="left">Wedge Lagrange P1</td> </tr>
+      </tbody>
+    </table>
+    </div>
+    </p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>    
+
+    <h3 id="vord"><input type="button" onclick="return toggleMe(this,'div6')" class="btn" value="-"/>  Local order of nodes</h3>
+
+    <div id="div6">
+
+    <p>The local order of nodes in each element respect the following rules:</p>
+
+
+    <div class="back"><a href="#top">Back to top</a></div>
+
+    </div>
+    </div>
+
+    <h2 id="fstruc"><input type="button" onclick="return toggleMe(this,'div10')" class="btn" value="-"/>  3. File structure</h2>
+
+    <div id="div10">
+
+      <p>Here you can see the description of the supported sections of the MSH (Ansys) grid file. A grid file is a subset of a case file, containing only those sections pertaining to the grid.</p>
+      <p>These file are broken into several sections depending on the following guidelines:</p>
+      <ul>
+        <li>Each section is enclosed in parentheses and begins with an decimal integer indicating its type</li>
+        <li>All groups of items are encosed in parentheses.</li>
+        <li>Header information for lists of items is enclosed in separate sets of parentheses, preceding the items, which are in their own parentheses</li>
+      </ul>
+
+    <h3 id="comm"><input type="button" onclick="return toggleMe(this,'div11')" class="btn" value="-"/>  Comments</h3>
+    <div id="div11">
+      <p>Comment sections can appear anywhere in the file. Its recommended that each long section be preceded by a comment section explaining what is to follow.</p>
+      <p>The ID number for identifing a comment section is 0 (zero). A comment appear as:</p>
+      <pre class="highlight">  (0 "comment text")</pre>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="dim"><input type="button" onclick="return toggleMe(this,'div12')" class="btn" value="-"/>  Dimensions</h3>
+    <div id="div12">
+      <p>Header sections appear anywhere in the file (except within other sections). Its is typically on the first sections in the file and is for informational purposes only.</p>
+      <p>The ID number for identifing the header section is 1.It appears as:</p>
+      <pre class="highlight">  (1 "FEconv ND 0.9.1")</pre>
+      <p>Where <code>N</code> is 2 or 3 depending on the dimension of the mesh.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="head"><input type="button" onclick="return toggleMe(this,'div13')" class="btn" value="-"/>  Header</h3>
+    <div id="div13">
+      <p>The ID number for identifing a dimensions section is 2. The dimensions of the grid is expressed as:</p>
+      <pre class="highlight">  (2 ND)</pre>
+      <p>Where <code>N</code> is 2 or 3 depending on the dimension of the mesh.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="node"><input type="button" onclick="return toggleMe(this,'div14')" class="btn" value="-"/>  Nodes</h3>
+    <div id="div14">
+      <p>The ID number for identifing a node section is 10. A MSH (Ansys) mesh can contain several node sections.</p>
+      <p>A node section appears as:</p>
+      <pre class="highlight"> (10 (zone-id first-index last-index type ND) (
+  x1 y1 z1
+  x2 y2 z2
+  ...
+  ))</pre>
+      <p>If <code>zone-id</code> is zero, it provides the total number of nodes in the grid. In such case, <code>first-index</code> will be one, <code>last-index</code> will be the total number of nodes in hexadecimal, <code>type</code> is meaningless, <code>ND</code> is the dimension of the grid and there are no coordinates following.</p>
+      <p>If <code>zone-id</code> is greater than zero, <code>first-index</code> and <code>last-index</code> are the indices of the nodes in the zone in hexadecimal, <code>ND</code> is an optional argument that indicates the dimension, where <code>ND</code> is 2 or 3. <code>type</code> can be 0 for virtual nodes, 1 for any type and 2 for boundary nodes.</p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="cell"><input type="button" onclick="return toggleMe(this,'div15')" class="btn" value="-"/>  Cells</h3>
+    <div id="div15">
+      <p>The ID number for identifing a cell section is 12. A MSH (Ansys) mesh can contain several cell sections.</p>
+      <p>A cell section appears as:</p>
+      <pre class="highlight"> (12 (zone-id first-index last-index type element-type))</pre>
+      <p>If <code>zone-id</code> is zero, it provides the total number of cells in the grid. If <code>last-index</code> is zero, then there are no cells in the grid, this is useful when the file contains only a surface mesh. The other data are ignored in this case.</p>
+      <p>Regular cell sections have no body, but they have a header of the same format where first-index and last-index indicate the range for the particular zone, type indicates whether the cell zone is an active zone (solid or fluid), or inactive zone. Active zones are represented with type=1, while inactive zones are represented with type=32.</p>
+      <p>If a zone is of mixed type it will have a body that lists the element type of each cell, as you can see in the following example:</p>
+      <pre class="highlight"> (12 ( 9 1 3d 0 0) (
+  1 1 1 3 3 1 1 3 1
+  ...
+  ))</pre>
+      <p>This example cell section is identified as zone 9 and has 61 cells (3d in hexadecimal), 3 triangles, 2 quadrilaterals, etc.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="face"><input type="button" onclick="return toggleMe(this,'div16')" class="btn" value="-"/>  Faces</h3>
+    <div id="div16">
+      <p>The ID number for identifing a face section is 13. A MSH (Ansys) mesh can contain several face sections.</p>
+      <p>A cell section appears as:</p>
+      <pre class="highlight"> (13 (zone-id first-index last-index type element-type))</pre>
+      <p>A <code>zone-id</code> of zero indicates a declaration section with no body, and <code>element-type</code> indicates the type of faces in that zone.</p>
+      <p>The body of a regular face section contains the grid connectivity, and each line appear as follows</p>
+      <pre class="highlight"> n0 n1 n2 cr cl</pre>
+      <p>Where <code>n</code> are defining nodes fo the face, and <code>c*</code> are the adjacent cells. The first cell, <code>cr</code>, is the cell on the right side of the face and <code>cl</code> is the cell on the left side. If there is no adjacent cell, then either <code>cr</code> or <code>cl</code> is zero. If it is a two-dimensional grid, <code>n2</code> is omitted</p>
+      <p>Direction is determined by the right-hand rule.</p>
+      <p>If the face zone is of mixed type, the body of the section will include the face type and will appear as follows:</p>
+      <pre class="highlight"> type n0 n1 n2 cr cl</pre>
+      <p>This example cell section is identified as zone 9 and has 61 cells (3d in hexadecimal), 3 triangles, 2 quadrilaterals, etc.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="face"><input type="button" onclick="return toggleMe(this,'div17')" class="btn" value="-"/>  Zones</h3>
+    <div id="div17">
+
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h3 id="face"><input type="button" onclick="return toggleMe(this,'div18')" class="btn" value="-"/>  Example</h3>
+    <div id="div18">
+
+      <p>Here you can see an example of a 2D mesh with 7 quadrilateral elements:</p>
+      <pre class="highlight"> (0 grid written by FEconv 
+     nodes:       (10 (id start end type) (x y z ...))
+     faces:       (13 (id start end type elemType)
+                  (v-0 v-1 .. v-n right-cell left-cell ...))
+     cells:       (12 (id start end type elemtype))
+     zones:       (45 (id type name)())
+  )
+  (2 2)
+  (10 (0 1 9 0))
+  (12 (0 1 8 0))
+  (10 (1 1 9 1 2)(
+   0.49999998090615239 0.49999998090615239            
+   2.2737367544323211E-016 1.0000000000000011         
+   2.2737367544323211E-016 0.0000000000000000         
+   2.2737367544323211E-016 0.50000000000000044        
+   0.99999999999999911 -5.9685589803848419E-016       
+   0.49999999999999972 -2.9842794901924210E-016       
+   0.99999999999999933 1.0000000000000000             
+   0.99999999999999922 0.49999999999999989            
+   0.49999999999999978 1.0000000000000011             
+  ))
+  (13 (0 1 10 0))
+  (13 (2 1 2 3 2)(
+  9 2 6 0
+  7 9 8 0
+  ))
+  (13 (3 3 4 3 2)(
+  3 6 1 0
+  6 5 7 0
+  ))
+  (13 (4 5 6 3 2)(
+  2 4 6 0
+  4 3 3 0
+  ))
+  (13 (5 7 8 3 2)(
+  5 8 7 0
+  8 7 8 0
+  ))
+  (13 (6 9 10 2 2)(
+  1 3 1 3
+  4 1 2 3
+  6 1 1 5
+  1 8 4 5
+  1 9 2 4
+  9 4 2 6
+  6 8 5 7
+  8 9 4 8
+  ))
+  (45 (2 wall wall1)())
+  (45 (3 wall wall2)())
+  (45 (4 wall wall3)())
+  (45 (5 wall wall4)())
+  (45 (6 interior interior5)())
+  (12 (7 1 8 1 1))</pre>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    </div>
+
+
+
+    </article>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
+</html>
+
