@@ -32,7 +32,7 @@ header img {
 }
 
 section {
-  margin: 0px 230px 0px 200px;
+  margin: 0px 0px 0px 205px;
   background-color: SlateGray; 
   overflow-y:scroll;
   height: 75%; 
@@ -55,6 +55,7 @@ aside {
   margin: 0px 10px 10px 10px;
   float: right;
   width: 180px;
+  display: none;
 }
 
 footer {
