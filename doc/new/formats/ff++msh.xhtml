@@ -42,7 +42,7 @@
   </header>
 
   <nav class="breadcrumbs">
-    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="muf.xhtml">MUF</a></em></p>
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="ff++msh.xhtml">MSH (FreeFem++)</a></em></p>
   </nav>
 
   <nav id="menu" class="menu mnu">
@@ -73,6 +73,8 @@
     <nav id="top" class="topics">
       <ul>
         <li><a href="#desc">Description</a></li>
+        <li><a href="#feat">Features supported by feconv</a>
+        <li><a href="#dstruc">Data sctructure</a></li>
       </ul>
     </nav>
 
@@ -80,9 +82,56 @@
     <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
 
     <div id="div1">
-    <p>The MUM (Modulef Unformatted Mesh) is a mesh format associated with the <a href="mfm.xhtml">MfM</a> (Modulef Formatted Mesh).</p>
+    <p>The MSH extension is a mesh format associated with <a href="http://www.freefem.org/ff++/">FreeFemm++</a> software, a multiphysics non linear solver. You can find the description of this format and a lot of information about this software in the <a href="http://www.freefem.org/ff++/">FreeFemm++ manual</a>. </p>
 
-    <p>This mesh has the same characteristics as the <a href="mfm.xhtml">MFM</a> (Modulef Formatted Mesh) but its written in the Fortran unformatted file format.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h2 id="feat"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/>  2. Features supported by FEconv</h2>
+
+    <div id="div2">
+    <p>FEconv supports the reading and writing of 2D and 3D FreeFem++ MSH files.</p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h2 id="dstruc"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/>  3. Data structure</h2>
+
+    <div id="div3">
+
+    <p>The FreeFem++ MSH is a simple format that contains vertices, edges and triangles for a 2D mesh or vertices, triangles and tetrahedrons for a 3D mesh.</p>
+
+    <p>In the 3D MSH file structure, <code>nver</code> denotes de number of vertices, <code>nel</code> the number o tetrahedra and <code>ntri</code> the number of triangles. Following this numbers you will found the vertices, tetrahedrons an triangles information.</p>
+
+    <p>The data for defining each vertex contains the 3 coordinates (<code>C<sub>n</sub></code>)and a vertex label (<code>VL</code>):</p>
+    <pre class="highlight">C<sub>1</sub> C<sub>2</sub> C<sub>3</sub> VL</pre>
+
+    <p>The data for each tetrahedron contains the 4 node labels (<code>N<sub>n</sub></code>) and a region label (<code>RL</code>):</p>
+    <pre class="highlight">N<sub>1</sub> N<sub>2</sub> N<sub>3</sub> N<sub>4</sub> RL</pre>
+
+    <p>The data for each triangle contains the 3 node labels (<code>N<sub>n</sub></code>) and a boundary label (<code>BL</code>):</p>
+    <pre class="highlight">N<sub>1</sub> N<sub>2</sub> N<sub>3</sub> BL</pre>
+
+    <p>Here you can see a complete example:</p>
+
+    <pre class="highlight">  69 224 35
+  0.000000000000000E+000 0.000000000000000E+000 0.000000000000000E+000 0
+  0.000000000000000E+000 1.00000000000000 0.000000000000000E+000 0
+  1.00000000000000 1.00000000000000 0.000000000000000E+000 1
+  1.00000000000000 0.000000000000000E+000 0.000000000000000E+000 1
+  ...
+  11 9 10 1 1
+  1 12 10 11 1
+  12 13 10 11 2
+  13 16 14 10 2
+  ...
+  65 66 67 3
+  65 66 69 3
+  66 64 62 0
+  67 69 68 0
+  ...</pre>
+
+
 
     <div class="back"><a href="#top">Back to top</a></div>
     </div>
@@ -98,3 +147,4 @@
 
 </body>
 </html>
+

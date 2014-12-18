@@ -42,7 +42,7 @@
   </header>
 
   <nav class="breadcrumbs">
-    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="muf.xhtml">MUF</a></em></p>
+    <p><em><a href="../index.html">Home</a>><a href="../formats.xhtml">Formats</a>><a href="ff++mesh.xhtml">MESH (FreeFem++)</a></em></p>
   </nav>
 
   <nav id="menu" class="menu mnu">
@@ -73,6 +73,8 @@
     <nav id="top" class="topics">
       <ul>
         <li><a href="#desc">Description</a></li>
+        <li><a href="#feat">Features supported by FEconv</a></li>
+        <li><a href="#dstruc">Data sctructure</a></li>
       </ul>
     </nav>
 
@@ -80,9 +82,58 @@
     <h2 id="desc"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/>  1. Description</h2>
 
     <div id="div1">
-    <p>The MUM (Modulef Unformatted Mesh) is a mesh format associated with the <a href="mfm.xhtml">MfM</a> (Modulef Formatted Mesh).</p>
+    <p>The MESH extension is a mesh format associated with <a href="http://www.freefem.org/ff++/">FreeFemm++</a> software, a multiphysics non linear solver. You can find the description of this format and a lot of information about this software in the <a href="http://www.freefem.org/ff++/">FreeFemm++ manual</a>. </p>
 
-    <p>This mesh has the same characteristics as the <a href="mfm.xhtml">MFM</a> (Modulef Formatted Mesh) but its written in the Fortran unformatted file format.</p>
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h2 id="feat"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/>  2. Features supported by FEconv</h2>
+
+    <div id="div2">
+    <p>FEconv supports the reading and writing of 2D and 3D FreeFem++ MESH files. The type of elements allowed in this kind of files are edges, triangles and tetrahedrons.</p>
+
+    <div class="back"><a href="#top">Back to top</a></div>
+    </div>
+
+    <h2 id="dstruc"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/>  3. Data structure</h2>
+
+    <div id="div3">
+
+    <p>The header of the MESH file starts with the version file (<code>MeshVersionFormatted</code>) and the dimension of the mesh (<code>Dimension</code>).</p>
+    <p>The FreeFem++ MESH file is a simple format that contains several elements like vertices, edges, triangles and tetrahedrons. Each type of element uses a data structure that starts with keyword, then the number of elements and the data for each element.</p>
+
+    <p>The data for defining each vertex contains the coordinates (<code>C<sub>n</sub></code>, 2 or 3 coordinates depending on the dimension)and a vertex label (<code>VL</code>):</p>
+    <pre class="highlight">C<sub>1</sub> C<sub>2</sub> C<sub>3</sub> VL</pre>
+
+    <p>The data for each element contains the node labels (<code>N<sub>n</sub></code>, depending on the element type) and a region label (<code>RL</code>):</p>
+    <pre class="highlight">N<sub>1</sub> N<sub>2</sub> N<sub>3</sub> N<sub>4</sub> RL</pre>
+
+    <p>Here you can see a complete example:</p>
+
+    <pre class="highlight">  MeshVersionFormatted 1
+  Vertices
+  69
+  0.000000000000000E+000 0.000000000000000E+000 0.000000000000000E+000 0
+  0.000000000000000E+000 1.00000000000000 0.000000000000000E+000 0
+  1.00000000000000 1.00000000000000 0.000000000000000E+000 1
+  1.00000000000000 0.000000000000000E+000 0.000000000000000E+000 1
+  ...
+  Tetrahedra
+  224
+  11 9 10 1 1
+  1 12 10 11 1
+  12 13 10 11 2
+  13 16 14 10 2
+  ...
+  Triangles
+  35
+  65 66 67 3
+  65 66 69 3
+  66 64 62 0
+  67 69 68 0
+  ...</pre>
+
+
 
     <div class="back"><a href="#top">Back to top</a></div>
     </div>
@@ -98,3 +149,4 @@
 
 </body>
 </html>
+
