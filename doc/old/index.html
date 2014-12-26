@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Program feconv</title>
+  <link href="estilo.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<h1>Program feconv</h1>
+
+<h2>Table of Contents</h2>
+<ul>
+  <li><a href="#intro">1. Description</a></li>
+  <li><a href="#license">2. License</a></li>
+  <li><a href="#install">3. Installation</a></li>
+  <li><a href="#usage">4. Usage</a></li>
+  <li><a href="#usage">5. Testing</a></li>
+  <li><a href="#form">6. Formats</a></li>
+  <li><a href="#contrib">6. How to contribute</a></li>
+</ul>
+
+<h2 id="intro">1. Description</h2>
+
+<p>Program <code>feconv</code> converts finite element (FE) mesh files between several formats; it can also transform the FE type of the mesh and/or perform    a bandwidth optimization. Some conversion capabilities are also present for mesh fields. Please, visit the EXAMPLES section, in the help invoked by <code>feconv -h</code>, to know more details.</p>
+
+<h2 id="license">2. License</h2>
+
+<p>«Copyright 2012 Iban Constenla, Victor Sande, Francisco Pena»</p>
+
+<p>This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+
+<p>You should have received a copy of the GNU General Public License
+along with this program.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.<p>
+
+<h2 id="install">3. Installation</h2>
+    
+<p>To install this program, you must have previously installed <a href="http://www.gnu.org/software/make/"><code>make</code></a> in your system and a Fortran 2003 compiler. At the present time, only the <a href="http://gcc.gnu.org/wiki/GFortran">GNU Fortran compiler</a>, <code>gfortran</code>, and the <a href="http://software.intel.com/en-us/intel-compilers"> Intel Fortran compiler</a>, <code>ifort</code>, are supported.</p>
+<p>Go to <a href="http://sourceforge.net/projects/feconv/">http://sourceforge.net/projects/feconv/</a> and download the package <code>feconv_<em>&lt;date&gt;</em>.tar.gz</code>, where <code><em>&lt;date&gt;</em></code> is the date of the release.</p>
+<p> Open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the installation folder and type:</p>
+    <pre>
+        make -f Makefile.&lt;compiler&gt;.&lt;os&gt;
+    </pre>
+<p>where <code>&lt;compiler&gt;</code> can be "gfortran" or "ifort" and <code>&lt;os&gt;</code> can be "linux" or "windows" (for Mac OS X, "linux" is the valid option).</p>
+
+<h2 id="usage">4. Usage</h2>
+
+<p>To know the specific conversion tools available in the version you have installed, please visit the EXAMPLES section in the help invoked by <code>feconv -h</code>.</p>
+
+<h2 id="usage">5. Testing</h2>
+
+<p>This code has been tested in the following platforms:</p>
+<ul>
+  <li>Ubuntu 12.04 LTS:      gfortran 4.6.3,   make 3.81</li>
+  <li>Mac OS X 10.8.3:       gfortran 4.6.2,   make 3.81</li>
+</ul>
+<!-- <p><strong>Compilation errors have been reported for gfortran, version 4.6.1 and below.</strong></p>  -->
+
+<h2 id="form">6. Formats</h2>
+
+<p>Here we describe the supported file formats:</p>
+<ul>
+   <li><a href="vtk.xhtml">VTK format</a>
+       <p>Describes the <em>Visualization Toolkit</em> format.</p>
+   </li>
+   <li><a href="unv.xhtml">UNV format</a>
+       <p>Describes the <em>I-Deas Universal File</em> format.</p>
+   </li>
+    <li><a href="bdf.xhtml">BDF format</a>
+        <p>Describes the <em>MD Nastran Input File</em> format.</p>
+    </li>
+    <li><a href="msh.xhtml">MSH format</a>
+        <p>Describes the <em>ANSYS Mesh File</em> format.</p>
+    </li>
+    <li><a href="mfm.xhtml">MFM format</a>
+        <p>Describes the <em>Modulef Formatted Mesh</em> format.</p>
+    </li>
+</ul>
+
+<h2 id="contrib">7. How to contribute</h2>
+
+<p>If you plan to add you own format &lt;fmt&gt; to this converter, these are the steps you must fulfill:</p>
+<ol>
+  <li>create the folder <code>source/&lt;fmt&gt;</code> to store your source files;</li>
+  <li>save the module <code>source/&lt;fmt&gt;/module_&lt;fmt&gt;.f90</code>; this module must contain one or both of the following procedures:</li>
+  <ul>
+    <li><code>load_&lt;fmt&gt;</code> to load files in the new format;
+    <li><code>save_&lt;fmt&gt;</code> to save files in the new format;
+  </ul>
+  <li>the interface of the previous procedures must comply with the interface of the equivalent procedures in the rest of formats (see <code>source/module_feconv.f90</code> for examples). In particular, the procedures must return or receive the variables included in the <a href="mfm.xhtml">MFM format</a>;</li>
+  <li>include a call to your load and save procedures in the sections <code>!read mesh</code> and <code>!save mesh</code>, respectively, located in the module <code>source/module_feconv.f90</code>;</li> 
+  <li>modify <code>source/main.f90</code> the FORMATS section in the help shown calling <code>feconv -h</code>;</li>
+  <li>add the folder <code>source/&lt;fmt&gt;</code> to each file stored in the folder <code>configure/</code>, in the section <code>&lt;sources&gt;</code>;</li>
+  <li>using <a href="http://sourceforge.net/p/creamake"><code>creamake</code></a>, re-create the Makefile for every compiler and OS;</li>
+  <li>include an explanation of your format in the section <em>Formats</em> of the file <code>doc/index.xhtml</code>;</li>
+  <li>and do no forget to report to <code>fran(dot)pena(at)usc(dot)es</code> your changes!</li>
+</ol>
+
+</body>
+</html>

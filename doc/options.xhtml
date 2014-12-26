@@ -1,70 +1,125 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" "http://www.w3.org/Math/DTD/mathml2/xhtml-math11-f.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US">
-  <head>
-    <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" /> 
-    <title>Options</title>
-    <link rel="stylesheet" type="text/css" href="estilo.css" />
-  </head>
-  <body id="top">
-    <p>Up: <a href="index.html">Program feconv</a></p>
-    <hr /> 
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type"  content="text/html; charset=UTF-8" />
+  <title>Feconv: Finite Element conversor</title>
+  <link href="css/structure.css" rel="stylesheet" type="text/css" />
+  <link href="css/breadcrumbs.css" rel="stylesheet" type="text/css" />
+  <link href="css/menu.css" rel="stylesheet" type="text/css" />
+  <link href="css/topics.css" rel="stylesheet" type="text/css" />
 
-    <h2>Options</h2>
+  <script type="text/javascript" src="js/btn.js"></script>
+  <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $("#art").animate({opacity:'0'},0);
+      $("#art").animate({opacity:'1'},"slow");
+    });
+  </script>
 
-    <p><strong>On this page:</strong></p>
+</head>
+
+<body onload="showbtn()">
+
+  <header>
+    <img float="left" align="left" src="images/gear.png"/>
+    <img float="right" align="right" src="images/feconv.png"/>
+  </header>
+
+  <nav class="breadcrumbs">
+    <p><em><a href="index.html">Home</a>><a href="options.xhtml">Options</a></em></p>
+  </nav>
+
+  <nav class="menu mnu">
+    <h2 align="center" >Home</h2>
+    <ul>
+      <li><a href="description.xhtml">Summary</a></li>
+      <li><a href="install.xhtml">Install</a></li>
+      <li><a href="formats.xhtml">Formats</a></li>
+      <li><a href="options.xhtml">Options</a></li>
+      <li><a href="examples.xhtml">Examples</a></li>
+      <li><a href="underconstruction.xhtml">How to contribute</a></li>
+    </ul>
+  </nav>
+
+  <aside class="mnu">
+    <nav class="menu mnu">
+      <h2 align="center" >Users</h2>
+      <ul>
+        <li><a href="users/login.xhtml">Login</a></li>
+        <li><a href="users/survey.xhtml">Survey</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <section>
+
+    <!-- Local section navigation menu -->
+    <nav id="top" class="topics">
     <ul>
       <p>
-      <li><a href="#info">Info options</a></li>
-      <ul>
-        <li><a href="#help">Show help</a></li>
-        <li><a href="#vers">Show version</a></li>
-        <li><a href="#list">List mesh and field info</a></li>
-      </ul>
+      <li><a href="#info">Info options</a>
+        <ul>
+          <li><a href="#help">Show help</a></li><br/>
+          <li><a href="#vers">Show version</a></li><br/>
+          <li><a href="#list">List mesh and field info</a></li><br/>
+        </ul>
+      </li>
       </p>
       <p>
-      <li><a href="#meshread">Mesh read options</a></li>
-      <ul>
-        <li><a href="#jaco">Force jacobian</a></li>
-        <li><a href="#reor">Reorder nodes</a></li>
-        <li><a href="#tol">Define tolerance</a></li>
-        <li><a href="#piece">Read a single piece</a></li>
-      </ul>
+      <li><a href="#meshread">Mesh read options</a>
+        <ul>
+          <li><a href="#jaco">Force jacobian</a></li><br/>
+          <li><a href="#reor">Reorder nodes</a></li><br/>
+          <li><a href="#tol">Define tolerance</a></li><br/>
+          <li><a href="#piece">Read a single piece</a></li><br/>
+        </ul>
+      </li>
       </p>
       <p>
-      <li><a href="#meshconv">Mesh conversion options</a></li>
-      <ul>
-        <li><a href="#l1">Transform to Lagrange P1</a></li>
-        <li><a href="#l2">Transform to Lagrange P2</a></li>
-        <li><a href="#nd">Transform to Nêdelec</a></li>
-        <li><a href="#rt">Transform to Raviart-Thomas</a></li>
-        <li><a href="#rcm">Bandwidth reduction (RCM)</a></li>
-        <li><a href="#es">Extract submesh</a></li>
-        <li><a href="#rc">Remove a component of the coordinates</a></li>
-      </ul>
+      <li><a href="#meshconv">Mesh conversion options</a>
+        <ul>
+          <li><a href="#l1">Transform to Lagrange P1</a></li><br/>
+          <li><a href="#l2">Transform to Lagrange P2</a></li><br/>
+          <li><a href="#nd">Transform to Nêdelec</a></li><br/>
+          <li><a href="#rt">Transform to Raviart-Thomas</a></li><br/>
+          <li><a href="#rcm">Bandwidth reduction (RCM)</a></li><br/>
+          <li><a href="#es">Extract submesh</a></li><br/>
+          <li><a href="#rc">Remove a component of the coordinates</a></li><br/>
+        </ul>
+      </li>
       </p>
       <p>
-      <li><a href="#meshform">Related formats to MSH extension</a></li>
-      <ul>
-        <li><a href="#ff">FreeFEM++</a></li>
-        <li><a href="#gm">GMSH</a></li>
-      </ul>
+      <li><a href="#meshform">MSH extension</a>
+        <ul>
+          <li><a href="#ff">FreeFEM++</a></li><br/>
+          <li><a href="#gm">GMSH</a></li><br/>
+        </ul>
+      </li>
       </p>
       <p>
-      <li><a href="#fieldopt">Field options</a></li>
-      <ul>
-        <li><a href="#if">Input field file</a></li>
-        <li><a href="#of">Output field file</a></li>
-        <li><a href="#in">Input field name</a></li>
-        <li><a href="#on">Output field name</a></li>
-        <li><a href="#pad">Padding value</a></li>
-        <li><a href="#cn">Cell to node</a></li>
-        <li><a href="#ca">Code Aster (UNV)</a></li>
-      </ul>
+      <li><a href="#fieldopt">Field options</a>
+        <ul>
+          <li><a href="#if">Input field file</a></li><br/>
+          <li><a href="#of">Output field file</a></li><br/>
+          <li><a href="#in">Input field name</a></li><br/>
+          <li><a href="#on">Output field name</a></li><br/>
+          <li><a href="#pad">Padding value</a></li><br/>
+          <li><a href="#cn">Cell to node</a></li><br/>
+          <li><a href="#ca">Code Aster (UNV)</a></li><br/>
+        </ul>
+      </li>
       </p>
     </ul>
+    </nav>
 
-    <h3 id="info">Info options</h3>
+    <article id="art"> 
+
+    <h2 id="info"><input type="button" onclick="return toggleMe(this,'div1')" class="btn" value="-"/> 1. Info options</h2>
+
+      <div id="div1">
       <p>
       <div align="left">
         <table class="tb" width="80%">
@@ -79,12 +134,14 @@
         </table>
       </div>
       </p>
-    <div class="back"><a href="#top">Back to top</a></div>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
-    <h3 id="meshread">Mesh read options</h3>
+    <h2 id="meshread"><input type="button" onclick="return toggleMe(this,'div2')" class="btn" value="-"/> 2. Mesh read options</h2>
+      <div id="div2">
       <p>
       <div align="center">
-        <table width="80%">
+        <table class="tb" width="80%">
           <thead>
             <tr> <th width="30%">Command option</th> <th>Meaning</th></tr>
           </thead>
@@ -109,9 +166,12 @@
         </table>
       </div>
       </p>
-    <div class="back"><a href="#top">Back to top</a></div>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
-    <h3 id="meshconv">Mesh conversion options</h3>
+    <h2 id="meshconv"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/> 3. Mesh conversion options</h2>
+
+      <div id="div3">
       <p>
       <div align="left">
         <table class="tb" width="80%">
@@ -121,8 +181,8 @@
           <tbody>
             <tr><td id="l1"><code><strong>-l1</strong></code></td> <td align="left">Output file will contain Lagrange P1 finite elements.</td></tr>
             <tr><td id="l2"><code><strong>-l2</strong></code></td> <td align="left">Output file will contain Lagrange P2 finite elements.</td></tr>
-            <tr><td id="nd"><code><strong>-nd</strong></code></td> <td align="left">Output file will contain Raviart-Thomas (face) finite elements of the lowest degree.</td></tr>
-            <tr><td id="rt"><code><strong>-rt</strong></code></td> <td align="left">Output file will contain Lagrange P1 finite elements.</td></tr>
+            <tr><td id="nd"><code><strong>-nd</strong></code></td> <td align="left">Output file will contain Whitney (face) finite elements.</td></tr>
+            <tr><td id="rt"><code><strong>-rt</strong></code></td> <td align="left">Output file will contain Raviart-Thomas (face) finite elements of the lowest degree.</td></tr>
             <tr>
               <td id="rcm"><code><strong>-cm</strong></code></td> 
               <td align="left">Performs a bandwidth optimization using the CutHill-McKee algorithm. This option is incompatible with field conversion.</td>
@@ -139,12 +199,15 @@
         </table>
       </div>
       </p>
-    <div class="back"><a href="#top">Back to top</a></div>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
-    <h3 id="meshform">Related formats to MSH extension</h3>
+    <h2 id="meshform"><input type="button" onclick="return toggleMe(this,'div4')" class="btn" value="-"/> 4. MSH extension</h2>
+
+      <div id="div4">
       <p>
       <div align="center">
-        <table width="80%">
+        <table class="tb" width="80%">
           <thead>
             <tr> <th width="30%">Command option</th> <th>Meaning</th></tr>
           </thead>
@@ -161,12 +224,15 @@
         </table>
       </div>
       </p>
-    <div class="back"><a href="#top">Back to top</a></div>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
-    <h3 id="fieldopt">Field options</h3>
+    <h2 id="fieldopt"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/> 5. Field options</h2>
+
+      <div id="div5">
       <p>
       <div align="center">
-        <table width="80%">
+        <table class="tb" width="80%">
           <thead>
             <tr> <th width="30%">Command option</th> <th>Meaning</th></tr>
           </thead>
@@ -203,11 +269,19 @@
         </table>
       </div>
       </p>
-    <div class="back"><a href="#top">Back to top</a></div>
+      <div class="back"><a href="#top">Back to top</a></div>
+      </div>
 
-<!--    <hr />
-    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> -->
 
-  </body>
+    </article>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2012 - <a href="http://www.usc.es/ingmat/?lang=en">Ingeniería Matemática</a></p> 
+  </footer>
+
+</body>
 </html>
+
 
