@@ -38,7 +38,8 @@
 <body onload="showbtn()">
 
   <header>
-    <img src="../images/ico.png"/>
+    <img float="left" align="left" src="../images/gear.png"/>
+    <img float="right" align="right" src="../images/feconv.png"/>
   </header>
 
   <nav class="breadcrumbs">
@@ -75,10 +76,7 @@
         <li><a href="#desc">Description</a></li>
         <li><a href="#feat">Features supported by feconv</a>
           <ul>
-            <li><a href="#node">Finite element types</a></li><br/>
-            <li><a href="#element">Cells</a></li><br/>
-            <li><a href="#group">Group datasets</a></li><br/>
-            <li><a href="#fields">Field datasets</a></li><br/>
+            <li><a href="#fetypes">Finite element types</a></li><br/>
           </ul>
         </li>
         <li><a href="#fstruc">File structure</a>
@@ -99,6 +97,7 @@
 
     <div id="div1">
 
+    <p>The MSH extension is a mesh format associated with <a href="http://www.freefem.org/ff++/">Ansys Fluent</a> software, a multiphysics non linear solver. You can find the description of this format and a lot of information about this software in the <a href="http://www.freefem.org/ff++/">FreeFemm++ manual</a>. </p>
 
     <div class="back"><a href="#top">Back to top</a></div>
     </div>
@@ -107,12 +106,6 @@
 
     <div id="div2">
 
-    <h3 id="node"><input type="button" onclick="return toggleMe(this,'div3')" class="btn" value="-"/>  Node datasets</h3>
-
-    <div id="div3">
-
-    <div class="back"><a href="#top">Back to top</a></div>
-    </div>
 
     <h3 id="fetypes"><input type="button" onclick="return toggleMe(this,'div5')" class="btn" value="-"/>  MSH finite element types allowed in feconv</h3>
 
@@ -159,16 +152,6 @@
     <div class="back"><a href="#top">Back to top</a></div>
     </div>    
 
-    <h3 id="vord"><input type="button" onclick="return toggleMe(this,'div6')" class="btn" value="-"/>  Local order of nodes</h3>
-
-    <div id="div6">
-
-    <p>The local order of nodes in each element respect the following rules:</p>
-
-
-    <div class="back"><a href="#top">Back to top</a></div>
-
-    </div>
     </div>
 
     <h2 id="fstruc"><input type="button" onclick="return toggleMe(this,'div10')" class="btn" value="-"/>  3. File structure</h2>
