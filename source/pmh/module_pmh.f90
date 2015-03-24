@@ -356,8 +356,8 @@ if (res /= 0) call error('(module_pmh/pmh2mfm) Unable to allocate variable nver_
 nel_piece(0) = 0; nnod_piece(0) = 0; nver_piece(0) = 0
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
-  nnod_piece(ipp) = nnod_piece(ipp-1) + pmh%pc(ipp)%nnod
-  nver_piece(ipp) = nver_piece(ipp-1) + pmh%pc(ipp)%nver
+  nnod_piece(ipp) = nnod_piece(ipp-1) + pmh%pc(ip)%nnod
+  nver_piece(ipp) = nver_piece(ipp-1) + pmh%pc(ip)%nver
   nel_piece(ipp)  =  nel_piece(ipp-1) 
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(elg => pmh%pc(ip)%el(ig)) !elg: current group
@@ -532,8 +532,9 @@ end if
 !z: save vertex coordinates
 call alloc(z, dim, nver)
 do ipp = 1, size(piece2save,1)
-  z(1:dim, nver_piece(ipp-1)+1:nver_piece(ipp)) = pmh%pc(ipp)%z
-  deallocate(pmh%pc(ipp)%z)
+  ip = piece2save(ipp)
+  z(1:dim, nver_piece(ipp-1)+1:nver_piece(ipp)) = pmh%pc(ip)%z
+  deallocate(pmh%pc(ip)%z)
 end do
 end subroutine
 
