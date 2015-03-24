@@ -35,7 +35,7 @@ use module_muf, only: load_muf, save_muf
 use module_freefem, only: save_freefem_msh, save_freefem_mesh, load_freefem_msh, load_freefem_mesh
 use module_pmh
 use module_fem_extract, only: extract_mesh, extract_ref
-use module_gmsh, only: load_gmsh
+use module_gmsh, only: load_gmsh, save_gmsh
 use module_dex, only: load_dex, save_dex
 use module_ip, only: load_ip, save_ip
 implicit none
@@ -654,6 +654,10 @@ else
       print '(/a)', 'Saving FreFem++ mesh file...'
       if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
       call save_freefem_msh(outfile, get_unit(), pmh)
+    elseif (is_arg('-gm')) then !Gmsh
+      print '(/a)', 'Saving Gmsh mesh file...'
+      if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+      call save_gmsh(outfile, get_unit(), pmh)
     else !ANSYS
       print '(/a)', 'Saving ANSYS mesh file...'
       if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)

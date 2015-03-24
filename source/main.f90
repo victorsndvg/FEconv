@@ -179,6 +179,7 @@ elseif (is_arg('-h')) then
   print '(a)', '        Modulef-like Unformatted Mesh (.mum),' 
   print '(a)', '        FreFem++ Tetrahedral and/or Triangular Lagrange P1 Mesh (.msh),'
   print '(a)', '        FreFem++ Tetrahedral Lagrange P1 Mesh (.mesh).'
+  print '(a)', '        Gmsh MSH ASCII (.msh).'
   print '(a)', ' '
   print '(a)', '    The finite elements inside a mesh can be transformed before saving them, with options -l1, -l2,'
   print '(a)', '    -rt, -nd, -cm. (REVISAR) Those options are ignored when some field option -if, -in, -of, -on appears.'

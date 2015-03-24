@@ -8,14 +8,16 @@ module module_gmsh
 !
 ! PUBLIC PROCEDURES:
 ! load_gmsh: load a Gmsh ASCII MSH  file into a PMH structure
+! save_gmsh: save a Gmsh MSH file from a PMH structure
 !-----------------------------------------------------------------------
-use module_compiler_dependant, only: iostat_end
+use module_compiler_dependant, only: real64, iostat_end
 use module_os_dependant, only: maxpath
 use module_report, only: error, info
-use module_convers, only: string, lcase, adjustlt
-use module_alloc, only: alloc, dealloc, insert_sorted, set, insert_col_sorted, find_col_sorted, reduce
+use module_convers, only: int, string, lcase, adjustlt
+use module_alloc, only: alloc, dealloc, insert_sorted, set, insert_col_sorted, find_col_sorted, reduce, find_first
 use module_fe_database_pmh, only: FEDB, check_fe
-use module_pmh, only: pmh_mesh, build_vertices
+use module_pmh, only: pmh_mesh, build_vertices, build_node_coordinates
+use module_args, only: is_arg, get_post_arg
 implicit none
 
 !Private procedures
@@ -133,16 +135,14 @@ end subroutine
 
 !-----------------------------------------------------------------------
 ! save_gmsh: save a Gmsh MSH file from a PMH structure
-!
-! pmh is deallocated while variables are being saved
 !-----------------------------------------------------------------------
 subroutine save_gmsh(outfile, iu, pmh)
 character(*),   intent(in)    :: outfile
 integer,        intent(in)    :: iu
 type(pmh_mesh), intent(inout) :: pmh
 
-integer :: i, ipp, ip, ig, k, j, type_by_tdim(0:3), id4pmh(15), valid_fe(12), res, max_tdim, ios, nel, ntri, nver, dim, el_type
-integer, allocatable :: piece2save(:), el_piece(:), bnd_piece(:), nver_piece(:)
+integer :: i, ipp, ip, ig, k, j, id4pmh(15), valid_fe(12), res, ios, nel, nnod, prev_nel
+integer, allocatable :: piece2save(:), nel_piece(:), nnod_piece(:)
 real(real64), allocatable :: znod(:,:)
 character(maxpath) :: str, cad
 logical :: all_P1
@@ -258,11 +258,11 @@ do ipp = 1, size(piece2save,1)
     associate(elg => pmh%pc(ip)%el(ig)) !elg: current group
       if (.not. FEDB(elg%type)%nver_eq_nnod) then
         do k = 1, elg%nel
-          write(iu, *) prev_nel+k, id2pmh(elg%type), 2, elg%ref(k), 2, (nnod_piece(ipp-1)+elg%nn(i,k), i = 1,FEDB(elg%type)%lnn)
+          write(iu, *) prev_nel+k, id4pmh(elg%type), 2, elg%ref(k), 2, (nnod_piece(ipp-1)+elg%nn(i,k), i = 1,FEDB(elg%type)%lnn)
         end do
       else
         do k = 1, elg%nel
-          write(iu, *) prev_nel+k, id2pmh(elg%type), 2, elg%ref(k), 2, (nnod_piece(ipp-1)+elg%mm(i,k), i = 1,FEDB(elg%type)%lnv)
+          write(iu, *) prev_nel+k, id4pmh(elg%type), 2, elg%ref(k), 2, (nnod_piece(ipp-1)+elg%mm(i,k), i = 1,FEDB(elg%type)%lnv)
         end do
       end if 
       prev_nel = prev_nel + elg%nel
