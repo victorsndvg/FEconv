@@ -312,7 +312,7 @@ do i = 1,size(piece2save,1)
             write(iu,'(8I10)') (/(0,m=1,2)/)                   ! Record11: Integer analysis type speciic data (9-10) (2414)
             !EigenValue, Modal Mass, ...
             write(iu,'(6E13.5)') &                             ! Record12: Real analysis type specific data (1-6) (2414)
-              & (/pc%fi(j)%param(np),pc%fi(j)%param(np),(0._real64,m=1,5)/)
+              & (/pc%fi(j)%param(np),pc%fi(j)%param(np),(0._real64,m=1,4)/)
             write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)         ! Record13: Real analysis type specific data (7-12) (2414)
           else
             write(iu,'(8I10)') ncomp,ncomp,j,np-1,0,0,0,0      ! Record7: Integer analysis type speciic data (1-8) (55)
@@ -326,8 +326,8 @@ do i = 1,size(piece2save,1)
           enddo
           write(iu,'(I6)') -1
         enddo
-        prev_coord = prev_coord+pc%nnod
       enddo
+      prev_coord = prev_coord+pc%nnod
     endif
     do j=1, size(pc%el,1)
       if(FEDB(pc%el(j)%type)%tdim == 0) cycle
