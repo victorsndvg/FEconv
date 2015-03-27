@@ -40,6 +40,7 @@ use module_feed, only: feed, empty
 use module_fe_database_pmh, only : FEDB, check_fe, VF_WEDG
 use module_set, only: unique
 use module_files, only: get_unit
+use module_set, only: sunique
 implicit none
 
 !Types
@@ -1107,7 +1108,7 @@ integer, allocatable :: pos(:)
 real(real64) ::  s, t, st(2)
 logical :: QJac(4) ,check
 real(real64) :: zz(2)=[0._real64, 0._real64],zo(2)=[0._real64, 1._real64],oz(2)=[1._real64, 0._real64]
-
+integer, allocatable :: tmp(:)
 
 !check whether the application of possitive jacobian (by default, positive jacobian is run)
 if (is_arg('-j')) then
@@ -1149,9 +1150,6 @@ do ip = 1, size(pmh%pc,1)
           if ( (z(1,elg%mm(2,k)) - z(1,elg%mm(1,k))) * (z(2,elg%mm(3,k)) - z(2,elg%mm(1,k))) & !only x and y coordinates are used
              - (z(2,elg%mm(2,k)) - z(2,elg%mm(1,k))) * (z(1,elg%mm(3,k)) - z(1,elg%mm(1,k))) < 0 ) then
             call swap(elg%mm(2,k), elg%mm(3,k))
-          end if
-          if ( (z(1,elg%nn(2,k)) - z(1,elg%nn(1,k))) * (z(2,elg%nn(3,k)) - z(2,elg%nn(1,k))) & !only x and y coordinates are used
-             - (z(2,elg%nn(2,k)) - z(2,elg%nn(1,k))) * (z(1,elg%nn(3,k)) - z(1,elg%nn(1,k))) < 0 ) then
             call swap(elg%nn(2,k), elg%nn(3,k))
             call swap(elg%nn(4,k), elg%nn(6,k))
           end if
@@ -1505,7 +1503,7 @@ end subroutine
 subroutine remove_coordinate(pmh, dim)
   type(pmh_mesh), intent(inout) :: pmh
   integer,        intent(in)    :: dim
-  integer                       :: i, j, k, newdim
+  integer                       :: i, j, newdim
   real(real64), allocatable     :: tempz(:,:)
 
   if(.not. allocated(pmh%pc)) call error('Not allocated mesh')
