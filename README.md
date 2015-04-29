@@ -3,7 +3,7 @@
 Program feconv converts finite element (FE) mesh files between several formats; it can also transform the FE type of the mesh and/or perform a bandwidth optimization. Some conversion capabilities are also present for mesh fields. Please, visit the EXAMPLES section, in the help invoked by feconv -h, to know more details.
 Back to top
 
-# 2. Description
+# 2. Installation
 
 To install this program, you must have previously installed make in your system and a Fortran 2003 compiler. At the present time, only the GNU Fortran compiler, gfortran, and the Intel Fortran compiler, ifort, are supported.
 Go to http://sourceforge.net/projects/feconv/ and download the package feconv_<date>.tar.gz, where <date> is the date of the release.
