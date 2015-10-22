@@ -575,7 +575,13 @@ call move_alloc(from=z, to=pmh%pc(1)%z)
 
 !nelg: calculate the number of element groups to create
 tp = check_fe(nver==nnod, lnn, lnv, lne, lnf)
+if (tp == 0) then
+  call error('(module_pmh/pmh2mfm) Unable to process a MFM mesh with nver: '//trim(string(nver))//', nnod: '//&
+  &trim(string(nnod))//', lnn: '//trim(string(lnn))//', lnv: '//trim(string(lnv))//', lne:'//trim(string(lne))//', lnf: '//&
+  &trim(string(lnf))//'. Please check the valid finite elements in the structure FEDB of source/pmh/module_fe_database_pmh.f90')
+end if
 nelg = FEDB(tp)%tdim + 1
+
 if (FEDB(tp)%tdim > 2) then
   if (maxval(nrc)==0) nelg = nelg-1
 end if
