@@ -1,7 +1,6 @@
 # 1. Description
 
 Program feconv converts finite element (FE) mesh files between several formats; it can also transform the FE type of the mesh and/or perform a bandwidth optimization. Some conversion capabilities are also present for mesh fields. Please, visit the EXAMPLES section, in the help invoked by feconv -h, to know more details.
-Back to top
 
 # 2. Installation
 
@@ -45,6 +44,7 @@ where <compiler> can be "gfortran" or "ifort" and <os> can be "linux" or "window
 ## The available field formats are:
 
     I-Deas Universal (.unv)
+    VTK-XML Unstructured Grid (.vtu)
     FLUX mesh file (.pf3)
     FLUX field file (.dex)
     Modulef-like Formatted Field (.mff)
