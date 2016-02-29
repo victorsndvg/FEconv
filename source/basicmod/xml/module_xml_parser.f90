@@ -292,7 +292,7 @@ do while (.not. close_mark_found)
   read (un, fmt='(A)', iostat=res) line
   if (res /= 0) call error('flist/read ('//trim(path)//'), #'//trim(string(res)))
   p = index(line, 'name=')
-  n = n + 1; if (n > size(tmp, 1)) call extend(tmp, 10)
+  n = n + 1; if (n > size(tmp, 1)) call extend(tmp, n, fit=.false.)
   tmp(n) = trim(string(cut_end_delimiter(line(p+5:),'>')))
   !searchs the end of the member
   call search_close_mark(un, path)
