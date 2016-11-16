@@ -195,7 +195,7 @@
         <ul>
           <li>With <a href="options.xhtml#l1">Option -l1</a> output mesh will contain Lagrange P1 finite elements. </li>
           <li>With <a href="options.xhtml#l2">Option -l2</a> output mesh will contain Lagrange P2 finite elements. </li>
-          <li>With <a href="options.xhtml#nd">Option -nd</a> output mesh will contain Whitney (face) finite elements. </li>
+          <li>With <a href="options.xhtml#nd">Option -nd</a> output mesh will contain Whitney (edge) finite elements. </li>
           <li>With <a href="options.xhtml#rt">Option -rt</a> output mesh will contain Raviart-Thomas finite elements. </li>
         </ul>
         <table class="tb" width="100%">
@@ -206,7 +206,7 @@
               <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-l1</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.unv</pre></td></tr>
             <tr id="ex18"><td><h4 align="left">Transform to Lagrange P2:</h4>
               <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-l2</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.vtu</pre></td></tr>
-            <tr id="ex18"><td><h4 align="left">Transform to Whitney (face):</h4>
+            <tr id="ex18"><td><h4 align="left">Transform to Whitney (edge):</h4>
               <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-nd</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mfm</pre></td></tr>
             <tr id="ex18"><td><h4 align="left">Transform to Raviart-Thomas:</h4>
               <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-rt</span> <span class="hl line">examples/mesh</span>.vtu <span class="hl line">output</span>.mfm</pre></td></tr>

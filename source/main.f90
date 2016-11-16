@@ -145,7 +145,7 @@ elseif (is_arg('-h')) then
   print '(a)', '        the Lagrange P2 mesh was created with SALOME'
   print '(a)', ' '
   print '(a)', '    -rt'
-  print '(a)', '        Output file will contain Raviart-Thomas (face) finite elements of the lowest degree'
+  print '(a)', '        Output file will contain Raviart-Thomas finite elements of the lowest degree'
   print '(a)', ' '
   print '(a)', '    -t <tolerance>'
   print '(a)', '        Tolerance to search mid-points in Lagrange P2 meshes. By default the value '
