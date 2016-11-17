@@ -68,7 +68,7 @@ contains
 ! convert: converts between several mesh and FE field formats
 !-----------------------------------------------------------------------
 subroutine convert(cad,mempmh)
-character(maxpath), optional, intent(in) :: cad
+character(*),   optional, intent(in)    :: cad
 type(pmh_mesh), optional, intent(inout) :: mempmh
 character(maxpath) :: infile=' ', inmesh=' ', inext=' ', outfile=' ', outmesh=' ', outext=' '
 character(maxpath) :: infext=' ', outfext=' ', outpath = ' '!,fieldfilename = ' '
@@ -91,18 +91,23 @@ endif
 !find infile and outfile at the end of the arguments
 nargs = args_count()
 
- if(is_arg('-l') .or. present(mempmh)) then
-   infile = get_post_arg('-l')
-   p = index( infile, '.', back=.true.)
-   inmesh =  infile(1:p-1)
-   inext =  lcase(infile(p+1:len_trim( infile)))
- else
-   infile = get_arg(nargs-1); p = index( infile, '.', back=.true.); &
-       & inmesh =  infile(1:p-1);  inext =  lcase(infile(p+1:len_trim( infile)))
-   outfile = get_arg(nargs);  p = index(outfile, '.', back=.true.); &
-       & outmesh = outfile(1:p-1); outext = lcase(outfile(p+1:len_trim(outfile)))
-   p = index(outfile, slash(), back=.true.); outpath = outfile(1:p)
- endif
+if(is_arg('-l')) then
+  infile = get_post_arg('-l')
+  p = index( infile, '.', back=.true.)
+  inmesh =  infile(1:p-1)
+  inext =  lcase(infile(p+1:len_trim( infile)))
+elseif(present(mempmh)) then
+  infile = get_arg(nargs)
+  p = index(infile, '.', back=.true.)
+  inmesh = infile(1:p-1)
+  inext = lcase(infile(p+1:len_trim(infile)))
+else
+  infile = get_arg(nargs-1); p = index( infile, '.', back=.true.); &
+      & inmesh =  infile(1:p-1);  inext =  lcase(infile(p+1:len_trim( infile)))
+  outfile = get_arg(nargs);  p = index(outfile, '.', back=.true.); &
+      & outmesh = outfile(1:p-1); outext = lcase(outfile(p+1:len_trim(outfile)))
+  p = index(outfile, slash(), back=.true.); outpath = outfile(1:p)
+endif
 
 !check mesh names and extensions
 if (len_trim(infile)  == 0) call error('(module_feconv/fe_conv) unable to find input file.')
@@ -130,12 +135,9 @@ if (is_arg('-t')) then
   pmh%ztol = dble(get_post_arg('-t'))
 end if    
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! New name rules
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !field selection
 there_is_field = .true.
-if(is_arg('-l')) then
+if(is_arg('-l') .or. present(mempmh)) then
   if (is_arg('-if')) then
     !there is -if
     str = get_post_arg('-if')
@@ -149,6 +151,8 @@ if(is_arg('-l')) then
     end if
     p = index( infieldfile(1), '.', back=.true.)
     infext =  infieldfile(1)(p+1:len_trim( infieldfile(1)))
+  else
+    there_is_field = .false.
   end if
 else
   if (FLDB(id_mesh_ext(inext))%is_field_outside) then
@@ -326,111 +330,12 @@ else
   end if
 endif
 
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! Old name rules
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!field selection
-!there_is_field = .true.
-!if (FLDB(id_mesh_ext(inext))%is_field_outside) then
-!  if (FLDB(id_mesh_ext(outext))%is_field_outside) then
-!    !infield and outfield are both mesh external
-!    if (is_arg('-if') .and. is_arg('-of')) then
-!      !there is -if, there is -of
-!      call set( infield, get_post_arg('-if'), 1, fit=.true.)
-!      call set(outfield, get_post_arg('-of'), 1, fit=.true.)
-!      p = index( infield(1), '.', back=.true.);  infext =  infield(1)(p+1:len_trim( infield(1)))
-!      p = index( outfield(1), '.', back=.true.);  outfext =  outfield(1)(p+1:len_trim( outfield(1)))
-!!      if((id_mesh_ext(inext) /= id_field_ext(infext)) .or. (id_mesh_ext(outext) /= id_field_ext(outfext))) &
-!!        & call error("Inconsistent mesh and field extensions")
-!    elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
-!      !there is not -if, there is not -of
-!      there_is_field = .false.
-!    elseif (.not. is_arg('-of')) then
-!      !there is -if, there is not -of
-!      call set( infield, get_post_arg('-if'), 1, fit=.true.)
-!      p = index(infield(1), slash(), back=.true.); fieldfilename = infield(1)(p+1:)
-!      p = index(fieldfilename, '.', back=.true.)
-!      call set(outfield, trim(outmesh)//'__'//trim(fieldfilename(1:p-1))//'.'//trim(FLDB(id_mesh_ext(outext))%field_ext), 1, &
-!      &fit=.true.)
-!      p = index( infield(1), '.', back=.true.);  infext =  infield(1)(p+1:len_trim( infield(1)))
-!    else
-!      !there is not -if, there is -of
-!      call error('(module_feconv/fe_conv) option -fi is mandatory to read external fields')
-!    end if
-!  else
-!    !infield is mesh external, outfield is mesh internal
-!    if (is_arg('-if') .and. is_arg('-of')) then
-!      !there is -if, there is -of
-!      call set( infield, get_post_arg('-if'), 1, fit=.true.)
-!      call set(outfield, get_post_arg('-of'), 1, fit=.true.)
-!      p = index( infield(1), '.', back=.true.);  infext =  infield(1)(p+1:len_trim( infield(1)))
-!    elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
-!      !there is not -if, there is not -of
-!      there_is_field = .false.
-!    elseif (.not. is_arg('-of')) then
-!      !there is -if, there is not -of
-!      call set( infield, get_post_arg('-if'), 1, fit=.true.)
-!      p = index(infield(1), '.', back=.true.); call set(outfield, trim(infield(1)(1:p-1)), 1, fit=.true.)
-!      p = index( infield(1), '.', back=.true.);  infext =  infield(1)(p+1:len_trim( infield(1)))
-!    else
-!      !there is not -if, there is -of
-!      call error('(module_feconv/fe_conv) option -if is mandatory to read external fields')
-!    end if
-!  end if
-!elseif (FLDB(id_mesh_ext(outext))%is_field_outside) then
-!  !infield is mesh internal, outfield is mesh external
-!  if (is_arg('-if') .and. is_arg('-of')) then
-!    !there is -if, there is -of
-!    call set( infield, get_post_arg('-if'), 1, fit=.true.)
-!    call set(outfield, get_post_arg('-of'), 1, fit=.true.)
-!    p = index( outfield(1), '.', back=.true.);  outfext =  outfield(1)(p+1:len_trim( outfield(1)))
-!  elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
-!    !there is not -if, there is not -of
-!    there_is_field = .false.
-!  elseif (.not. is_arg('-of')) then
-!    !there is -if, there is not -of
-!    call set( infield, get_post_arg('-if'), 1, fit=.true.)
-!    call set(outfield, trim(outmesh)//'__'//trim(infield(1))//'.'//trim(FLDB(id_mesh_ext(outext))%field_ext), 1, fit=.true.)
-!  else
-!    !there is not -if, there is -of
-!    call set(infield, '*', 1, fit=.true.)
-!    call set(outfield, get_post_arg('-of'), 1, fit=.true.)
-!    p = index( outfield(1), '.', back=.true.);  outfext =  outfield(1)(p+1:len_trim( outfield(1)))
-!  end if
-!else
-!  !infield and outfield are both mesh internal
-!  if (is_arg('-if') .and. is_arg('-of')) then
-!    !there is -if, there is -of
-!    call set( infield, get_post_arg('-if'), 1, fit=.true.)
-!    call set(outfield, get_post_arg('-of'), 1, fit=.true.)
-!  elseif (.not. is_arg('-if') .and. .not. is_arg('-of')) then
-!    !there is not -if, there is not -of
-!    call set( infield, '*', 1, fit=.true.)
-!    call set(outfield, '*', 1, fit=.true.)
-!  elseif (.not. is_arg('-of')) then
-!    !there is -if, there is not -of
-!    call set( infield, get_post_arg('-if'), 1, fit=.true.)
-!    call set(outfield, trim(infield(1)), 1, fit=.true.)
-!  else
-!    !there is not -if, there is -of
-!    call error('(module_feconv/fe_conv) option -fi is mandatory to read a specific field.')
-!  end if
-!end if
-
-
-  
-!si es oM, load aparte; si es iM, se engorda load
-!escritura, lo mismo
-
-
 ! Sets the field padding value
 if (is_arg('-pad')) then
- padval = dble(get_post_arg('-pad'))
+  padval = dble(get_post_arg('-pad'))
 else
- padval = 0._real64
+  padval = 0._real64
 endif
-
 
 !read mesh
 is_pmh = .false.
@@ -508,7 +413,7 @@ endif
 if(is_arg('-l')) then
   if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   is_pmh = .true.
-  call save_pmh2(infile,pmh,with_values=.false.)
+  call save_pmh2(infile, pmh, with_values=.false.)
   stop
 endif
 
@@ -603,7 +508,6 @@ if(present(mempmh)) then
   if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   mempmh = pmh
 else
-
   !save mesh
   select case (trim(adjustlt(outext)))
   case('mfm')
@@ -675,7 +579,6 @@ else
     call save_pmh(outfile, pmh)
     print '(a)', 'Done!'
   end select !case default, already checked before reading infile
-  
   !save fields
   if(is_pmh .and. there_is_field .and. is_arg('-of')) then
     select case (trim(lcase(adjustlt(outfext))))
@@ -691,9 +594,7 @@ else
         call info('Field file extension "'//trim(lcase(adjustlt(outfext)))//'" not supported!')
     end select
   endif
-
 endif 
-
 end subroutine
 
 end module
