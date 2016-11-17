@@ -198,10 +198,7 @@ do ip = 1, size(pmh%pc,1)
       write(iu, '(4x,a)') '<field name="'//trim(pmh%pc(ip)%fi(ifi)%name)//&
                              & '" ncomp="'//trim(string(size(pmh%pc(ip)%fi(ifi)%val,1)))//&
                              & '" nshot="'//trim(string(size(pmh%pc(ip)%fi(ifi)%param,1)))//'">'
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Valores del campo
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       write(iu, '(4x,a)') '</field>'
+      write(iu, '(4x,a)') '</field>'
     enddo
   endif
   do ig = 1, size(pmh%pc(ip)%el,1)
@@ -231,9 +228,6 @@ do ip = 1, size(pmh%pc,1)
           write(iu, '(6x,a)') '<field name="'//trim(elg%fi(ifi)%name)//&
                              & '" ncomp="'//trim(string(size(elg%fi(ifi)%val,1)))//&
                              & '" nshot="'//trim(string(size(elg%fi(ifi)%param,1)))//'">'
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Valores del campo
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           write(iu, '(6x,a)') '</field>'
         enddo
       endif
