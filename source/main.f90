@@ -292,16 +292,15 @@ elseif (is_arg('-h')) then
   print '(a)', '    (http://people.sc.fsu.edu/~jburkardt/) under the GNU LGPL license.'
   print '(a)', ' '
   print '(a)', 'REPORTING BUGS'
-  print '(a)', '    Report bugs to fran(dot)pena(at)usc(dot)es'
+  print '(a)', '    Report bugs to fran.pena(at)usc.es'
   print '(a)', ' '
   print '(a)', 'DOWNLOAD PAGE'
-  print '(a)', '    <http://sourceforge.net/projects/feconv/>'
+  print '(a)', '    <https://github.com/victorsndvg/FEconv>'
   print '(a)', ' '
   print '(a)', 'COPYRIGHT'
-  print '(a)', '    Copyright © 2010 Free Software Foundation, Inc.  License GPLv3+: GNU GPL version 3 or later'//&
-&' <http://gnu.org/licenses/gpl.html>.'
-  print '(a)', '    This is free software: you are free to change and redistribute it.  There is NO WARRANTY, '//&
-&'to the extent permitted by law.'
+  print '(a)', '    Copyright © 2010 Iban Constenla, Victor Sande, Francisco Pena.  License GPLv3+: GNU GPL version 3 or later'
+  print '(a)', '    <http://gnu.org/licenses/gpl.html>. This is free software: you are free to change and redistribute it.'
+  print '(a)', '    There is NO WARRANTY, to the extent permitted by law.'
   print '(a)', ' '
   stop
 end if
