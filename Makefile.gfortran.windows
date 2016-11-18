@@ -2,7 +2,7 @@
 # Makefile created using the tool 'Creamake'
 # 
 # Creamake is distributed under the GNU GPL license
-# Author: Francisco Pena, fran(dot)pena(at)usc(dot)es
+# Author: Francisco Pena, fran.pena(at)usc.es
 # Download page: http://sourceforge.net/projects/creamake/
 #################################################################
  
@@ -24,7 +24,7 @@ dir_objetos = object
 condir_principal = source\main.f90
  
 # EXECUTABLE NAME 
-ejecutable = feconv
+ejecutable = feconv.exe
  
 # NEEDED TO convert ejecutable THE DEFAULT RULE: 
 $(ejecutable): $(condir_principal) 
@@ -39,12 +39,12 @@ module_alloc_real64_r1.f90 module_alloc_real64_r2.f90 \
 module_alloc_real64_r3.f90 module_alloc.f90 module_system.f90 IR_Precision.f90 \
 Lib_VTK_IO.f90 LIB_VTK_IO_READ.f90 module_writevtu.f90 \
 module_ALLOC_int_alloc_r2.f90 module_ALLOC_log_r2.f90 module_ALLOC_real_r2.f90 \
-module_desplazamientos.f90 module_fuerzas.f90 module_cells.f90 \
-module_dataset.f90 module_FE_DB.f90 module_groups.f90 module_patran.f90 \
-module_mesh.f90 module_mfm.f90 module_mum.f90 module_fe_database_pmh.f90 \
-module_pmh.f90 module_utils_mphtxt.f90 module_write_mphtxt.f90 \
-module_read_mphtxt.f90 module_manage_mphtxt.f90 module_mphtxt.f90 \
-module_vtu.f90 module_pvd.f90 module_muf.f90 module_mff.f90 \
+module_assign_references.f90 module_desplazamientos.f90 module_fuerzas.f90 \
+module_cells.f90 module_dataset.f90 module_FE_DB.f90 module_groups.f90 \
+module_patran.f90 module_mesh.f90 module_mfm.f90 module_mum.f90 \
+module_fe_database_pmh.f90 module_pmh.f90 module_utils_mphtxt.f90 \
+module_write_mphtxt.f90 module_read_mphtxt.f90 module_manage_mphtxt.f90 \
+module_mphtxt.f90 module_vtu.f90 module_pvd.f90 module_muf.f90 module_mff.f90 \
 module_dataset_2467.f90 module_dataset_2414.f90 module_dataset_2412.f90 \
 module_dataset_2411.f90 module_manage_unv.f90 module_unv.f90 \
 module_utils_msh.f90 module_read_msh.f90 module_ip.f90 \
@@ -103,7 +103,8 @@ module_dataset.obj: module_report.obj module_convers.obj
 module_FE_DB.obj: module_os_dependant.obj
 module_groups.obj: module_alloc.obj
 module_patran.obj: module_compiler_gfortran.obj module_desplazamientos.obj \
-module_fuerzas.obj module_math.obj module_groups.obj
+module_fuerzas.obj module_math.obj module_groups.obj \
+module_assign_references.obj
 module_mesh.obj: module_compiler_gfortran.obj module_os_dependant.obj \
 module_alloc.obj module_files.obj
 module_mfm.obj: module_compiler_gfortran.obj module_os_dependant.obj \
@@ -112,7 +113,8 @@ module_mum.obj: module_compiler_gfortran.obj module_os_dependant.obj \
 module_report.obj module_convers.obj module_feed.obj
 module_pmh.obj: module_compiler_gfortran.obj module_os_dependant.obj \
 module_report.obj module_convers.obj module_alloc.obj module_args.obj \
-module_feed.obj module_fe_database_pmh.obj module_set.obj module_files.obj
+module_feed.obj module_fe_database_pmh.obj module_set.obj module_files.obj \
+module_set.obj
 module_utils_mphtxt.obj: module_alloc.obj module_pmh.obj
 module_write_mphtxt.obj: module_compiler_gfortran.obj module_os_dependant.obj \
 module_report.obj module_convers.obj module_mesh.obj module_pmh.obj \
@@ -191,7 +193,7 @@ module_fem_extract.obj: module_fem_extract_real.obj \
 module_fem_extract_complex.obj
 module_gmsh.obj: module_compiler_gfortran.obj module_os_dependant.obj \
 module_report.obj module_convers.obj module_alloc.obj \
-module_fe_database_pmh.obj module_pmh.obj
+module_fe_database_pmh.obj module_pmh.obj module_args.obj
 module_feconv.obj: module_compiler_gfortran.obj module_os_dependant.obj \
 module_report.obj module_convers.obj module_files.obj module_alloc.obj \
 module_args.obj module_transform.obj module_cuthill_mckee.obj module_msh.obj \
@@ -207,10 +209,10 @@ includes =
 FC = gfortran
  
 # COMPILER OPTIONS
-FFLAGS = -J$(dir_objetos) -Wall -ggdb -fcheck=all -fbacktrace -fall-intrinsics
+FFLAGS = -J$(dir_objetos)
  
 # LINKER OPTIONS
-LDFLAGS = 
+LDFLAGS = -static
  
 #################################################################
 # Non-modifiable part
@@ -240,7 +242,7 @@ FFLAGS += -I$(dir_objetos)
 all: $(ejecutable)
  
 $(ejecutable): $(includes) $(modulos_obj) $(fuentes_obj)
-	$(FC) -o $(ejecutable) $(FFLAGS) $(condir_principal) $(condir_modulos_obj) $(condir_fuentes_obj) $(LDFLAGS)
+	$(FC) -o $(ejecutable) $(FFLAGS) $(condir_principal) $(condir_modulos_obj) $(condir_fuentes_obj) $(LDFLAGS) 
  
 # SOURCES RULE
 $(fuentes_obj): $(includes) $(modulos_obj)

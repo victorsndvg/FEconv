@@ -23,6 +23,7 @@ use module_fuerzas
 !use module_RECONVXX
 use module_MATH
 use module_groups
+use module_assign_references, only: dos, tres, cuatro
 implicit none
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -109,30 +110,30 @@ implicit none
   !
   ! Linea 819: Modificacion para la lectura de nra mediante CBEAM, para CTRIA3 y CTRIA6
 
-interface
-  function dos(nrv1, nrv2, ndir) result(nra)
-  implicit none
-  integer, intent(in) :: nrv1, nrv2
-  integer, intent(in) :: ndir    
-  integer :: nra 
-  end function
-end interface
-interface
-  function tres(nrv1, nrv2, nrv3, ndir) result(nrc)
-  implicit none
-  integer, intent(in) :: nrv1, nrv2, nrv3
-  integer, intent(in) :: ndir     
-  integer :: nrc
-  end function
-end interface
-interface
-  function cuatro(nrv1, nrv2, nrv3, nrv4, ndir) result(nrc)
-  implicit none
-  integer, intent(in) :: nrv1, nrv2, nrv3, nrv4
-  integer, intent(in) :: ndir
-  integer :: nrc 
-  end function
-end interface
+!interface
+!  function dos(nrv1, nrv2, ndir) result(nra)
+!  implicit none
+!  integer, intent(in) :: nrv1, nrv2
+!  integer, intent(in) :: ndir    
+!  integer :: nra 
+!  end function
+!end interface
+!interface
+!  function tres(nrv1, nrv2, nrv3, ndir) result(nrc)
+!  implicit none
+!  integer, intent(in) :: nrv1, nrv2, nrv3
+!  integer, intent(in) :: ndir     
+!  integer :: nrc
+!  end function
+!end interface
+!interface
+!  function cuatro(nrv1, nrv2, nrv3, nrv4, ndir) result(nrc)
+!  implicit none
+!  integer, intent(in) :: nrv1, nrv2, nrv3, nrv4
+!  integer, intent(in) :: ndir
+!  integer :: nrc 
+!  end function
+!end interface
 
 private :: order, swap
 
@@ -153,7 +154,7 @@ character(8) :: elto = ' ', topo, gridd, spc, through, force
 !character(len=1) :: caras_interiores !Modificacion_Fran
 !character(255) :: filein, fileout !Modificacion_Fran
 integer :: i, j, k, kk, h, g, itopo, nmat, nodo(8), status, hd, npe, &
-vpe, ape, cpe, dos, tres, cuatro, nnnod, io !form
+vpe, ape, cpe, nnnod, io !form
 integer, allocatable :: m(:,:), mmver(:), mmnod(:), nnrv(:)
 real(real64), allocatable :: zn(:,:), zz(:,:)
 integer :: tmp 
