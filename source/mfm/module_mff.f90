@@ -11,12 +11,13 @@ module module_mff
 !   save_mff: saves a mesh in a MFM format file
 !-----------------------------------------------------------------------
 use module_compiler_dependant, only: real64
-use module_files, only: get_unit
-use module_convers, only: string, replace
 use module_report, only:error
+use module_convers, only: string, replace
+use module_files, only: get_unit
+use module_feed, only: feed, empty
 use module_pmh
 
-implicit none!
+implicit none
 
 !type field
 !  character(maxpath)        :: name 
@@ -34,7 +35,7 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
   real(real64), optional,        intent(in) :: param 
   character(len=maxpath)                    :: filename, fieldname
   integer                                   :: iu, ios, i, j, k, idx  
-  integer                                   :: ncomp, totcomp, maxtdim
+  integer                                   :: ncomp, totcomp, maxtdim, aux
   real(real64), allocatable                 :: fielddata(:)
   type(field), allocatable                  :: tempfields(:)
 
@@ -54,11 +55,13 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
   
     !try read number of components
     read(unit=iu, fmt=*, iostat=ios) totcomp
+    backspace(unit=iu, iostat=ios)
+    if (ios /= 0) call error('load/backspace, #'//trim(string(ios)))
   
     if(allocated(fielddata)) deallocate(fielddata)
     allocate(fielddata(totcomp))
   
-    read(unit=iu, fmt=*, iostat=ios) (fielddata(i),  i=1,totcomp)
+    read(unit=iu, fmt=*, iostat=ios) aux, (fielddata(i),  i=1,totcomp)
     close(iu)
   
     maxtdim = 0
@@ -130,29 +133,21 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
       endif
     endif
   enddo
-
-print '(a)', 'Done!'
-
+  print '(a)', 'Done!'
 end subroutine
-
 
 subroutine save_mff(pmh, outfield, path, param)
   type(pmh_mesh),            intent(inout) :: pmh      !PMH mesh
-  character(*), allocatable, intent(in) :: outfield(:) ! Out field file names
-  character(*),              intent(in) :: path        !path
+  character(*), allocatable, intent(in) :: outfield(:) !Out field file names
+  character(*),              intent(in) :: path        !Path
   real(real64), optional,    intent(in) :: param 
-  character(len=maxpath)                :: filename    !file names
+  character(len=maxpath)                :: filename    !File names
   integer                               :: i,j,k,l,m,pi,mtdim
   integer                               :: iu, ios, fidx
 
-
-
-   if(.not. allocated(outfield)) call error('You must specify field with -of option')
-
+  if(.not. allocated(outfield)) call error('You must specify field with -of option')
   fidx = 1 ! field number
-!  do fidx=1, 
-
-
+  !do fidx=1,... 
     pi = 1
     mtdim = 0
     do i=1, size(pmh%pc,1)
@@ -176,15 +171,20 @@ subroutine save_mff(pmh, outfield, path, param)
             iu = get_unit() 
             open (unit=iu, file=trim(filename), form='formatted', position='rewind', iostat=ios)
             if (ios /= 0) call error('save/open, #'//trim(string(ios)))
-            write(unit=iu, fmt=*, iostat = ios) size(pmh%pc(i)%z,2)*size(pmh%pc(i)%fi(j)%val,1)
-            if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
+            !write(unit=iu, fmt=*, iostat = ios) size(pmh%pc(i)%z,2)*size(pmh%pc(i)%fi(j)%val,1)
+            call feed(iu, string(size(pmh%pc(i)%z,2)*size(pmh%pc(i)%fi(j)%val,1)))
+            !if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
             do k=1,size(pmh%pc(i)%fi(j)%val,2)
-  !            do l=1,size(pmh%pc(i)%fi(j)%val,1)
-                write(unit=iu, fmt=*, iostat = ios) &
-                  & (pmh%pc(i)%fi(j)%val(l,k,pi), l=1, size(pmh%pc(i)%fi(j)%val,1) )
-                if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
-  !            enddo
+              !do l=1,size(pmh%pc(i)%fi(j)%val,1)
+              !write(unit=iu, fmt=*, iostat = ios) &
+              !   & (pmh%pc(i)%fi(j)%val(l,k,pi), l=1, size(pmh%pc(i)%fi(j)%val,1) )
+              do l=1, size(pmh%pc(i)%fi(j)%val,1) 
+                call feed(iu, string(pmh%pc(i)%fi(j)%val(l,k,pi)))
+              end do
+              !if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
+              !enddo
             enddo
+            call empty(iu)
             close(iu)
             fidx = fidx + 1 
           endif
@@ -195,7 +195,7 @@ subroutine save_mff(pmh, outfield, path, param)
         mtdim = max(FEDB(pmh%pc(i)%el(j)%type)%tdim,mtdim)
       enddo
       do j=1, size(pmh%pc(i)%el,1)
-        if(mtdim == FEDB(pmh%pc(i)%el(j)%type)%tdim .and. allocated(pmh%pc(i)%el(j)%fi)) then
+        if (mtdim == FEDB(pmh%pc(i)%el(j)%type)%tdim .and. allocated(pmh%pc(i)%el(j)%fi)) then
           do k=1,size(pmh%pc(i)%el(j)%fi,1)
             if(.true.) then ! Name control(?). Not used in mff
               filename = trim(path)//trim(outfield(fidx))
@@ -211,26 +211,27 @@ subroutine save_mff(pmh, outfield, path, param)
               iu = get_unit() 
               open (unit=iu, file=trim(filename), form='formatted', position='rewind', iostat=ios)
               if (ios /= 0) call error('save_mff/open, #'//trim(string(ios)))
-              write(unit=iu, fmt=*, iostat = ios) pmh%pc(i)%el(j)%nel*size(pmh%pc(i)%el(j)%fi(k)%val,1)
-              if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
+              call feed(iu, string(pmh%pc(i)%el(j)%nel*size(pmh%pc(i)%el(j)%fi(k)%val,1)))
+              !write(unit=iu, fmt=*, iostat = ios) pmh%pc(i)%el(j)%nel*size(pmh%pc(i)%el(j)%fi(k)%val,1)
+              !if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
               do l=1,size(pmh%pc(i)%el(j)%fi(k)%val,2)
-!                do m=1,size(pmh%pc(i)%el(j)%fi(k)%val,1)
-                write(unit=iu, fmt=*, iostat = ios) &
-                  & (pmh%pc(i)%el(j)%fi(k)%val(m,l,pi), m=1, size(pmh%pc(i)%el(j)%fi(k)%val,1) )
-                if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
-!                enddo
+                !write(unit=iu, fmt=*, iostat = ios) &
+                !& (pmh%pc(i)%el(j)%fi(k)%val(m,l,pi), m=1, size(pmh%pc(i)%el(j)%fi(k)%val,1) )
+                !if (ios /= 0) call error('save_mff/header, #'//trim(string(ios)))
+                do m = 1, size(pmh%pc(i)%el(j)%fi(k)%val,1)
+                  call feed(iu, string(pmh%pc(i)%el(j)%fi(k)%val(m,l,pi)))
+                enddo
               enddo   
-              close(iu)   
+              call empty(iu)
+              close(iu)
               fidx = fidx + 1      
             endif
           enddo
         endif
       enddo
     enddo
-!  enddo
-
-print '(a)', 'Done!'
-
+  !enddo
+  print '(a)', 'Done!'
 end subroutine
 
 subroutine fix_filename(filename)
@@ -241,7 +242,6 @@ subroutine fix_filename(filename)
   do i=1, size(chars,1)
     call replace(filename,chars(i),'_')
   enddo
-
 end subroutine
 
 end module
