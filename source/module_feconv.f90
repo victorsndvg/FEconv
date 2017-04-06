@@ -232,8 +232,8 @@ else
         end if
         p = index( infieldfile(1), '.', back=.true.)
         infext =  infieldfile(1)(p+1:len_trim( infieldfile(1)))
-        ! There is in and field extension is 'ip'
-        if (id_field_ext(infext) == id_field_ext('ip') .and. is_arg('-in')) then
+        ! There is in and field extension is 'ip' or 'mff'
+        if (is_arg('-in') .and. (id_field_ext(infext) == id_field_ext('ip') .or. id_field_ext(infext) == id_field_ext('mff'))) then
           str = get_post_arg('-in')
           p = index(str, '[')
           if (p == 0) then !a single field name

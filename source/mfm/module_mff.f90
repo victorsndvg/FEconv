@@ -40,96 +40,98 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
   type(field), allocatable                  :: tempfields(:)
 
 
-  if(allocated(fieldnames) .and. size(filenames,1) /= size(fieldnames,1)) &
-    call error('load_mff/ Filenames and fieldnames dimension must agree')
-
-  do j=1, size(filenames,1)
+  if(.not. allocated(filenames)) call error('load_mff, filenames is not allocated.')
+  if(.not. allocated(fieldnames)) call error('load_mff, fieldnames is not allocated.')
+  if(size(filenames,1) /= size(fieldnames,1)) call error('load_mff, dimension of filenames and fieldnames must agree.')
+  do j = 1, size(filenames,1)
     filename = trim(filenames(j))
-    fieldname = trim(filenames(j))
-
-    if(allocated(fieldnames)) fieldname = trim(fieldnames(j))
-    iu = get_unit()
+    fieldname = trim(fieldnames(j))
     !open file
+    iu = get_unit()
     open (unit=iu, file=filename, form='formatted', status='old', position='rewind', iostat=ios)
-    if (ios /= 0) call error('load/open, #'//trim(string(ios)))
-  
-    !try read number of components
+    if (ios /= 0) call error('load_mff/open, #'//trim(string(ios)))
+    !read number of components, totcomp
     read(unit=iu, fmt=*, iostat=ios) totcomp
     backspace(unit=iu, iostat=ios)
-    if (ios /= 0) call error('load/backspace, #'//trim(string(ios)))
-  
-    if(allocated(fielddata)) deallocate(fielddata)
+    if (ios /= 0) call error('load_mff/backspace, #'//trim(string(ios)))
+    if(allocated(fielddata)) deallocate(fielddata)  
     allocate(fielddata(totcomp))
-  
+    !read components, fielddata
     read(unit=iu, fmt=*, iostat=ios) aux, (fielddata(i),  i=1,totcomp)
     close(iu)
   
     maxtdim = 0
-  
     if(size(pmh%pc,1) == 1) then
-      ! Field over nodes. 1,2 or 3 components allowed
+      !field over nodes. 1,2 or 3 components allowed
       if (mod(totcomp, size(pmh%pc(1)%z,2)) == 0 .and. (totcomp/size(pmh%pc(1)%z,2)<= 3)) then
         ncomp = totcomp/size(pmh%pc(1)%z,2)
         if(.not. allocated(pmh%pc(1)%fi)) then 
+          !allocate fi for the first time
           allocate(pmh%pc(1)%fi(1))
         else
+          !increase the size of fi in one
           if(allocated(tempfields)) deallocate(tempfields)
           allocate(tempfields(size(pmh%pc(1)%fi,1)+1))
           tempfields(1:size(pmh%pc(1)%fi,1)) = pmh%pc(1)%fi(:)
           call move_alloc(from=tempfields, to=pmh%pc(1)%fi)
         endif
+        !current field, idx 
         idx = size(pmh%pc(1)%fi,1)
         call info('Reading node field "'//trim(adjustl(fieldname))//'" from: '//trim(adjustl(filename)))
-        pmh%pc(1)%fi(idx)%name = trim(fieldname)
-        if(allocated(pmh%pc(1)%fi(idx)%param)) deallocate(pmh%pc(1)%fi(idx)%param)
-        allocate(pmh%pc(1)%fi(idx)%param(1))      
-        if(present(param)) then 
-          pmh%pc(1)%fi(idx)%param(1) = param
-        else
-          pmh%pc(1)%fi(idx)%param(1) = 0._real64
-        endif
-        if(allocated(pmh%pc(1)%fi(idx)%val)) deallocate(pmh%pc(1)%fi(idx)%val)
-        allocate(pmh%pc(1)%fi(idx)%val(ncomp, totcomp/ncomp,1))
-        do i=1, totcomp/ncomp
-           pmh%pc(1)%fi(idx)%val(:,i,1) = fielddata((i-1)*ncomp+1:i*ncomp)
-        enddo
-      else
-        do i=1, size(pmh%pc(1)%el,1)
-          maxtdim = max(FEDB(pmh%pc(1)%el(i)%type)%tdim,maxtdim)
-        enddo
-   
-        do i=1, size(pmh%pc(1)%el,1)
-          if(maxtdim == FEDB(pmh%pc(1)%el(i)%type)%tdim) then
-            if(mod(totcomp,pmh%pc(1)%el(i)%nel) == 0 .and. totcomp/pmh%pc(1)%el(i)%nel<= 3) then
-              ncomp = totcomp/pmh%pc(1)%el(i)%nel
-              if(.not. allocated(pmh%pc(1)%el(i)%fi)) then
-                allocate(pmh%pc(1)%el(i)%fi(1))
-              else
-                if(allocated(tempfields)) deallocate(tempfields)
-                allocate(tempfields(size(pmh%pc(1)%el(i)%fi,1)+1))
-                tempfields(1:size(pmh%pc(1)%fi,1)) = pmh%pc(1)%el(i)%fi(:)
-                call move_alloc(from=tempfields, to=pmh%pc(1)%el(i)%fi)
-                deallocate(tempfields)
-              endif
-              idx = size(pmh%pc(1)%el(i)%fi,1)
-              call info('Reading cell field "'//trim(adjustl(fieldname))//'" from: '//trim(adjustl(filename)))
-              pmh%pc(1)%el(i)%fi(idx)%name = trim(fieldname)
-              if(allocated(pmh%pc(1)%el(i)%fi(idx)%param)) deallocate(pmh%pc(1)%el(i)%fi(idx)%param)
-              allocate(pmh%pc(1)%el(i)%fi(idx)%param(1))      
-              if(present(param)) then 
-                pmh%pc(1)%el(i)%fi(idx)%param(1) = param
-              else
-                pmh%pc(1)%el(i)%fi(idx)%param(1) = 0._real64
-              endif
-              if(allocated(pmh%pc(1)%el(i)%fi(idx)%val)) deallocate(pmh%pc(1)%el(i)%fi(idx)%val)
-              allocate(pmh%pc(1)%el(i)%fi(idx)%val(ncomp, totcomp/ncomp,1))
-              do k=1, pmh%pc(1)%el(i)%nel
-                pmh%pc(1)%el(i)%fi(idx)%val(:,k,1) = fielddata((k-1)*ncomp+1:k*ncomp)
-              enddo
-              exit
-            endif
+        associate(fix => pmh%pc(1)%fi(idx))
+          fix%name = trim(fieldname)
+          if(allocated(fix%param)) deallocate(fix%param)
+          allocate(fix%param(1))      
+          if(present(param)) then 
+            fix%param(1) = param
+          else
+            fix%param(1) = 0._real64
           endif
-        enddo
+          if(allocated(fix%val)) deallocate(fix%val)
+          allocate(fix%val(ncomp, totcomp/ncomp,1))
+          do i=1, totcomp/ncomp
+            fix%val(:,i,1) = fielddata((i-1)*ncomp+1:i*ncomp)
+          enddo
+        end associate
+      else
+        !possible celldata, first detect in which elgroup is
+        associate(pc1 => pmh%pc(1))
+          do i = 1, size(pc1%el,1)
+            maxtdim = max(FEDB(pc1%el(i)%type)%tdim, maxtdim)
+          enddo
+          do i = 1, size(pc1%el,1)
+            if(maxtdim == FEDB(pc1%el(i)%type)%tdim) then
+              if(mod(totcomp, pc1%el(i)%nel) == 0 .and. totcomp/pc1%el(i)%nel<= 3) then
+                ncomp = totcomp/pc1%el(i)%nel
+                if(.not. allocated(pc1%el(i)%fi)) then
+                  allocate(pc1%el(i)%fi(1))
+                else
+                  if(allocated(tempfields)) deallocate(tempfields)
+                  allocate(tempfields(size(pc1%el(i)%fi,1)+1))
+                  tempfields(1:size(pc1%fi,1)) = pc1%el(i)%fi(:)
+                  call move_alloc(from=tempfields, to=pc1%el(i)%fi)
+                  deallocate(tempfields)
+                endif
+                idx = size(pc1%el(i)%fi,1)
+                call info('Reading cell field "'//trim(adjustl(fieldname))//'" from: '//trim(adjustl(filename)))
+                pc1%el(i)%fi(idx)%name = trim(fieldname)
+                if(allocated(pc1%el(i)%fi(idx)%param)) deallocate(pc1%el(i)%fi(idx)%param)
+                allocate(pc1%el(i)%fi(idx)%param(1))      
+                if(present(param)) then 
+                  pc1%el(i)%fi(idx)%param(1) = param
+                else
+                  pc1%el(i)%fi(idx)%param(1) = 0._real64
+                endif
+                if(allocated(pc1%el(i)%fi(idx)%val)) deallocate(pc1%el(i)%fi(idx)%val)
+                allocate(pc1%el(i)%fi(idx)%val(ncomp, totcomp/ncomp,1))
+                do k=1, pc1%el(i)%nel
+                  pc1%el(i)%fi(idx)%val(:,k,1) = fielddata((k-1)*ncomp+1:k*ncomp)
+                enddo
+                exit
+              endif
+            endif
+          enddo
+        end associate
       endif
     endif
   enddo
