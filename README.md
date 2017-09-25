@@ -1,6 +1,6 @@
 # 1. Description
 
-Program feconv converts finite element (FE) mesh files between several formats; it can also transform the FE type of the mesh and/or perform a bandwidth optimization. Some conversion capabilities are also present for mesh fields. Please, visit the EXAMPLES section, in the help invoked by feconv -h, to know more details.
+Program feconv converts finite element (FE) mesh files between several formats; it can also transform the FE type of the mesh and/or perform a bandwidth optimization. Some conversion capabilities are also present for mesh fields. Please, visit the EXAMPLES section, in the help invoked by feconv -h, to know more details or visit <a href="http://victorsndvg.github.io/FEconv/">http://victorsndvg.github.io/FEconv</a> for more information.
 
 # 2. Installation
 
