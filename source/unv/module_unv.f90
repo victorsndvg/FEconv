@@ -107,12 +107,12 @@ do ipp = 1, size(piece2save,1)
   if (any_P2) then !save node coordinates when there is some Lagrange P2 elements
     do j = 1, pmh%pc(ip)%nnod
       write(iu,'(4I10)') prev_coord + j, 0, 0, 11
-      write(iu,'(1P3E25.16)') reshape(znod(:,j), [3], [0._real64,0._real64,0._real64])
+      write(iu,'(1P3D25.16)') reshape(znod(:,j), [3], [0._real64,0._real64,0._real64])
     end do
   else !save vertex coordinates when there is not any Lagrange P2 element
     do j = 1, pmh%pc(ip)%nver
       write(iu,'(4I10)') prev_coord + j, 0, 0, 11
-      write(iu,'(1P3E25.16)') reshape(pmh%pc(ip)%z(:,j), [3], [0._real64,0._real64,0._real64])
+      write(iu,'(1P3D25.16)') reshape(pmh%pc(ip)%z(:,j), [3], [0._real64,0._real64,0._real64])
     end do
   end if
   !update the number of previous nodes/vertices
@@ -311,8 +311,8 @@ do i = 1,size(piece2save,1)
             write(iu,'(8I10)') (/j,np-1,j,0,0,np-1,np-1,np-1/) ! Record10: Integer analysis type speciic data (1-8) (2414)
             write(iu,'(8I10)') (/(0,m=1,2)/)                   ! Record11: Integer analysis type speciic data (9-10) (2414)
             !EigenValue, Modal Mass, ...
-            write(iu,'(6E13.5)') &                             ! Record12: Real analysis type specific data (1-6) (2414)
-              & (/pc%fi(j)%param(np),pc%fi(j)%param(np),(0._real64,m=1,4)/)
+            write(iu,'(7E13.5)') &                             ! Record12: Real analysis type specific data (1-6) (2414)
+              & (/pc%fi(j)%param(np),pc%fi(j)%param(np),(0._real64,m=1,5)/)
             write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)         ! Record13: Real analysis type specific data (7-12) (2414)
           else
             write(iu,'(8I10)') ncomp,ncomp,j,np-1,0,0,0,0      ! Record7: Integer analysis type speciic data (1-8) (55)
@@ -326,8 +326,8 @@ do i = 1,size(piece2save,1)
           enddo
           write(iu,'(I6)') -1
         enddo
+        prev_coord = prev_coord+pc%nnod
       enddo
-      prev_coord = prev_coord+pc%nnod
     endif
     do j=1, size(pc%el,1)
       if(FEDB(pc%el(j)%type)%tdim == 0) cycle
