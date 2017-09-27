@@ -31,7 +31,7 @@ contains
 subroutine load_mff(pmh, filenames, fieldnames, param)
   character(len=*), allocatable, intent(in) :: filenames(:) !fields file names
   type(pmh_mesh),             intent(inout) :: pmh
-  character(*), allocatable,     intent(in) :: fieldnames(:) !field names
+  character(*), allocatable                 :: fieldnames(:) !field names
   real(real64), optional,        intent(in) :: param 
   character(len=maxpath)                    :: filename, fieldname
   integer                                   :: iu, ios, i, j, k, idx  
@@ -41,7 +41,11 @@ subroutine load_mff(pmh, filenames, fieldnames, param)
 
 
   if(.not. allocated(filenames)) call error('load_mff, filenames is not allocated.')
-  if(.not. allocated(fieldnames)) call error('load_mff, fieldnames is not allocated.')
+  if(.not. allocated(fieldnames)) then
+    call info('load_mff, fieldnames is not allocated; use filenames instead.')
+    call alloc(fieldnames, size(filenames))
+    fieldnames = filenames
+  end if
   if(size(filenames,1) /= size(fieldnames,1)) call error('load_mff, dimension of filenames and fieldnames must agree.')
   do j = 1, size(filenames,1)
     filename = trim(filenames(j))
