@@ -311,8 +311,8 @@ do i = 1,size(piece2save,1)
             write(iu,'(8I10)') (/j,np-1,j,0,0,np-1,np-1,np-1/) ! Record10: Integer analysis type speciic data (1-8) (2414)
             write(iu,'(8I10)') (/(0,m=1,2)/)                   ! Record11: Integer analysis type speciic data (9-10) (2414)
             !EigenValue, Modal Mass, ...
-            write(iu,'(7E13.5)') &                             ! Record12: Real analysis type specific data (1-6) (2414)
-              & (/pc%fi(j)%param(np),pc%fi(j)%param(np),(0._real64,m=1,5)/)
+            write(iu,'(6E13.5)') &                             ! Record12: Real analysis type specific data (1-6) (2414)
+              & (/pc%fi(j)%param(np),pc%fi(j)%param(np),(0._real64,m=1,4)/)
             write(iu,'(6E13.5)') (/(0._real64,m=1,6)/)         ! Record13: Real analysis type specific data (7-12) (2414)
           else
             write(iu,'(8I10)') ncomp,ncomp,j,np-1,0,0,0,0      ! Record7: Integer analysis type speciic data (1-8) (55)
