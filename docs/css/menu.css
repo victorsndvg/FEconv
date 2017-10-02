@@ -1,9 +1,9 @@
 
 nav.menu {
-  padding: 5px;
-  margin: 0px 0px 0px 15px;
+  padding: 0% 0% 0% 0%;
+  margin: 2% 2% 2% 2%;
   float: left;
-  width: 160px;
+  width: 15%;
 /*  height: 100%*/
 }
 
@@ -11,15 +11,15 @@ nav.menu {
 .mnu ul {
   display: block;
   list-style-type: disc;
-  margin: 0px 0px 0px 0px;
-  padding: 5px;
+  padding: 0% 0% 0% 0%;
+  margin: 0% 0% 0% 0%;
   text-align: center;
 } 
 
 .mnu ul li {
   display: block;
-  padding: 5px;
-  margin: 5px 0px 0px 0px;
+  padding: 0% 0% 0% 0%;
+  margin: 5px 0% 0% 0%;
   background-color: DimGrey; 
   border-radius:0px;
   box-shadow:2px 2px 2px #000000;
