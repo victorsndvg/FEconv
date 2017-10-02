@@ -20,13 +20,17 @@ nav.topics ul li {
   padding: 3px;
   margin: 0px 0px 0px 10px;
   float: left;
-  background-color: Lavender;
+  background-color: DimGrey;
   border-radius:0px;
   box-shadow:2px 2px 2px #000000;
 }
 
 nav.topics ul li:hover ul {
   display:block;
+}
+
+nav.topics ul li:hover {
+  background-color: SlateGrey;
 }
 
 
@@ -36,7 +40,7 @@ nav.topics ul li ul {
   margin: 0px 0px 0px 10px;
   display:none;
   position: absolute;
-  background-color: Lavender;
+  background-color: DimGrey;
   width=auto;
   box-shadow:2px 2px 2px #000000;
 }
@@ -52,7 +56,7 @@ nav.topics ul li ul li {
 }
 
 nav.topics ul li ul li:hover {
-  background-color: SlateGray;
+  background-color: SlateGrey;
 }
 
 nav.topics ul li ul li a:hover {
@@ -64,7 +68,7 @@ nav.topics ul li ul li a {
   margin: 0px 0px 0px 0px;
   text-decoration: none;
   font-weight: normal;
-  color: SlateGray;
+  color: While;
   width:100%;
 }
 
@@ -73,12 +77,7 @@ nav.topics ul li a{
   margin: 0px 0px 0px 0px;
   text-decoration: none;
   font-weight: bold;
-  color: Maroon;
+  color: White;
 }
 
-
-nav.topics ul li a:hover{
-  color: SlateGray;
-
-}
 

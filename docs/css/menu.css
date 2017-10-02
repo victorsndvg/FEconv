@@ -20,7 +20,7 @@ nav.menu {
   display: block;
   padding: 5px;
   margin: 5px 0px 0px 0px;
-  background-color: SlateGray; 
+  background-color: DimGrey; 
   border-radius:0px;
   box-shadow:2px 2px 2px #000000;
 /*  border-radius: 15px;
@@ -41,6 +41,6 @@ nav.menu {
 } 
 
 .mnu ul li:hover {
-  background-color: Maroon;
+  background-color: SlateGrey;
 } 
 

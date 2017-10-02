@@ -1,6 +1,6 @@
 /*Colors*/
 /*BurlyWood 	DEB887 	222,184,135*/		/*LightBlue 	ADD8E6 	173,216,230*/		/*DarkSeaGreen 	8FBC8F 	143,188,143*/
-/*Maroon 	800000 	128,0,0*/		/*MidnightBlue 	191970 	25,25,112*/		/*DarkGreen 	006400 	0,100,0*/
+/*SlateGrey 	800000 	128,0,0*/		/*MidnightBlue 	191970 	25,25,112*/		/*DarkGreen 	006400 	0,100,0*/
 /*Cornsilk 	FFF8DC 	255,248,220*/		/*LightCyan 	E0FFFF 	224,255,255*/		/*Beige 	F5F5DC 	245,245,220*/
 
 /*White 	FFFFFF 	255,255,255*/
@@ -13,7 +13,7 @@ html, body {
   height: 100%; 
   margin: 0; 
   padding: 0;
-  background-color: Lavender;
+  background-color: #f3f3f3;
 }
 
 
@@ -32,9 +32,14 @@ header img {
 
 section {
   margin: 0px 0px 0px 205px;
-  background-color: SlateGray; 
+  background-color: #e7e7e7; 
   overflow-y:scroll;
-  height: 75%; 
+  height: 70%; 
+  width: 80%; 
+  border: 1px solid DimGrey;
+  margin: 1% 1% 1% 1%;
+  box-shadow:2px 2px 2px #000000;
+  float:right;
 }
 
 
@@ -55,13 +60,14 @@ aside {
   float: right;
   width: 180px;
   display: none;
+  border: 1px solid DimGrey;
 }
 
 footer {
   text-align: center;
-  padding: 5px;
-  background-color: SlateGray;
-  height: 5%
+  background-color: #f3f3f3;
+  width: 100%;
+  float: left;
 }
 
 .maintable {
@@ -72,7 +78,7 @@ footer {
 /*  border:solid 1px #000000;*/
   padding:0;
   border-collapse:collapse;
-  background-color: SlateGray;
+  background-color: #e7e7e7;
   color: White;
 }
 
@@ -86,7 +92,7 @@ footer {
 }
 
 .maintable td:hover{
-  background-color: Lavender;
+  background-color: #f3f3f3;
   color: White;
 }
 
@@ -95,7 +101,7 @@ footer {
 }
 
 hr {
-  background-color: gray;
+  background-color: DimGrey;
 }
 
 code {
@@ -104,17 +110,19 @@ code {
 }
 
 h1, h2 {
-  color: Maroon; 
+  color: SlateGrey; 
+  margin: 0 0 0 0;
+  padding: 0 0 0 0;
 }
 
 h3 {
   margin: 30px 0px 30px 30px;
-  color: DarkSlateGray; 
+  color: Dark#e7e7e7; 
 }
 
 h4 {
   margin: 30px 0px 30px 60px;
-  color: DarkSlateGray; 
+  color: Dark#e7e7e7; 
 }
 
 th, td {
@@ -180,14 +188,14 @@ code {
 }
 
 .back a{
-  background-color: SlateGray; 
+  background-color: DimGrey; 
   color: White;
   font-weight: bold;
   text-decoration: none;
 }
 
 .back a:hover {
-  background-color: Maroon; 
+  background-color: SlateGrey; 
 }
 
 .caption {
