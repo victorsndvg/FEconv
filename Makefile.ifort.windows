@@ -13,9 +13,9 @@
 # SOURCE AND COMMONS FOLDERS (separated by spaces)
 dir_fuentes = source source\basicmod source\basicmod\intel \
 source\basicmod\args source\basicmod\alloc source\basicmod\vtk \
-source\cuthill_mckee source\ansys source\patran source\unv source\mfm \
-source\mum source\vtu source\mphtxt source\pmh source\flux source\freefem \
-source\fem_extract source\gmsh
+source\basicmod\xml source\cuthill_mckee source\ansys source\patran source\unv \
+source\mfm source\mum source\vtu source\mphtxt source\pmh source\flux \
+source\freefem source\fem_extract source\gmsh
  
 # OBJECT AND .MOD FOLDER
 dir_objetos = object
@@ -37,7 +37,7 @@ module_alloc_char_r1.f90 module_alloc_char_r2.f90 module_alloc_int_r1.f90 \
 module_alloc_int_r2.f90 module_alloc_int_r3.f90 module_alloc_log_r1.f90 \
 module_alloc_real64_r1.f90 module_alloc_real64_r2.f90 \
 module_alloc_real64_r3.f90 module_alloc.f90 module_system.f90 IR_Precision.f90 \
-Lib_VTK_IO.f90 LIB_VTK_IO_READ.f90 module_writevtu.f90 \
+Lib_VTK_IO.f90 LIB_VTK_IO_READ.f90 module_writevtu.f90 module_xml_parser.f90 \
 module_ALLOC_int_alloc_r2.f90 module_ALLOC_log_r2.f90 module_ALLOC_real_r2.f90 \
 module_assign_references.f90 module_desplazamientos.f90 module_fuerzas.f90 \
 module_cells.f90 module_dataset.f90 module_FE_DB.f90 module_groups.f90 \
@@ -91,6 +91,8 @@ module_report.obj module_convers.obj module_alloc_char_r1.obj module_files.obj
 Lib_VTK_IO.obj: IR_Precision.obj
 LIB_VTK_IO_READ.obj: Lib_VTK_IO.obj module_alloc.obj
 module_writevtu.obj: Lib_VTK_IO.obj
+module_xml_parser.obj: module_alloc.obj module_convers.obj module_report.obj \
+module_files.obj
 module_ALLOC_int_alloc_r2.obj: module_alloc.obj
 module_ALLOC_log_r2.obj: module_report.obj
 module_ALLOC_real_r2.obj: module_report.obj
@@ -134,8 +136,8 @@ module_pvd.obj: module_vtu.obj module_pmh.obj module_set.obj \
 module_os_dependant.obj
 module_muf.obj: module_compiler_intel.obj module_files.obj module_convers.obj \
 module_report.obj module_pmh.obj
-module_mff.obj: module_compiler_intel.obj module_files.obj module_convers.obj \
-module_report.obj module_pmh.obj
+module_mff.obj: module_compiler_intel.obj module_report.obj module_convers.obj \
+module_files.obj module_feed.obj module_pmh.obj
 module_dataset_2467.obj: module_dataset.obj module_mesh.obj module_cells.obj \
 module_groups.obj module_pmh.obj module_fe_database_pmh.obj
 module_dataset_2414.obj: module_compiler_intel.obj module_alloc.obj \
@@ -208,7 +210,7 @@ includes =
 FC = ifort
  
 # COMPILER OPTIONS
-FFLAGS = -module:$(dir_objetos) -stand:f03 -warn:all
+FFLAGS = /module:$(dir_objetos) -stand:f03 -warn:all
  
 # LINKER OPTIONS
 LDFLAGS = 
@@ -234,46 +236,46 @@ condir_modulos_obj = $(addprefix $(dir_objetos)/,$(modulos_obj))
 condir_fuentes_obj = $(addprefix $(dir_objetos)/,$(fuentes_obj))
  
 # COMPILATION OPTIONS
-FFLAGS += $(patsubst %,-I%,$(dir_fuentes))
-FFLAGS += -I$(dir_objetos)
+FFLAGS += $(patsubst %,/I%,$(dir_fuentes))
+FFLAGS += /I$(dir_objetos)
  
 # MAIN RULE
 all: $(ejecutable)
  
 $(ejecutable): $(includes) $(modulos_obj) $(fuentes_obj)
-	$(FC) -o $(ejecutable) $(FFLAGS) $(condir_principal) $(condir_modulos_obj) $(condir_fuentes_obj) $(LDFLAGS) 
+	$(FC) /exe:$(ejecutable) $(FFLAGS) $(condir_principal) $(condir_modulos_obj) $(condir_fuentes_obj) $(LDFLAGS) 
  
 # SOURCES RULE
 $(fuentes_obj): $(includes) $(modulos_obj)
  
 # RULE PATTERNS
 %.obj:%.f
-	$(FC) -c -o $@ $(FFLAGS) $<
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	$(FC) /c $(FFLAGS) $<
+	copy $@ $(dir_objetos) 
+	del $@ 
 %.obj:%.F
-	$(FC) -c -o $@ $(FFLAGS) $< 
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	$(FC) /c $(FFLAGS) $< 
+	copy $@ $(dir_objetos) 
+	del $@ 
 %.obj:%.for
-	$(FC) -c -o $@ $(FFLAGS) $< 
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	$(FC) /c $(FFLAGS) $< 
+	copy $@ $(dir_objetos) 
+	del $@ 
 %.obj:%.FOR
-	$(FC) -c -o $@ $(FFLAGS) $< 
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	$(FC) /c $(FFLAGS) $< 
+	copy $@ $(dir_objetos) 
+	del $@ 
 %.obj:%.f90
-	$(FC) -c -o $@ $(FFLAGS) $< 
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	$(FC) /c $(FFLAGS) $< 
+	copy $@ $(dir_objetos) 
+	del $@ 
 %.obj:%.F90
-	$(FC) -c -o $@ $(FFLAGS) $< 
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	$(FC) /c $(FFLAGS) $< 
+	copy $@ $(dir_objetos) 
+	del $@ 
  
 .PHONY: clean
 clean:
-	del $(dir_objetos)\*.obj    
-	del $(dir_objetos)\*.mod    
-	del $(ejecutable)
+	-del $(dir_objetos)\*.obj    
+	-del $(dir_objetos)\*.mod    
+	-del $(ejecutable)

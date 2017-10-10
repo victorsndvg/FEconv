@@ -25,14 +25,18 @@ character(len=*), dimension(1), parameter, private :: CLOSE_MARK_ELEMENT = (/ '<
 private :: search_mark_once, search_mark, search_close_mark, follow_path, &
            last_part, cut_end_delimiter
 private :: fread_real, fread_vreal, fread_vreal_alloc, &
+           fread_complex, fread_vcomplex, fread_vcomplex_alloc, &
            fread_char, fread_vchar, fread_vchar_alloc
 
 !Interfaces
 interface fread; module procedure fread_real;  end interface
 interface fread; module procedure fread_vreal; end interface
+interface fread; module procedure fread_complex;  end interface
+interface fread; module procedure fread_vcomplex; end interface
 interface fread; module procedure fread_char;  end interface
 interface fread; module procedure fread_vchar; end interface
 interface fread_alloc; module procedure fread_vreal_alloc; end interface
+interface fread_alloc; module procedure fread_vcomplex_alloc; end interface
 interface fread_alloc; module procedure fread_vchar_alloc; end interface
 
 contains
@@ -179,6 +183,97 @@ end subroutine
 !-----------------------------------------------------------------------
 ! fread: read data from xml file
 !-----------------------------------------------------------------------
+subroutine fread_complex(un, path, var)
+
+integer,          intent(in)  :: un
+character(len=*), intent(in)  :: path
+character(len=128)            :: tempstring
+complex(real64),  intent(out) :: var
+integer :: res, tn = 1
+
+call follow_path(un, path, back = .true.)
+if (.not.search_mark_once(un, path, OPEN_MARK_LEAF, name = last_part(path), &
+typ='complex', tnum=tn)) call error(trim(path)//'), not found')
+!get_elements
+if (.not.search_mark_once(un, path, OPEN_MARK_ELEMENT)) call error(trim(path)//', not found')
+read (un, *, iostat=res) var
+if (res /= 0) call error('fread_complex/read ('//trim(path)//'), #'//trim(string(res)))
+if (.not.search_mark_once(un, path,CLOSE_MARK_ELEMENT)) call error(trim(path)//', not found')
+write(tempstring,*) var
+call info('fread_complex ('//trim(path)//'), '//trim(tempstring))
+
+end subroutine
+
+!-----------------------------------------------------------------------
+! fread: read data from xml file
+!-----------------------------------------------------------------------
+subroutine fread_vcomplex(un, path, var)
+
+integer,          intent(in)  :: un
+character(len=*),           intent(in)  :: path
+character(len=128)                      :: tempstring
+complex(real64), dimension(:), intent(out) :: var
+integer :: res, tn, i
+
+call follow_path(un, path, back = .true.)
+!get the total number
+tn = -1; if (.not.search_mark_once(un, path, OPEN_MARK_LEAF, name = last_part(path), &
+typ='complex', tnum=tn)) call error(trim(path)//'), not found')
+if (tn > size(var,1)) call error('fread_vcomplex ('//trim(path)//'), found totalnum '//&
+trim(string(tn))//' is bigger than expected '//trim(string(size(var,1))))
+!get elements
+if (.not.search_mark_once(un, path, OPEN_MARK_ELEMENT)) call error(trim(path)//', not found')
+if (tn>0) then
+    read (un, *, iostat=res) var(1:tn)
+    if (res /= 0) call error('fread_vcomplex/read ('//trim(path)//'), #'//trim(string(res)))
+endif
+if (.not.search_mark_once(un, path,CLOSE_MARK_ELEMENT)) call error(trim(path)//', not found')
+do i = 1, tn
+  write(tempstring,*) var(i)
+  call info('fread_vcomplex ('//trim(path)//'), '//trim(tempstring))
+enddo
+
+end subroutine
+
+!-----------------------------------------------------------------------
+! fread: read data from xml file
+!-----------------------------------------------------------------------
+subroutine fread_vcomplex_alloc(un, path, var, realloc)
+
+integer,                    intent(in)  :: un
+character(len=*),           intent(in)  :: path
+character(len=128)                      :: tempstring
+complex(real64), dimension(:), intent(inout), allocatable :: var
+logical,                    intent(in), optional :: realloc
+integer :: res, tn, i
+
+call follow_path(un, path, back = .true.)
+!get the total number
+tn = -1; if (.not.search_mark_once(un, path, OPEN_MARK_LEAF, name = last_part(path), &
+typ='complex', tnum=tn)) call error(trim(path)//'), not found')
+if (present(realloc)) then; if (realloc) then
+  if (allocated(var)) deallocate(var)
+endif; endif
+if (.not. allocated(var)) allocate(var(tn))
+if (tn > size(var,1)) call error('fread_vcomplex_alloc ('//trim(path)//'), found totalnum '//&
+trim(string(tn))//' is bigger than expected '//trim(string(size(var,1))))
+!get elements
+if (.not.search_mark_once(un, path, OPEN_MARK_ELEMENT)) call error(trim(path)//', not found')
+if (tn>0) then
+    read (un, *, iostat=res) var(1:tn)
+    if (res /= 0) call error('fread_vcomplex_alloc/read ('//trim(path)//'), #'//trim(string(res)))
+endif
+if (.not.search_mark_once(un, path,CLOSE_MARK_ELEMENT)) call error(trim(path)//', not found')
+do i = 1, tn
+  write(tempstring,*) var(i)
+  call info('fread_vcomplex_alloc ('//trim(path)//'), '//trim(tempstring))
+enddo
+
+end subroutine
+
+!-----------------------------------------------------------------------
+! fread: read data from xml file
+!-----------------------------------------------------------------------
 subroutine fread_char(un, path, var)
 
 integer,          intent(in)  :: un
@@ -272,9 +367,9 @@ subroutine flist(un, path, var)
 integer,               intent(in)  :: un
 character(len=*),      intent(in)  :: path
 character(len=*), allocatable, dimension(:) :: var
-character(len=MAXPATH), allocatable, dimension(:) :: tmp
+character(len=10*MAXPATH), allocatable, dimension(:) :: tmp
 integer :: p, n, res
-character(len=MAXPATH) :: line
+character(len=10*MAXPATH) :: line
 logical :: close_mark_found
 
 n = 0
@@ -337,7 +432,7 @@ integer,          intent(inout), optional :: tnum
 logical, intent(in), optional :: back, advance
 logical :: res
 integer :: ios, i, p
-character(len=MAXPATH) :: line
+character(len=10*MAXPATH) :: line
 
 res = .false.
 !read a line

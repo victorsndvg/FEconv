@@ -13,9 +13,9 @@
 # SOURCE AND COMMONS FOLDERS (separated by spaces)
 dir_fuentes = source source/basicmod source/basicmod/gfortran \
 source/basicmod/args source/basicmod/alloc source/basicmod/vtk \
-source/cuthill_mckee source/ansys source/patran source/unv source/mfm \
-source/mum source/vtu source/mphtxt source/pmh source/flux source/freefem \
-source/fem_extract source/gmsh
+source/basicmod/xml source/cuthill_mckee source/ansys source/patran source/unv \
+source/mfm source/mum source/vtu source/mphtxt source/pmh source/flux \
+source/freefem source/fem_extract source/gmsh
  
 # OBJECT AND .MOD FOLDER
 dir_objetos = object
@@ -37,7 +37,7 @@ module_alloc_char_r1.f90 module_alloc_char_r2.f90 module_alloc_int_r1.f90 \
 module_alloc_int_r2.f90 module_alloc_int_r3.f90 module_alloc_log_r1.f90 \
 module_alloc_real64_r1.f90 module_alloc_real64_r2.f90 \
 module_alloc_real64_r3.f90 module_alloc.f90 module_system.f90 IR_Precision.f90 \
-Lib_VTK_IO.f90 LIB_VTK_IO_READ.f90 module_writevtu.f90 \
+Lib_VTK_IO.f90 LIB_VTK_IO_READ.f90 module_writevtu.f90 module_xml_parser.f90 \
 module_ALLOC_int_alloc_r2.f90 module_ALLOC_log_r2.f90 module_ALLOC_real_r2.f90 \
 module_assign_references.f90 module_desplazamientos.f90 module_fuerzas.f90 \
 module_cells.f90 module_dataset.f90 module_FE_DB.f90 module_groups.f90 \
@@ -91,6 +91,8 @@ module_report.o module_convers.o module_alloc_char_r1.o module_files.o
 Lib_VTK_IO.o: IR_Precision.o
 LIB_VTK_IO_READ.o: Lib_VTK_IO.o module_alloc.o
 module_writevtu.o: Lib_VTK_IO.o
+module_xml_parser.o: module_alloc.o module_convers.o module_report.o \
+module_files.o
 module_ALLOC_int_alloc_r2.o: module_alloc.o
 module_ALLOC_log_r2.o: module_report.o
 module_ALLOC_real_r2.o: module_report.o
@@ -130,8 +132,8 @@ module_writevtu.o module_pmh.o module_fe_database_pmh.o
 module_pvd.o: module_vtu.o module_pmh.o module_set.o module_os_dependant.o
 module_muf.o: module_compiler_gfortran.o module_files.o module_convers.o \
 module_report.o module_pmh.o
-module_mff.o: module_compiler_gfortran.o module_files.o module_convers.o \
-module_report.o module_pmh.o
+module_mff.o: module_compiler_gfortran.o module_report.o module_convers.o \
+module_files.o module_feed.o module_pmh.o
 module_dataset_2467.o: module_dataset.o module_mesh.o module_cells.o \
 module_groups.o module_pmh.o module_fe_database_pmh.o
 module_dataset_2414.o: module_compiler_gfortran.o module_alloc.o \

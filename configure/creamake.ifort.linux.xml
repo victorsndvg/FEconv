@@ -10,6 +10,7 @@ source/basicmod/intel
 source/basicmod/args
 source/basicmod/alloc
 source/basicmod/vtk
+source/basicmod/xml
 source/cuthill_mckee
 source/ansys
 source/patran
