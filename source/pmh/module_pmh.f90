@@ -1,11 +1,11 @@
 module module_pmh
 !-----------------------------------------------------------------------
 ! Module to manage piecewise meshes (PMH)
-!
+! 
 ! Licensing: This code is distributed under the GNU GPL license.
 ! Author: Francisco Pena, fran(dot)pena(at)usc(dot)es
 ! Last update: 19/01/2014
-!
+! 
 ! PUBLIC PROCEDURES:
 !   save_pmh: save mesh into a PMH file
 !   pmh2mfm: convert a PMH structure into a MFM one
@@ -17,8 +17,9 @@ module module_pmh
 !   get_num_shots: returns an array with the number of shots of all fields
 !   get_piece_max_top_dim: returns the maximum topological dimension 
 !   remove_coordinate: reduces the space dimension of the mesh removing the chosen coordinate
+!   change_pmh_references: changes pmh references
 
-!
+! 
 ! REMARKS:
 !   A mesh is divided into pieces 
 !   Each piece has common vertices/nodes and it can contain one or several groups of elements
@@ -1507,25 +1508,44 @@ subroutine remove_coordinate(pmh, dim)
   real(real64), allocatable     :: tempz(:,:)
 
   if(.not. allocated(pmh%pc)) call error('Not allocated mesh')
-
   call info('Removing component '//string(dim))
-
   do i=1,size(pmh%pc,1)
     if(pmh%pc(i)%dim<dim) call error('Not enought components. Cannot downgrade space dimension.')
-
     if(allocated(tempz)) deallocate(tempz)
     newdim = pmh%pc(i)%dim-1
     allocate(tempz(newdim, pmh%pc(i)%nver))
-
-!    tempz(1:newdim,:) = pmh%pc(i)%z([1:dim-1,dim+1:pmh%pc(i)%dim],:)
+    !tempz(1:newdim,:) = pmh%pc(i)%z([1:dim-1,dim+1:pmh%pc(i)%dim],:)
     tempz(1:newdim,:) = pmh%pc(i)%z((/(j,j=1,dim-1),(j,j=dim+1,pmh%pc(i)%dim)/),:)
     call move_alloc(from=tempz,to=pmh%pc(i)%z)
-
     pmh%pc(i)%dim = newdim
-
   enddo
- 
 end subroutine
 
+
+!--------------------------------------------------------------------
+! change_pmh_references: changes pmh references
+!--------------------------------------------------------------------
+subroutine change_pmh_references(pmh, chref)
+type(pmh_mesh), intent(inout) :: pmh
+integer,        intent(in)    :: chref(:)
+integer :: k, ip, ig
+
+call info('Changing references for topological dimension '//trim(string(chref(1)))//'.')
+if (allocated(pmh%pc)) then
+  do ip = 1, size(pmh%pc,1)
+    if (allocated(pmh%pc(ip)%el)) then
+      do ig = 1, size(pmh%pc(ip)%el,1)
+        associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+          if (FEDB(tp)%tdim == chref(1)) then !same topological dimension
+            do k = 2, size(chref,1), 2
+              where (elg%ref == chref(k)) elg%ref = chref(k+1)
+            end do
+          end if
+        end associate
+      end do
+    end if
+  end do
+end if
+end subroutine
 
 end module

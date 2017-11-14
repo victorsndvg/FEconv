@@ -83,6 +83,7 @@
           <li><a href="#rcm">Bandwidth reduction (RCM)</a></li><br/>
           <li><a href="#es">Extract submesh</a></li><br/>
           <li><a href="#rc">Remove a component of the coordinates</a></li><br/>
+          <li><a href="#ch">Change references</a></li><br/>
         </ul>
       </li>
       <li><a href="#meshform">MSH extension</a>
@@ -184,6 +185,15 @@
             <tr>
               <td id="rc"><code><strong>-rc</strong></code> <em>&lt;comp&gt;</em></td> 
               <td align="left">Remove the component <em>&lt;comp&gt;</em> of the coordinates. <em>&lt;comp&gt;</em> must be smaller than the number of components.</td>
+            </tr>
+            <tr>
+              <td id="ch"><code><strong>-ch</strong></code> <em>[&lt;tdim&gt;,&lt;old1&gt;,&lt;new1&gt;,...&lt;oldn&gt;,&lt;newn&gt;]</em></td> 
+              <td align="left">Specify the references to change in the mesh. The changes will only be applied to element groups of topological dimension 
+              <em>&lt;tdim&gt;</em>. In those groups, the reference <em>&lt;old1&gt;</em> will be changed by <em>&lt;new1&gt;</em>,
+              etc., and finally <em>&lt;oldn&gt;</em> by <em>&lt;newn&gt;</em>. 
+              Be aware that new references can be changed again when appear later in the list as an old reference. The values must be separated by commas 
+              without blank spaces and enclose them in square brackets. Please, be aware that, if you want to change references for two different topological 
+              dimensions, you must call FEconv twice.</td>
             </tr>
           </tbody>
         </table>

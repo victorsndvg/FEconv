@@ -67,7 +67,7 @@ contains
 !-----------------------------------------------------------------------
 ! convert: converts between several mesh and FE field formats
 !-----------------------------------------------------------------------
-subroutine convert(cad,mempmh)
+subroutine convert(cad, mempmh)
 character(*),   optional, intent(in)    :: cad
 type(pmh_mesh), optional, intent(inout) :: mempmh
 character(maxpath) :: infile=' ', inmesh=' ', inext=' ', outfile=' ', outmesh=' ', outext=' '
@@ -75,7 +75,7 @@ character(maxpath) :: infext=' ', outfext=' ', outpath = ' '!,fieldfilename = ' 
 character(maxpath), allocatable :: infieldfile(:), outfieldfile(:),infieldname(:), outfieldname(:)
 character(maxpath) :: str
 integer :: p, nargs, q, comp
-integer, allocatable :: nsd0(:)
+integer, allocatable :: nsd0(:), chref(:)
 logical :: there_is_field
 !Variables for extratction
 integer,      allocatable :: submm(:,:), subnrv(:,:), subnra(:,:), subnrc(:,:), subnsd(:), globv(:), globel(:)
@@ -499,9 +499,29 @@ if (is_arg('-cm')) then
   call cuthill_mckee(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, z); is_pmh = .false.
 end if
 
+!cell to node
 if (is_arg('-cn')) then
   if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  is_pmh = .true.
   call cell2node(pmh)
+end if
+
+!change references
+if (is_arg('-ch')) then
+  str = get_post_arg('-ch')
+  p = index(str, '[')
+  if (p > 0) then
+    q = index(str, ']', back=.true.)
+    call alloc(chref, word_count(str(p+1:q-1),','))
+    read(str(p+1:q-1),*) chref
+    if (mod(size(chref,1), 2) == 0) call error('(module_feconv/convert) argument after -ch must be: [<topological-value>, '//&
+    &'old-ref_1, new-ref_1, ..., old-ref_n, new-ref_n].')
+  else
+    call error('(module_feconv/convert) argument after -ch must be enclosed in square brackets.')
+  end if
+  if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  is_pmh = .true.
+  call change_pmh_references(pmh, chref)
 end if
 
 if(present(mempmh)) then
