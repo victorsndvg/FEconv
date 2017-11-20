@@ -10,7 +10,7 @@ Open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the 
 
         make -f Makefile.<compiler>.<os>
 
-where \<compiler\> can be "gfortran" or "ifort" and \<os\> can be "linux" or "windows". For Mac OS X, some Makefiles are provided, indicating the OS version where they were tested. If none of them works for you, maybe "linux" can ve valid. Be aware that in Windows, MinGW32 distribution uses `mingw32-make` instead of `make`.
+where \<compiler\> can be "gfortran" or "ifort" and \<os\> can be "linux" or "windows". For Mac OS X, some Makefiles are provided, indicating the OS version where they were tested. If none of them works for you, maybe "linux" can be valid. Be aware that in Windows, MinGW32 distribution uses `mingw32-make` instead of `make`.
 
 # 3. Supported formats
 ## The available input mesh formats are:
