@@ -5,13 +5,12 @@ Program feconv converts finite element (FE) mesh files between several formats; 
 # 2. Installation
 
 To install this program, you must have previously installed make in your system and a Fortran 2003 compiler. At the present time, only the GNU Fortran compiler, gfortran, and the Intel Fortran compiler, ifort, are supported.
-Go to http://sourceforge.net/projects/feconv/ and download the package feconv_<date>.tar.gz, where <date> is the date of the release.
+Go to https://github.com/victorsndvg/FEconv, download the ZIP file and unzip it in the installation folder.
 Open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the installation folder and type:
 
         make -f Makefile.<compiler>.<os>
 
-where <compiler> can be "gfortran" or "ifort" and <os> can be "linux" or "windows" (for Mac OS X, "linux" is the valid option).
-
+where <compiler> can be "gfortran" or "ifort" and <os> can be "linux" or "windows" (for Mac OS X, "linux" is the valid option). Be aware that in Windows, MinGW32 distribution uses `mingw32-make` instead of `make`.
 
 # 3. Supported formats
 ## The available input mesh formats are:
