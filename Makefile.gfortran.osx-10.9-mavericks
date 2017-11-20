@@ -244,25 +244,25 @@ $(fuentes_obj): $(includes) $(modulos_obj)
 # RULE PATTERNS
 %.o:%.f
 	$(FC) -c -o $@ $(FFLAGS) $<
-	@mv $@ $(dir_objetos) 
+	mv $@ $(dir_objetos) 
 %.o:%.F
 	$(FC) -c -o $@ $(FFLAGS) $< 
-	@mv $@ $(dir_objetos) 
+	mv $@ $(dir_objetos) 
 %.o:%.for
 	$(FC) -c -o $@ $(FFLAGS) $< 
-	@mv $@ $(dir_objetos) 
+	mv $@ $(dir_objetos) 
 %.o:%.FOR
 	$(FC) -c -o $@ $(FFLAGS) $< 
-	@mv $@ $(dir_objetos) 
+	mv $@ $(dir_objetos) 
 %.o:%.f90
 	$(FC) -c -o $@ $(FFLAGS) $< 
-	@mv $@ $(dir_objetos) 
+	mv $@ $(dir_objetos) 
 %.o:%.F90
 	$(FC) -c -o $@ $(FFLAGS) $< 
-	@mv $@ $(dir_objetos) 
+	mv $@ $(dir_objetos) 
  
 .PHONY: clean
 clean:
-	rm $(dir_objetos)/*.o      
-	rm $(dir_objetos)/*.mod    
-	rm $(ejecutable)
+	$(RM) $(dir_objetos)/*.o      
+	$(RM) $(dir_objetos)/*.mod    
+	$(RM) $(ejecutable)
