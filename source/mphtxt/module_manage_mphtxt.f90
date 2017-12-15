@@ -88,9 +88,7 @@ end subroutine
 ! pmh:    PMH structure storing the piecewise mesh
 ! maxdim: max dimension of the PMH pieces
 !-----------------------------------------------------------------------
-
 subroutine read_mphtxt(this, pmh, maxdim)
-
   type(mphtxt), intent(inout) :: this ! mphtxt object
   type(pmh_mesh), intent(inout) :: pmh ! pmh_mesh
   integer, intent(inout) :: maxdim ! dimension detected
@@ -99,26 +97,25 @@ subroutine read_mphtxt(this, pmh, maxdim)
 
   maxdim = 0
   minelindx = 1
-
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('mphtxt/read/rewind, #'//trim(string(ios)))
-
   ! Reads the mphtxt file header and allocates the number of pieces
   call read_mphtxt_header(this%unit, pmh) 
-
-  ! Reads every piece of the mesh and calculate the max of its space dimension
   if (.not. allocated(pmh%pc)) call error('mphtxt/read/object, objects not allocated')
+  ! Reads every piece of the mesh 
   do i = 1, size(pmh%pc,1)
       call info('Reading piece '//trim(string(i))//' ...')
       call read_mphtxt_object(this%unit, pmh%pc(i))
+      ! Calculate the max of its space dimension
       if (maxdim < pmh%pc(i)%dim) maxdim = pmh%pc(i)%dim
-      ! PMH min reference number si 1
+      ! Calculate the minimum reference number for each FE type, minelindx
       do j = 1, size(pmh%pc(i)%el,1)
         if (minelindx(pmh%pc(i)%el(j)%type) > minval(pmh%pc(i)%el(j)%ref)) then
           minelindx(pmh%pc(i)%el(j)%type) = minval(pmh%pc(i)%el(j)%ref)
         endif
       enddo
   enddo
+  ! Set the minimum reference number for each FE type to 1
   do i = 1, size(pmh%pc,1)
       do j = 1, size(pmh%pc(i)%el,1)
         if(minelindx(pmh%pc(i)%el(j)%type) <=0) then
@@ -126,12 +123,9 @@ subroutine read_mphtxt(this, pmh, maxdim)
         endif
       enddo
   enddo
-
   ! Build mm in modulef style
   call build_vertices(pmh)
-
 end subroutine
-
 
 !-----------------------------------------------------------------------
 ! write_mphtxt(this, pmh): write MPHTXT file

@@ -232,7 +232,7 @@
     <p>After the file version, the file contains a number of tags, stored as strings wich gives an identification for each record stored in the file.</p>
     <p>Then the number of types and, optionally, the serializable object identifiers of this types.</p>
     <p>Finally, MPHTXT file contains objects with the serialized data in the file. The data contained in each object are space dimension, coordinates, element types and connectivities among others. You can see a summary of this data in <a href="#fig-4">Figure 4</a>, obtained from the COMSOL manual.</p>
-
+    <p>By convention, MPHTXT files store strings preceding them by their length. Everything following a # is ignored.</p>
     <p id="fig-4" align="center">
     <img src="../images/mph/mphvars.png" width="50%"/>
     <span class="caption"><p><strong>Figure 4:</strong> Data contained in MPH objects.</p></span>

@@ -13,7 +13,7 @@ module module_read_mphtxt
 ! read_mphtxt_etype:  read a element group of the MPHTXT mesh
 !-----------------------------------------------------------------------
 
-use module_COMPILER_DEPENDANT, only: real64
+use module_COMPILER_DEPENDANT, only: real64, iostat_end
 use module_os_dependant, only: maxpath
 use module_report, only:error
 use module_convers
@@ -216,10 +216,19 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
     ! Read object header
     do
       read (unit=iu, fmt='(a)', iostat = ios) line
-      if (ios /= 0) call error('mphtxt_file/object/etype, #'//trim(string(ios)))
-
+      if (ios == iostat_end) then ! EOF found
+        if (len_trim(fetype_name) > 0 .and. local_nnodes /= -1 .and. mphtxt_t%nel /= -1 .and. allocated(mphtxt_t%nn)) then
+          ! Basic element information was read before EOF; set references to 0 and exit
+          allocate(mphtxt_t%ref(mphtxt_t%nel))
+          mphtxt_t%ref = 0
+          return
+        else
+          call error('(module_read_mphtxt/read_mphtxt_etype) Basic element information is missing; EOF found')
+        end if
+      elseif (ios /= 0) then ! An error different from EOF was found
+        call error('mphtxt_file/object/etype, #'//trim(string(ios)))
+      end if
       line = trim(line,'#')
-
       if (len_trim(line) /= 0) then ! Discards empty lines
         ! FE type
         if (len_trim(fetype_name) == 0 .and. word_count(line,' ') == 2) then
@@ -253,7 +262,7 @@ subroutine read_mphtxt_etype(iu, mphtxt_t, offset)
           j = j+1
           if (j > nparam) cycle ! Number of parameters already readed.
 
-        ! Number of geometric indices
+        ! Number of geometric indices, that is, references
         elseif (nindices == -1 .and. word_count(line,' ') == 1) then
           read(line,*) nindices
           allocate(mphtxt_t%ref(nindices))
