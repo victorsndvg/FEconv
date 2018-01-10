@@ -1,4 +1,4 @@
-module module_dex
+module module_dex_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage DEX (Flux field) files
 !
@@ -11,7 +11,7 @@ module module_dex
 !   save_dex: saves a mesh in a DEX format file
 !-----------------------------------------------------------------------
 use basicmod, only: real64, get_unit, string, replace, error
-use module_pmh
+use module_pmh_fcnv
 
 implicit none!
 

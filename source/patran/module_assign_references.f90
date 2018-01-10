@@ -1,4 +1,4 @@
-module module_assign_references
+module module_assign_references_fcnv
 !-----------------------------------------------------------------------
 ! Module to assign references in Patran format
 !

@@ -1,4 +1,4 @@
-module module_utils_mphtxt
+module module_utils_mphtxt_fcnv
 
 !-----------------------------------------------------------------------
 ! Module to manage MPHTXT (Comsol) files
@@ -18,7 +18,7 @@ module module_utils_mphtxt
 !-----------------------------------------------------------------------
 
 use basicmod, only: insert, reduce
-use module_pmh
+use module_pmh_fcnv
 
 implicit none
 

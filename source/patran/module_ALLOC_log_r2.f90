@@ -1,4 +1,4 @@
-module module_ALLOC_log_r2
+module module_ALLOC_log_r2_fcnv
 !-----------------------------------------------------------------------
 ! Module for memory allocation of logical rank 2 allocatable arrays
 ! Last update: 28/07/2009

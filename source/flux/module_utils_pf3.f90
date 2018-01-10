@@ -1,4 +1,4 @@
-module module_utils_pf3
+module module_utils_pf3_fcnv
 
 !-----------------------------------------------------------------------
 ! Module to manage PF3 (Flux) files
@@ -20,7 +20,7 @@ module module_utils_pf3
 !-----------------------------------------------------------------------
 
 use basicmod, only: insert, reduce
-use module_pmh
+use module_pmh_fcnv
 
 implicit none
 

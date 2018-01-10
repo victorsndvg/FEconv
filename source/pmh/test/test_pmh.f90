@@ -7,10 +7,10 @@ program test_pmh
 ! Last update: see variable 'last_update'
 !-----------------------------------------------------------------------
 use module_compiler_dependant, only:real64
-use module_pmh
-use module_mfm
-use module_vtu
-use module_unv
+use module_pmh_fcnv
+use module_mfm_fcnv
+use module_vtu_fcnv
+use module_unv_fcnv
 implicit none
 
 type(pmh_mesh) :: pmh, pmh2, pmh3

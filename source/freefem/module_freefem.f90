@@ -1,4 +1,4 @@
-module module_freefem
+module module_freefem_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage FreeFem++ MSH and MESH meshes
 !
@@ -14,8 +14,8 @@ module module_freefem
 !-----------------------------------------------------------------------
 use basicmod, only: iostat_end, maxpath, error, info, string, int, word_count, lcase, adjustlt, &
                     alloc, dealloc, is_arg, get_post_arg, feed, empty
-use module_fe_database_pmh, only: FEDB, check_fe
-use module_pmh, only: pmh_mesh, build_vertices
+use module_fe_database_pmh_fcnv, only: FEDB, check_fe
+use module_pmh_fcnv, only: pmh_mesh, build_vertices
 implicit none
 
 !Private procedures

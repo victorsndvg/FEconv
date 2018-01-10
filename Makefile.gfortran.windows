@@ -32,7 +32,7 @@ modulos = module_field_database.f90 module_ALLOC_int_alloc_r2.f90 \
 module_ALLOC_log_r2.f90 module_ALLOC_real_r2.f90 module_assign_references.f90 \
 module_desplazamientos.f90 module_fuerzas.f90 module_cells.f90 \
 module_dataset.f90 module_FE_DB.f90 module_groups.f90 module_patran.f90 \
-module_mesh.f90 module_mfm.f90 module_mum.f90 module_fe_database_pmh.f90 \
+module_mesh_unv.f90 module_mfm.f90 module_mum.f90 module_fe_database_pmh.f90 \
 module_pmh.f90 module_utils_mphtxt.f90 module_write_mphtxt.f90 \
 module_read_mphtxt.f90 module_manage_mphtxt.f90 module_mphtxt.f90 \
 module_vtu.f90 module_pvd.f90 module_muf.f90 module_mff.f90 \
@@ -54,45 +54,43 @@ module_patran.obj: module_desplazamientos.obj module_fuerzas.obj \
 module_groups.obj module_assign_references.obj
 module_pmh.obj: module_fe_database_pmh.obj
 module_utils_mphtxt.obj: module_pmh.obj
-module_write_mphtxt.obj: module_mesh.obj module_pmh.obj \
+module_write_mphtxt.obj: module_pmh.obj module_utils_mphtxt.obj
+module_read_mphtxt.obj: module_pmh.obj module_utils_mphtxt.obj
+module_manage_mphtxt.obj: module_read_mphtxt.obj module_write_mphtxt.obj \
 module_utils_mphtxt.obj
-module_read_mphtxt.obj: module_mesh.obj module_pmh.obj module_utils_mphtxt.obj
-module_manage_mphtxt.obj: module_mesh.obj module_read_mphtxt.obj \
-module_write_mphtxt.obj module_utils_mphtxt.obj
-module_mphtxt.obj: module_manage_mphtxt.obj module_mesh.obj module_pmh.obj \
+module_mphtxt.obj: module_manage_mphtxt.obj module_pmh.obj \
 module_fe_database_pmh.obj
 module_vtu.obj: module_pmh.obj module_fe_database_pmh.obj
 module_pvd.obj: module_vtu.obj module_pmh.obj
 module_muf.obj: module_pmh.obj
 module_mff.obj: module_pmh.obj
-module_dataset_2467.obj: module_dataset.obj module_mesh.obj module_cells.obj \
-module_groups.obj module_pmh.obj module_fe_database_pmh.obj
+module_dataset_2467.obj: module_dataset.obj module_mesh_unv.obj \
+module_cells.obj module_groups.obj module_pmh.obj module_fe_database_pmh.obj
 module_dataset_2414.obj: module_dataset.obj module_pmh.obj \
 module_fe_database_pmh.obj
-module_dataset_2412.obj: module_dataset.obj module_mesh.obj module_FE_DB.obj \
-module_cells.obj module_pmh.obj module_fe_database_pmh.obj
+module_dataset_2412.obj: module_dataset.obj module_mesh_unv.obj \
+module_FE_DB.obj module_cells.obj module_pmh.obj module_fe_database_pmh.obj
 module_dataset_2411.obj: module_dataset.obj module_pmh.obj
 module_manage_unv.obj: module_pmh.obj module_dataset_2411.obj \
 module_dataset_2412.obj module_dataset_2467.obj module_dataset_2414.obj
 module_unv.obj: module_pmh.obj module_fe_database_pmh.obj \
-module_manage_unv.obj module_mesh.obj
+module_manage_unv.obj module_mesh_unv.obj
 module_utils_msh.obj: module_pmh.obj module_fe_database_pmh.obj
 module_read_msh.obj: module_pmh.obj module_utils_msh.obj
 module_ip.obj: module_utils_msh.obj module_pmh.obj
 module_cuthill_mckee.obj: module_vtu.obj
 module_transform.obj: module_vtu.obj module_cuthill_mckee.obj module_pmh.obj
 module_write_msh.obj: module_transform.obj module_pmh.obj module_utils_msh.obj
-module_manage_msh.obj: module_transform.obj module_mesh.obj module_pmh.obj \
-module_read_msh.obj module_write_msh.obj module_utils_msh.obj
-module_msh.obj: module_mesh.obj module_pmh.obj module_fe_database_pmh.obj \
+module_manage_msh.obj: module_transform.obj module_pmh.obj module_read_msh.obj \
+module_write_msh.obj module_utils_msh.obj
+module_msh.obj: module_pmh.obj module_fe_database_pmh.obj \
 module_manage_msh.obj
 module_dex.obj: module_pmh.obj
 module_utils_pf3.obj: module_pmh.obj
-module_read_pf3.obj: module_mesh.obj module_pmh.obj module_utils_pf3.obj
-module_write_pf3.obj: module_mesh.obj module_pmh.obj module_utils_pf3.obj
-module_manage_pf3.obj: module_mesh.obj module_read_pf3.obj \
-module_write_pf3.obj
-module_pf3.obj: module_manage_pf3.obj module_mesh.obj module_pmh.obj \
+module_read_pf3.obj: module_pmh.obj module_utils_pf3.obj
+module_write_pf3.obj: module_pmh.obj module_utils_pf3.obj
+module_manage_pf3.obj: module_read_pf3.obj module_write_pf3.obj
+module_pf3.obj: module_manage_pf3.obj module_pmh.obj \
 module_fe_database_pmh.obj
 module_freefem.obj: module_fe_database_pmh.obj module_pmh.obj
 module_fem_extract.obj: module_fem_extract_real.obj \
@@ -153,31 +151,31 @@ $(fuentes_obj): $(includes) $(modulos_obj)
 # RULE PATTERNS
 %.obj:%.f
 	$(FC) -c -o $@ $(FFLAGS) $<
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	copy $@ $(dir_objetos) 
+	del $@ 
 %.obj:%.F
 	$(FC) -c -o $@ $(FFLAGS) $< 
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	copy $@ $(dir_objetos) 
+	del $@ 
 %.obj:%.for
 	$(FC) -c -o $@ $(FFLAGS) $< 
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	copy $@ $(dir_objetos) 
+	del $@ 
 %.obj:%.FOR
 	$(FC) -c -o $@ $(FFLAGS) $< 
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	copy $@ $(dir_objetos) 
+	del $@ 
 %.obj:%.f90
 	$(FC) -c -o $@ $(FFLAGS) $< 
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	copy $@ $(dir_objetos) 
+	del $@ 
 %.obj:%.F90
 	$(FC) -c -o $@ $(FFLAGS) $< 
-	@copy $@ $(dir_objetos) 
-	@del $@ 
+	copy $@ $(dir_objetos) 
+	del $@ 
  
 .PHONY: clean
 clean:
-	del $(dir_objetos)\*.obj    
-	del $(dir_objetos)\*.mod    
-	del $(ejecutable)
+	-del $(dir_objetos)\*.obj    
+	-del $(dir_objetos)\*.mod    
+	-del $(ejecutable)

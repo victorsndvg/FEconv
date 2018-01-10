@@ -1,4 +1,4 @@
-module module_transform
+module module_transform_fcnv
 !-----------------------------------------------------------------------
 ! Module to transform Lagrange FE meshes to Lagrange P2, Raviart-Thomas
 ! and Whitney FE meshes
@@ -14,9 +14,9 @@ module module_transform
 !   to_l1:   transforms a mesh into a Lagrange P1 FE mesh
 !-----------------------------------------------------------------------
 use basicmod, only: maxpath, error, info, dealloc, alloc, sort, dealloc, alloc, insert_sorted, reduce, find_sorted
-use module_vtu, only: type_cell, edge_tetra, edge_tria, face_tetra
-use module_cuthill_mckee, only: bandwidth
-use module_pmh
+use module_vtu_fcnv, only: type_cell, edge_tetra, edge_tria, face_tetra
+use module_cuthill_mckee_fcnv, only: bandwidth
+use module_pmh_fcnv
 implicit none
 
 integer :: nparts = 0

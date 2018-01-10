@@ -1,4 +1,4 @@
-module module_write_msh
+module module_write_msh_fcnv
 
 !-----------------------------------------------------------------------
 ! Module to manage MSH (Ansys) files
@@ -10,9 +10,9 @@ module module_write_msh
 ! PUBLIC PROCEDURES:
 !-----------------------------------------------------------------------
 use basicmod
-use module_transform, only: to_l1
-use module_pmh
-use module_utils_msh
+use module_transform_fcnv, only: to_l1
+use module_pmh_fcnv
+use module_utils_msh_fcnv
 implicit none
 
 contains

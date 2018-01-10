@@ -1,4 +1,4 @@
-module module_dataset_2411
+module module_dataset_2411_fcnv
 !-----------------------------------------------------------------------
 ! Module for dataset_2411 class
 ! Last update: 15/07/2008
@@ -26,9 +26,9 @@ module module_dataset_2411
 !     -1
 !-----------------------------------------------------------------------
 use basicmod
-use module_dataset
+use module_dataset_fcnv
 !use module_mesh
-use module_pmh, only: piece
+use module_pmh_fcnv, only: piece
 implicit none
 
 contains

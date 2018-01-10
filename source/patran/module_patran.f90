@@ -1,4 +1,4 @@
-module module_patran
+module module_patran_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage Patran mesh files
 !
@@ -17,12 +17,12 @@ module module_patran
 !   For more information, consult "MD Nastran 2006 Quick Reference Guide"
 !-----------------------------------------------------------------------
 use basicmod, only: real64, iostat_end, det
-use module_desplazamientos
-use module_fuerzas
+use module_desplazamientos_fcnv
+use module_fuerzas_fcnv
 !use module_caras_interiores
 !use module_RECONVXX
-use module_groups
-use module_assign_references, only: dos, tres, cuatro
+use module_groups_fcnv
+use module_assign_references_fcnv, only: dos, tres, cuatro
 implicit none
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,4 +1,4 @@
-module module_fuerzas
+module module_fuerzas_fcnv
 !-----------------------------------------------------------------------
 ! Modulo para guardar las condiciones sobre la fuerza
 ! Last update: 30/07/2009
@@ -14,8 +14,8 @@ module module_fuerzas
 !   assign_FORCE: asigna los numeros de referencia Neumann a cada nodo
 !-----------------------------------------------------------------------
  use basicmod, only: string
- use module_ALLOC_int_alloc_r2
- use module_ALLOC_real_r2
+ use module_ALLOC_int_alloc_r2_fcnv
+ use module_ALLOC_real_r2_fcnv
  implicit none
 
 !Variables

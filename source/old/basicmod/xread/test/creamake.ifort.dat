@@ -1,0 +1,15 @@
+
+.
+..
+../..
+../../intel
+../../alloc
+
+
+
+
+ifort
+-check all -traceback
+
+
+

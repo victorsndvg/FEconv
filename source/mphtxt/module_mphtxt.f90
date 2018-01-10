@@ -1,4 +1,4 @@
-module module_mphtxt
+module module_mphtxt_fcnv
 
 !-----------------------------------------------------------------------
 ! Module to manage MPHTXT (Comsol) files
@@ -13,10 +13,10 @@ module module_mphtxt
 !-----------------------------------------------------------------------
 
 use basicmod
-use module_manage_mphtxt
+use module_manage_mphtxt_fcnv
 !use module_mesh
-use module_pmh
-use module_fe_database_pmh
+use module_pmh_fcnv
+use module_fe_database_pmh_fcnv
 
 implicit none
 

@@ -1,4 +1,4 @@
-module module_manage_mphtxt
+module module_manage_mphtxt_fcnv
 
 !-----------------------------------------------------------------------
 ! Module to manage MPHTXT (Comsol) files
@@ -16,9 +16,9 @@ module module_manage_mphtxt
 
 use basicmod
 !use module_mesh
-use module_read_mphtxt
-use module_write_mphtxt
-use module_utils_mphtxt
+use module_read_mphtxt_fcnv
+use module_write_mphtxt_fcnv
+use module_utils_mphtxt_fcnv
 
 implicit none
 

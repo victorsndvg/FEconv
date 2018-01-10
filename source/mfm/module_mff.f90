@@ -1,4 +1,4 @@
-module module_mff
+module module_mff_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage MFF (Modulef Formatted Field) files
 !
@@ -11,7 +11,7 @@ module module_mff
 !   save_mff: saves a mesh in a MFM format file
 !-----------------------------------------------------------------------
 use basicmod, only: real64, error, string, replace, get_unit, feed, empty
-use module_pmh
+use module_pmh_fcnv
 
 implicit none
 

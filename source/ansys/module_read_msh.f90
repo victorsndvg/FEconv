@@ -1,4 +1,4 @@
-module module_read_msh
+module module_read_msh_fcnv
 
 !-----------------------------------------------------------------------
 ! Module to manage MSH (Ansys) files
@@ -11,8 +11,8 @@ module module_read_msh
 !-----------------------------------------------------------------------
 
 use basicmod
-use module_pmh
-use module_utils_msh
+use module_pmh_fcnv
+use module_utils_msh_fcnv
 
 implicit none
 

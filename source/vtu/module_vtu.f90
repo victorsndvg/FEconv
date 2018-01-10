@@ -1,4 +1,4 @@
-module module_vtu
+module module_vtu_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage VTU files
 !
@@ -14,8 +14,8 @@ module module_vtu
 !   type_cell: give the associated name of FE
 !-----------------------------------------------------------------------
 use basicmod
-use module_pmh
-use module_fe_database_pmh
+use module_pmh_fcnv
+use module_fe_database_pmh_fcnv
 implicit none
 
 !Constants

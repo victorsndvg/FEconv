@@ -1,4 +1,4 @@
-module module_mum
+module module_mum_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage MUM (Modulef Unformatted Mesh) files
 !

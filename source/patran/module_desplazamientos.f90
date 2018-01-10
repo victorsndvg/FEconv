@@ -1,4 +1,4 @@
-module module_desplazamientos
+module module_desplazamientos_fcnv
 !-----------------------------------------------------------------------
 ! Modulo para guardar las condiciones sobre el desplazamiento
 ! Last update: 27/07/2009
@@ -15,9 +15,9 @@ module module_desplazamientos
 !   assign_SPC: asigna los numeros de referencia Dirichlet a cada nodo
 !-----------------------------------------------------------------------
  use basicmod, only: string
- use module_ALLOC_int_alloc_r2
- use module_ALLOC_real_r2
- use module_ALLOC_log_r2
+ use module_ALLOC_int_alloc_r2_fcnv
+ use module_ALLOC_real_r2_fcnv
+ use module_ALLOC_log_r2_fcnv
  implicit none
 
 !Variables

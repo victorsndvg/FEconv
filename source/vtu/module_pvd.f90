@@ -1,4 +1,4 @@
-module module_pvd
+module module_pvd_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage PVD files
 !
@@ -14,8 +14,8 @@ module module_pvd
 !   type_cell: give the associated name of FE
 !-----------------------------------------------------------------------
 use basicmod, only: slash, sunique
-use module_vtu
-use module_pmh
+use module_vtu_fcnv
+use module_pmh_fcnv
 implicit none
 
 contains

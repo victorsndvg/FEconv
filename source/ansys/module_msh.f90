@@ -1,4 +1,4 @@
-module module_msh
+module module_msh_fcnv
 
 !-----------------------------------------------------------------------
 ! Module to manage MSH (Ansys) files
@@ -14,9 +14,9 @@ module module_msh
 
 use basicmod
 !use module_mesh
-use module_pmh
-use module_fe_database_pmh
-use module_manage_msh
+use module_pmh_fcnv
+use module_fe_database_pmh_fcnv
+use module_manage_msh_fcnv
 
 implicit none
 

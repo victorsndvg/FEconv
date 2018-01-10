@@ -1,4 +1,4 @@
-module module_fem_extract
+module module_fem_extract_fcnv
 !-----------------------------------------------------------------------
 ! Module for fem extractions
 !
@@ -53,8 +53,8 @@ module module_fem_extract
 !      a) The cell field is given by vn
 !      b) The node field is returned in vc
 !-----------------------------------------------------------------------
-use module_fem_extract_real
-use module_fem_extract_complex
+use module_fem_extract_real_fcnv
+use module_fem_extract_complex_fcnv
 implicit none
 
 !Constants

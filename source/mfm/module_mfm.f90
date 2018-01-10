@@ -1,4 +1,4 @@
-module module_mfm
+module module_mfm_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage MFM (Modulef Formatted Mesh) files
 !

@@ -1,4 +1,4 @@
-module module_dataset_2412
+module module_dataset_2412_fcnv
 !-----------------------------------------------------------------------
 ! Module for dataset_2411 class
 ! Last update: 3/04/2010
@@ -56,12 +56,12 @@ module module_dataset_2412
 !-----------------------------------------------------------------------
 use basicmod
 use module_alloc_common_bmod, only: search_multiple !basicmod does not directly provides this procedure
-use module_dataset
-use module_mesh_unv
-use module_FE_DB
-use module_cells
-use module_pmh, only:piece
-use module_fe_database_pmh, only:FEDB, check_fe
+use module_dataset_fcnv
+use module_mesh_unv_fcnv
+use module_FE_DB_fcnv
+use module_cells_fcnv
+use module_pmh_fcnv, only:piece
+use module_fe_database_pmh_fcnv, only:FEDB, check_fe
 implicit none
 
 !Private procedures

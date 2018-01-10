@@ -1,4 +1,4 @@
-module module_pf3
+module module_pf3_fcnv
 
 !-----------------------------------------------------------------------
 ! Module to manage PF3 (Flux) files
@@ -13,10 +13,10 @@ module module_pf3
 !-----------------------------------------------------------------------
 
 use basicmod
-use module_manage_pf3
+use module_manage_pf3_fcnv
 !use module_mesh
-use module_pmh
-use module_fe_database_pmh
+use module_pmh_fcnv
+use module_fe_database_pmh_fcnv
 
 implicit none
 

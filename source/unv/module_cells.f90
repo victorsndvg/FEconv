@@ -1,4 +1,4 @@
-module module_cells
+module module_cells_fcnv
 !-----------------------------------------------------------------------
 ! Module for cell management
 ! Last update: 03/04/2010   

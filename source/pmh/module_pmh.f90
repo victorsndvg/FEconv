@@ -1,4 +1,4 @@
-module module_pmh
+module module_pmh_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage piecewise meshes (PMH)
 !
@@ -34,7 +34,7 @@ module module_pmh
 use basicmod, only: real64, output_unit, maxpath, error, info, string, int, dble, alloc, dealloc, set, reduce, sfind, &
                     find_first, find_sorted, sort, insert, insert_sorted, bsearch, is_arg, get_post_arg, feed, empty, &
                      unique, get_unit, sunique
-use module_fe_database_pmh, only : FEDB, check_fe, VF_WEDG
+use module_fe_database_pmh_fcnv, only : FEDB, check_fe, VF_WEDG
 implicit none
 
 !Types

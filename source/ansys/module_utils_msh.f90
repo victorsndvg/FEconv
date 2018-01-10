@@ -1,4 +1,4 @@
-module module_utils_msh
+module module_utils_msh_fcnv
 
 !-----------------------------------------------------------------------
 ! Module to manage MSH (Ansys) files
@@ -16,8 +16,8 @@ module module_utils_msh
 
 use basicmod
 use module_alloc_common_bmod, only: search_multiple !basicmod does not directly provides this procedure
-use module_pmh, only: elgroup,piece,pmh_mesh
-use module_fe_database_pmh, only: check_fe,FEDB,FA_HEXA
+use module_pmh_fcnv, only: elgroup,piece,pmh_mesh
+use module_fe_database_pmh_fcnv, only: check_fe,FEDB,FA_HEXA
 implicit none
 
 integer, parameter, private :: DEFAULT_ALLOC  = 1000 !initial size for allocation

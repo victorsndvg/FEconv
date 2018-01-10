@@ -1,4 +1,4 @@
-module module_field_database
+module module_field_database_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage the field database
 !

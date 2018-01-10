@@ -1,4 +1,4 @@
-module module_FE_DB
+module module_FE_DB_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage the fe descriptor id's database
 ! Last update: 04/04/2010
@@ -9,7 +9,7 @@ module module_FE_DB
 ! OUTPUT PROCEDURES:
 !   find_descriptorID: checks whether the given descriptor is in the database
 !-----------------------------------------------------------------------
-use basicmod, only: MAXPATH
+use basicmod, only: maxpath
 implicit none
 
 !Constants

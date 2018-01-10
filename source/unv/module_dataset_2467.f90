@@ -1,4 +1,4 @@
-module module_dataset_2467
+module module_dataset_2467_fcnv
 !-----------------------------------------------------------------------
 ! Module for dataset_2467 class
 ! Last update: 04/04/2010
@@ -43,12 +43,12 @@ module module_dataset_2467
 !          8         3         0         0
 !     -1
 !-----------------------------------------------------------------------
-use module_dataset
-use module_mesh_unv
-use module_cells
-use module_groups
-use module_pmh, only: piece, elgroup
-use module_fe_database_pmh, only: FEDB, check_fe
+use module_dataset_fcnv
+use module_mesh_unv_fcnv
+use module_cells_fcnv
+use module_groups_fcnv
+use module_pmh_fcnv, only: piece, elgroup
+use module_fe_database_pmh_fcnv, only: FEDB, check_fe
 implicit none
 
 !Private procedures

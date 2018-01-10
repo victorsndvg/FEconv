@@ -1,4 +1,4 @@
-module module_groups
+module module_groups_fcnv
 !-----------------------------------------------------------------------
 ! Module for group management
 ! Last update: 04/04/2010

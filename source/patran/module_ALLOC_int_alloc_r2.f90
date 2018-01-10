@@ -1,10 +1,10 @@
-module module_ALLOC_int_alloc_r2
+module module_ALLOC_int_alloc_r2_fcnv
 !-----------------------------------------------------------------------
 ! Module for memory allocation of allocatable arrays composed of
 ! integer allocatable arrays
 ! Last update: 28/07/2009
 ! Programmer: fran.pena@usc.es
-!
+! 
 ! PUBLIC PROCEDURES: dealloc, alloc, extend, reduce, enlarge and set
 ! - you only have to use "set" since it implies allocation, if necessary
 ! - "reduce" cuts off an array filled without fitting

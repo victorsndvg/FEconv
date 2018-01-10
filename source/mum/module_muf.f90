@@ -1,4 +1,4 @@
-module module_muf
+module module_muf_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage MUF (Modulef Unformatted Field) files
 !
@@ -11,9 +11,8 @@ module module_muf
 !   save_muf: saves a mesh in a MUM format file
 !-----------------------------------------------------------------------
 use basicmod, only: real64, get_unit, string, replace, error
-use module_pmh
-
-implicit none!
+use module_pmh_fcnv
+implicit none
 
 !type field
 !  character(maxpath)        :: name

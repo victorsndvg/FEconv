@@ -1,4 +1,4 @@
-module module_fe_database_pmh
+module module_fe_database_pmh_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage the finite elements database for PMH format
 !

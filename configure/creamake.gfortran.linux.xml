@@ -5,12 +5,6 @@
 
 <sources>
 source
-source/basicmod
-source/basicmod/gfortran
-source/basicmod/args
-source/basicmod/alloc
-source/basicmod/vtk
-source/basicmod/xml
 source/cuthill_mckee
 source/ansys
 source/patran
@@ -24,14 +18,20 @@ source/flux
 source/freefem
 source/fem_extract
 source/gmsh
+source/main
 </sources>
- 
+
 <compiler>
 gfortran
 </compiler>
 
 <fflags>
--Wall -ggdb -fcheck=all -fbacktrace -fall-intrinsics 
+-Wall -ggdb -fcheck=all -fbacktrace -fall-intrinsics -Ibasicmod/include/gfortran.linux
 </fflags>
+
+<ldflags>
+-static -ggdb -static -Lbasicmod/lib -lbasicmod-18.01-gfortran-linux
+</ldflags>
+
 
 </content>

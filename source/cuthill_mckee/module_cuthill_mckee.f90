@@ -1,4 +1,4 @@
-module module_cuthill_mckee
+module module_cuthill_mckee_fcnv
 !-----------------------------------------------------------------------
 ! Module to reduce bandwidth using Cuthill-McKee algoritm
 !
@@ -64,7 +64,7 @@ module module_cuthill_mckee
 !
 !use globals
 use basicmod, only: real64, maxpath, error
-use module_vtu, only: type_cell, edge_tetra
+use module_vtu_fcnv, only: type_cell, edge_tetra
 implicit none
 
 private :: adj_bandwidth, adj_perm_bandwidth, adj_print, adj_print_some, ch_cap, ch_eqi, ch_to_digit

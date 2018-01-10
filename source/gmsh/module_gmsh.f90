@@ -1,4 +1,4 @@
-module module_gmsh
+module module_gmsh_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage Gmsh MSH meshes
 !
@@ -12,8 +12,8 @@ module module_gmsh
 !-----------------------------------------------------------------------
 use basicmod, only: real64, iostat_end, maxpath, error, info, int, string, lcase, adjustlt, is_arg, get_post_arg, &
                     alloc, dealloc, insert_sorted, set, find_sorted, reduce, find_first
-use module_fe_database_pmh, only: FEDB, check_fe
-use module_pmh, only: pmh_mesh, build_vertices, build_node_coordinates
+use module_fe_database_pmh_fcnv, only: FEDB, check_fe
+use module_pmh_fcnv, only: pmh_mesh, build_vertices, build_node_coordinates
 implicit none
 
 !Private procedures

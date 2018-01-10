@@ -1,4 +1,4 @@
-module module_ip
+module module_ip_fcnv
 !-----------------------------------------------------------------------
 ! Module to manage IP (Interpolation points) files
 !
@@ -11,8 +11,8 @@ module module_ip
 !   save_ip: saves a field in a IP format file
 !-----------------------------------------------------------------------
 use basicmod, only: real64, get_unit, string, replace, error
-use module_utils_msh
-use module_pmh
+use module_utils_msh_fcnv
+use module_pmh_fcnv
 
 implicit none!
 
