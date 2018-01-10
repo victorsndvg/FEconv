@@ -56,7 +56,7 @@ module module_dataset_2412
 !-----------------------------------------------------------------------
 use module_ALLOC
 use module_dataset
-use module_mesh
+use module_mesh_unv
 use module_FE_DB
 use module_cells
 implicit none
@@ -110,7 +110,7 @@ subroutine read_2412(iu, m, maxdim, is_opt)
     call check_and_set('LNF', m(d)%LNF, FE_DB(Field2)%LNF)
     call set_subelements(m(d)) !determine sub-elements of the mesh
     m(d)%FEtype = FE_DB(Field2)%desc
-    
+
 !   Record 2:  *** FOR BEAM ELEMENTS ONLY ***
     if (FE_DB(Field2)%Beam) then
       read (unit=iu, fmt='(3I10)', iostat = ios) &
@@ -131,12 +131,12 @@ subroutine read_2412(iu, m, maxdim, is_opt)
 
 !   copy nodes to mesh (add an element after the last one)
     fit = [.true., .false.]
-    call set_col(m(d)%id, nn, m(d)%nl+1, fit)
+    call set(2, m(d)%id, nn, m(d)%nl+1, fit)
     m(d)%nl = m(d)%nl + 1
 
 !   set the new element in fes list of elements
     fit = [.true., .false.]
-    call set_col(cells, [d, m(d)%nl], Field1, fit)
+    call set(2, cells, [d, m(d)%nl], Field1, fit)
   end do
   call reduce(m(maxdim)%id, m(maxdim)%LNN, m(maxdim)%nl)
 end subroutine
@@ -199,7 +199,7 @@ elseif (m%LNN /= m%LNV) then
       end if
     end do
     !if it is not a midpoint, it is a vertex
-    vf = vf + 1    
+    vf = vf + 1
     newnn(vf) = nn(i)
     !if (vf >= m%LNV) exit NODES !found enough vertices (this is useful to deal with singular edges)
     if (vf > m%LNV)  call error('dataset_2412/reorder_nodes, too many non midpoints in an element (isoparametric P2 elements &
@@ -250,7 +250,7 @@ end subroutine
 !-----------------------------------------------------------------------
 function find_prv(v) result(res)
 logical, dimension(:), intent(in) :: v
-integer :: res, tmp(size(v,1)), a(1) 
+integer :: res, tmp(size(v,1)), a(1)
 
 tmp = 0
 where (v); tmp = 1; end where

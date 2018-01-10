@@ -17,11 +17,7 @@ module module_write_mphtxt
 ! write_string:        write string data in the MPHTXT file
 !-----------------------------------------------------------------------
 
-use module_COMPILER_DEPENDANT, only: real64
-use module_os_dependant, only: maxpath
-use module_report, only:error
-use module_convers
-use module_mesh
+use basicmod
 use module_pmh
 use module_utils_mphtxt
 
@@ -59,7 +55,7 @@ subroutine write_mphtxt_header(iu, pmh)
     call write_string(iu, 'obj')
   enddo
   call write_empty_line(iu)
-  
+
 end subroutine
 
 
@@ -67,7 +63,7 @@ end subroutine
 ! write_mphtxt_object(iu, pmh_o, n, znod): write a pieze of the MPHTXT mesh
 !-----------------------------------------------------------------------
 ! iu:    unit number of the MPHTXT file
-! pmh_o: piece of the PMH structure 
+! pmh_o: piece of the PMH structure
 ! n:     piece number
 ! znod:  array of node coordinates
 !-----------------------------------------------------------------------
@@ -114,7 +110,7 @@ subroutine write_mphtxt_object(iu, pmh_o, n, znod)
     call write_mphtxt_etype(iu, pmh_o%el(i),i)
   enddo
 
-  
+
 end subroutine
 
 
@@ -122,7 +118,7 @@ end subroutine
 ! write_mphtxt_etype(iu, pmh_t,n): write a element group of the MPHTXT mesh
 !-----------------------------------------------------------------------
 ! iu:    unit number of the MPHTXT file
-! pmh_t: element group of the PMH structure 
+! pmh_t: element group of the PMH structure
 ! n:     piece number
 !-----------------------------------------------------------------------
 

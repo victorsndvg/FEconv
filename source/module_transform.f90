@@ -1,6 +1,6 @@
 module module_transform
 !-----------------------------------------------------------------------
-! Module to transform Lagrange FE meshes to Lagrange P2, Raviart-Thomas 
+! Module to transform Lagrange FE meshes to Lagrange P2, Raviart-Thomas
 ! and Whitney FE meshes
 !
 ! Licensing: This code is distributed under the GNU GPL license.
@@ -13,10 +13,7 @@ module module_transform
 !   lagr2nd: transforms a Lagrange FE mesh into a Whitney (edge) FE mesh
 !   to_l1:   transforms a mesh into a Lagrange P1 FE mesh
 !-----------------------------------------------------------------------
-use module_os_dependant, only: maxpath
-use module_report, only: error, info
-use module_alloc_int_r1, only: dealloc, alloc, sort
-use module_alloc_int_r2, only: dealloc, alloc, insert_row_sorted, reduce, find_row_sorted
+use basicmod, only: maxpath, error, info, dealloc, alloc, sort, dealloc, alloc, insert_sorted, reduce, find_sorted
 use module_vtu, only: type_cell, edge_tetra, edge_tria, face_tetra
 use module_cuthill_mckee, only: bandwidth
 use module_pmh
@@ -52,7 +49,7 @@ case('triangle')
   do k = 1, nel
     do j = 1, lne
       tmp = sort(mm(edge_tria(:,j),k))
-      call insert_row_sorted(part, tmp, used=nparts, fit=[.false.,.true.])
+      call insert_sorted(1, part, tmp, used=nparts, fit=[.false.,.true.])
     end do
   end do
   call reduce(part, nparts, size(edge_tria,1))
@@ -65,7 +62,7 @@ case('triangle')
     end do
     do j = 1, lnn-lnv !edges
       tmp = sort(mm(edge_tria(:,j),k))
-      pos = find_row_sorted(part, tmp, nparts)
+      pos = find_sorted(1, part, tmp, nparts)
       if (pos > 0) nn(j+lnv,k) = nver + pos
     end do
   end do
@@ -84,7 +81,7 @@ case('tetra')
   do k = 1, nel
     do j = 1, lne
       tmp = sort(mm(edge_tetra(:,j),k))
-      call insert_row_sorted(part, tmp, used=nparts, fit=[.false.,.true.])
+      call insert_sorted(1, part, tmp, used=nparts, fit=[.false.,.true.])
     end do
   end do
   call reduce(part, nparts, size(edge_tetra,1))
@@ -97,7 +94,7 @@ case('tetra')
     end do
     do j = 1, lnn-lnv !edges
       tmp = sort(mm(edge_tetra(:,j),k))
-      pos = find_row_sorted(part, tmp, nparts)
+      pos = find_sorted(1, part, tmp, nparts)
       if (pos > 0) nn(j+lnv,k) = nver + pos
     end do
   end do
@@ -143,7 +140,7 @@ case('triangle', 'triangle2')
   do k = 1, nel
     do j = 1, lne
       tmp = sort(mm(edge_tria(:,j),k))
-      call insert_row_sorted(part, tmp, used=nparts)
+      call insert_sorted(1, part, tmp, used=nparts)
     end do
   end do
   call reduce(part, nparts, size(edge_tria,1))
@@ -153,7 +150,7 @@ case('triangle', 'triangle2')
   do k = 1, nel
     do j = 1, lnn !edges
       tmp = sort(mm(edge_tria(:,j),k))
-      pos = find_row_sorted(part, tmp, nparts)
+      pos = find_sorted(1, part, tmp, nparts)
       if (pos > 0) nn(j,k) = pos
     end do
   end do
@@ -172,7 +169,7 @@ case('tetra', 'tetra2')
   do k = 1, nel
     do j = 1, lnf
       tmp = sort(mm(face_tetra(:,j),k))
-      call insert_row_sorted(part, tmp, used=nparts)
+      call insert_sorted(1, part, tmp, used=nparts)
     end do
   end do
   call reduce(part, nparts, size(face_tetra,1))
@@ -182,7 +179,7 @@ case('tetra', 'tetra2')
   do k = 1, nel
     do j = 1, lnn !faces
       tmp = sort(mm(face_tetra(:,j),k))
-      pos = find_row_sorted(part, tmp, nparts)
+      pos = find_sorted(1, part, tmp, nparts)
       if (pos > 0) nn(j,k) = pos
     end do
   end do
@@ -230,7 +227,7 @@ case('tetra', 'tetra2')
   do k = 1, nel
     do j = 1, lne
       tmp = sort(mm(edge_tetra(:,j),k))
-      call insert_row_sorted(part, tmp, used=nparts)
+      call insert_sorted(1, part, tmp, used=nparts)
     end do
   end do
   call reduce(part, nparts, size(edge_tetra,1))
@@ -240,7 +237,7 @@ case('tetra', 'tetra2')
   do k = 1, nel
     do j = 1, lne !edges
       tmp = sort(mm(edge_tetra(:,j),k))
-      pos = find_row_sorted(part, tmp, nparts)
+      pos = find_sorted(1, part, tmp, nparts)
       if (pos > 0) nn(j,k) = pos
     end do
   end do

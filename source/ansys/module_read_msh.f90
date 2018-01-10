@@ -10,8 +10,7 @@ module module_read_msh
 ! PUBLIC PROCEDURES:
 !-----------------------------------------------------------------------
 
-use module_ALLOC
-use module_CONVERS
+use basicmod
 use module_pmh
 use module_utils_msh
 
@@ -32,7 +31,7 @@ subroutine read_msh_comment(iu, line)
   integer,          intent(in) :: iu
   character(len=MAXPATH)       :: comm
   integer                      :: nopch,nclch, ios
- 
+
   nopch = count_delimiter(line,'(')
   nclch = count_delimiter(line,')')
   do
@@ -87,13 +86,13 @@ subroutine read_msh_dimensions(pmh, line)
   type(pmh_mesh),      intent(inout) :: pmh ! pmh_mesh
   character(len=MAXPATH)             :: auxline
   integer, allocatable               :: data(:)
- 
+
   auxline(:) = line(:)
   call replace_char(auxline, '(', ' ')
   call replace_char(auxline, ')', ' ')
   if(allocated(data)) deallocate(data)
-  allocate(data(word_count(auxline)))
-  data = int_alloc(auxline)
+  !allocate(data(word_count(auxline)))
+  call int_alloc(auxline, data)
   if(size(data,1) /= 2) call error('read_msh_dimensions # Wrong number of components')
   pmh%pc(1)%dim = data(2)
   print*, 'Space dimension: '//trim(string(data(2)))
@@ -116,10 +115,10 @@ subroutine read_msh_nodes(iu, pmh, line)
   character(len=MAXPATH)             :: ch_group,ch_zone,ch_f_indx,ch_l_indx,aux,ch_nd
   integer                            :: zone,f_indx,l_indx
   integer                            :: ios, wc, i, numgroups
- 
+
   auxline(:) = line(:)
   ! Replace brackets
-  call replace_char(auxline, '(', ' ') 
+  call replace_char(auxline, '(', ' ')
   call replace_char(auxline, ')', ' ')
   ! Count words: type may not appear
   wc = word_count(trim(auxline))
@@ -207,7 +206,7 @@ end subroutine
 !  character(len=MAXPATH), allocatable:: ch_array(:)
 !  integer                            :: zone,f_indx,l_indx,tp
 !  integer                            :: ios, wc, i, j, numadcells,mix
-! 
+!
 !  auxline(:) = line(:)
 !  ! Replace brackets
 !  call replace_char(auxline, '(', ' ')
@@ -256,7 +255,7 @@ end subroutine
 !      allocate(ch_array(wc))
 !      read(auxline,fmt=*,iostat=ios) (ch_array(j),j=1,wc)
 !
-!      ! Read face type if not specified in section header 
+!      ! Read face type if not specified in section header
 !      mix = 0
 !      if(tp == 0) then; read(ch_array(1),fmt=*,iostat=ios) tp; mix = 1; endif
 !      faces(i)%type = get_face_pmh_type(tp)
@@ -298,7 +297,7 @@ subroutine read_msh_faces(iu, faces, line)
   character(len=MAXPATH), allocatable:: ch_array(:)
   integer                            :: zone,f_indx,l_indx,zone_tp,tp
   integer                            :: ios, wc, i, j, numadcells,mix,ft
- 
+
   auxline(:) = line(:)
   ! Replace brackets
   call replace_char(auxline, '(', ' ')
@@ -359,7 +358,7 @@ subroutine read_msh_faces(iu, faces, line)
       allocate(ch_array(wc))
       read(auxline,fmt=*,iostat=ios) (ch_array(j),j=1,wc)
 
-      ! Read face type if not specified in section header 
+      ! Read face type if not specified in section header
       mix = 0
       if(zone_tp == 0) then; read(ch_array(1),fmt=*,iostat=ios) tp; mix = 1; endif
       ft = get_face_pmh_type(tp)
@@ -402,7 +401,7 @@ subroutine read_msh_cells(iu, cells, line)
   character(len=MAXPATH)              :: ch_group,ch_zone,ch_f_indx
   integer                             :: zone,f_indx,l_indx,tp
   integer                             :: ios, wc, j
- 
+
   auxline(:) = line(:)
   ! Replace brackets
   call replace_char(auxline, '(', ' ')
@@ -471,7 +470,7 @@ subroutine read_msh_cells(iu, cells, line)
 !        if(cb>0) exit
 !      enddo
 !      if(i<size(cells%type,1)) call error('reading cell types')
-    endif 
+    endif
     cells%zone(f_indx:l_indx) = zone
   endif
 
@@ -490,7 +489,7 @@ subroutine read_msh_zones(izones, line)
   character(len=MAXPATH)              :: ch_group,ch_zone,ch_type,ch_name
   character(len=MAXPATH)              :: auxline
   integer                             :: ios, wc, i
- 
+
   auxline(:) = line(:)
   ! Replace brackets
   call replace_char(auxline, '(', ' ')

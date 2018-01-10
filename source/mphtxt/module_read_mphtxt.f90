@@ -13,12 +13,7 @@ module module_read_mphtxt
 ! read_mphtxt_etype:  read a element group of the MPHTXT mesh
 !-----------------------------------------------------------------------
 
-use module_COMPILER_DEPENDANT, only: real64, iostat_end
-use module_os_dependant, only: maxpath
-use module_report, only:error
-use module_convers
-use module_ALLOC
-use module_mesh
+use basicmod
 use module_pmh
 use module_utils_mphtxt
 

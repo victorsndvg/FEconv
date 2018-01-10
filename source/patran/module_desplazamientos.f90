@@ -5,7 +5,7 @@ module module_desplazamientos
 ! Programmer: fran.pena@usc.es
 !
 ! ATRIBUTOS PRIVADOS DE CLASE:
-!   dof: matrix 6 x n de grados de libertad 
+!   dof: matrix 6 x n de grados de libertad
 !   val: matrix 6 x n de valores del desplazamiento
 !   (cada fila de 'dof' y 'val' indica los grados y valores de la condicion n-esima)
 !   nod: para cada n, nodos asociados a la condicion n-esima
@@ -14,13 +14,12 @@ module module_desplazamientos
 !   set_SPC: para cada linea con una condicion SPC, almacena (dof, val, nod)
 !   assign_SPC: asigna los numeros de referencia Dirichlet a cada nodo
 !-----------------------------------------------------------------------
- use module_ALLOC
+ use basicmod, only: string
  use module_ALLOC_int_alloc_r2
- use module_ALLOC_real_r2 
- use module_alloc_log_r2
- use module_CONVERS
+ use module_ALLOC_real_r2
+ use module_ALLOC_log_r2
  implicit none
- 
+
 !Variables
 integer, private                              :: ncond = 0  !numero total de condiciones
 logical, private, dimension(:,:), allocatable :: dof        !grados de libertad
@@ -42,20 +41,20 @@ contains
 ! D1: Value of enforced motion for all degrees-of-freedom (Real, 8 pos.)
 !-----------------------------------------------------------------------
 subroutine set_SPC(iu)
- 
+
   integer, intent(in) :: iu !identificador del fichero
   integer :: SID, G1
   character(len=8) :: SPC, C1, D1
   logical, dimension(6) :: newdof
   real,    dimension(6) :: newval, tmp
   integer :: res, i
-  
+
   newdof = .false.
   newval = 0.
 ! lectura del registro
   read(unit = iu, fmt = '(A8,I8,I8,A8,A8)', iostat = res) SPC, SID, G1, C1, D1
-  if (res /= 0) call info('(module_desplazamientos/set_SPC) Unable to read record') 
-! construcción de newdof, newval
+  if (res /= 0) call info('(module_desplazamientos/set_SPC) Unable to read record')
+! construcciï¿½n de newdof, newval
   do i = 1, 6
     if (index(C1, trim(string(i))) > 0) newdof(i) = .true. !'i' aparece en C1
   end do
@@ -71,26 +70,26 @@ subroutine set_SPC(iu)
         where (newdof); tmp = newval; elsewhere; tmp = 0.; end where !in F95, pack...
         call set(val, tmp, col=ncond, fit_row=.true., add=.true.) !se anhaden los nuevos val
         return !salimos sin ejecutar el resto del codigo
-      end if  
-    end if  
-  end if  
+      end if
+    end if
+  end if
   !o no se encontro G1 o son incompatibles
   ncond = ncond + 1
   call set(dof, newdof, col=ncond, fit_row=.true.)
   call set(val, newval, col=ncond, fit_row=.true.)
   call set(nod, G1, row=ncond, fit_col=.true.)
-  
+
 end subroutine
 
 !-----------------------------------------------------------------------
 !   assign_SPC: asigna los numeros de referencia Dirichlet a cada nodo
 !-----------------------------------------------------------------------
 subroutine assign_SPC(nnrv, nD)
- 
+
   integer, dimension(*) :: nnrv !numeros de referencia (por nodo)
   integer, intent(in)   :: nD   !numero total de condiciones Dirichlet (ya asignadas)
   integer :: i, j, ni, nj, k
-  
+
 ! eliminacion de condiciones duplicadas
   do i = ncond, 2, -1 !bucle en condiciones, de la ultima a la primera
     do j = 1, i - 1 !bucle en condiciones previas a la i-esima
@@ -98,32 +97,32 @@ subroutine assign_SPC(nnrv, nD)
 !       dof y val coinciden, se agrupan los nodos en j
         ni = size(nod%row(i)%col, 1)
         nj = size(nod%row(j)%col, 1)
-        do k = 1, ni !adicion de las condiciones i-ésimas a las condiciones j-ésimas
+        do k = 1, ni !adicion de las condiciones i-ï¿½simas a las condiciones j-ï¿½simas
           call set(nod, nod%row(i)%col(k), row=j, col=nj+k) !por rapidez, no se ajusta en cols
         end do
-        call dealloc(nod%row(i)%col) !eliminación de las condiciones i-ésimas
+        call dealloc(nod%row(i)%col) !eliminaciï¿½n de las condiciones i-ï¿½simas
         call reduce(nod%row(j)%col, ni + nj) !al final se reduce en cols
-!        ncond = ncond - 1 !eliminacion de la ultima condicion 
+!        ncond = ncond - 1 !eliminacion de la ultima condicion
         exit
       end if
     end do
   end do
 
-! detección de condiciones unificadas (se construye nucond, ucond)
+! detecciï¿½n de condiciones unificadas (se construye nucond, ucond)
   do i = 1, ncond
     if (allocated(nod%row(i)%col)) then !guardamos las condiciones que tienen nodos asociados
       call set(ucond, i, nucond + 1) !no es necesario ajustar
       nucond = nucond + 1
     end if
   end do
-     
+
 ! asignacion de condiciones
   do i = 1, nucond
     do j = 1, size(nod%row(ucond(i))%col, 1)
       nnrv(nod%row(ucond(i))%col(j)) = nD + i !de esta forma, se asigna el mayor valor
     end do
   end do
-  
+
 end subroutine
 
 end module

@@ -12,12 +12,9 @@ module module_pf3
 ! save_pf3: loads a mesh from a PF3 format file
 !-----------------------------------------------------------------------
 
-use module_compiler_dependant, only: real64
-use module_os_dependant, only: maxpath
-use module_report
-use module_convers
+use basicmod
 use module_manage_pf3
-use module_mesh
+!use module_mesh
 use module_pmh
 use module_fe_database_pmh
 
@@ -41,8 +38,8 @@ subroutine load_pf3(filename, pmh)
   integer                               :: dim
 
   ! Inital settings
-  call report_option('level', 'stdout')
- 
+  !call report_option('level', 'stdout')
+
   ! Open PF3 file and reads the mesh
   call info('Reading PF3 file ...')
   call open_pf3(u, filename)
@@ -64,7 +61,7 @@ subroutine save_pf3(filename, pmh, infield, outfield, path, param)
   character(*), allocatable, intent(in) :: infield(:)  ! In field names
   character(*), allocatable, intent(in) :: outfield(:) ! Out field names
   character(*),              intent(in) :: path !file names
-  real(real64), optional,    intent(in) :: param 
+  real(real64), optional,    intent(in) :: param
   type(pf3) :: u
 
   call open_pf3(u, filename,'unknown')

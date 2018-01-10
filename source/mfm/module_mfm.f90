@@ -10,11 +10,7 @@ module module_mfm
 !   load_mfm: loads a mesh from a MFM format file
 !   save_mfm: saves a mesh in a MFM format file
 !-----------------------------------------------------------------------
-use module_compiler_dependant, only: real64
-use module_os_dependant, only: maxpath
-use module_report, only: error
-use module_convers, only: string, int
-use module_feed, only: feed, empty
+use basicmod, only: real64, maxpath, error, string, int, feed, empty
 implicit none
 
 contains
@@ -149,20 +145,20 @@ integer, intent(in) :: nrc(:,:)      !face reference array
 real(real64), intent(in) :: z(:,:)   !vertices coordinates array
 integer, intent(in) :: nsd(:)        !subdomain index array
 integer :: i, j, k, ln2, le2, lf2, ios
-  
+
 !open file
 open (unit=iu, file=filename, form='formatted', position='rewind', iostat=ios)
 if (ios /= 0) call error('save/open, #'//trim(string(ios)))
 print'(a,i9)','Writing data ...'
-!write data (nel, nnod, nver, dim, ...)   
+!write data (nel, nnod, nver, dim, ...)
 call feed(iu, string(nel)); call feed(iu, string(nnod)); call feed(iu, string(nver))
 call feed(iu, string(dim)); call feed(iu, string(lnn));  call feed(iu, string(lnv))
 call feed(iu, string(lne)); call feed(iu, string(lnf));  call empty(iu)
-!ln2: write nodes, only if (nnod /= nver) 
-ln2 = lnn; if (nnod == nver) ln2 = 0  
+!ln2: write nodes, only if (nnod /= nver)
+ln2 = lnn; if (nnod == nver) ln2 = 0
 le2 = lne; if (dim < 2)      le2 = 0
 lf2 = lnf; if (dim < 3)      lf2 = 0
-!arrays from file ([nn,if nnod/=nver], mm, [nrc,if dim==3], [nra,if dim==2], nrv, x)  
+!arrays from file ([nn,if nnod/=nver], mm, [nrc,if dim==3], [nra,if dim==2], nrv, x)
 do k = 1, nel;  do i = 1, ln2; call feed(iu, string(nn(i,k)));  end do; end do
 do k = 1, nel;  do i = 1, lnv; call feed(iu, string(mm(i,k)));  end do; end do
 do k = 1, nel;  do i = 1, lf2; call feed(iu, string(nrc(i,k))); end do; end do
@@ -185,4 +181,3 @@ print'(a,i9)','Local number of faces :    ', lnf
 end subroutine
 
 end module
-

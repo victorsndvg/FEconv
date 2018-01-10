@@ -13,12 +13,9 @@ module module_pvd
 !   save_vtu_pmh: saves a mesh and fields in a VTU format file from pmh
 !   type_cell: give the associated name of FE
 !-----------------------------------------------------------------------
-
+use basicmod, only: slash, sunique
 use module_vtu
 use module_pmh
-use module_set, only: sunique
-use module_os_dependant, only: slash
-
 implicit none
 
 contains
@@ -43,11 +40,11 @@ subroutine load_pvd(filename, pmh, infield)
   real(real64)                             :: timestep
   character(len=maxpath)                   :: file, path
 
-  
+
   ! Check if file exists
   inquire(file=trim(filename), exist=file_exists)
 
-  if(.not. file_exists) call error('Input file '//trim(filename)//' not found!')  
+  if(.not. file_exists) call error('Input file '//trim(filename)//' not found!')
 
   iu = get_unit()
   counter = 0
@@ -75,7 +72,7 @@ subroutine load_pvd(filename, pmh, infield)
       p2 = index(line(p1:), '"')+p1-2
       file = trim(line(p1:p2))
       inquire(file=trim(filename), exist=file_exists)
-      if(.not. file_exists) call error('PVD pointed file '//trim(filename)//' not found!')  
+      if(.not. file_exists) call error('PVD pointed file '//trim(filename)//' not found!')
       call info('PVD: Reading file "'//trim(path)//trim(file)//'" with timestep "'//trim(string(timestep))//'"')
       call load_vtu(trim(path)//trim(file), pmh, infield,nparam=counter,param=timestep)
     endif
@@ -129,7 +126,7 @@ subroutine save_pvd(filename, pmh, infield, outfield, padval)
   do i=1, unshots(1)
     fname= trim(path)//trim(adjustl(prefn))//trim(string(i))//'.vtu'
     pvdfname= trim(adjustl(prefn))//trim(string(i))//'.vtu'
-    call save_vtu(fname, pmh, infield, outfield, padval, nparam=i, param=p) 
+    call save_vtu(fname, pmh, infield, outfield, padval, nparam=i, param=p)
     call info('PVD: Saved file "'//trim(fname)//'" with timestep "'//trim(string(p))//'"')
     write(unit=iu,fmt='(A)',iostat=ios) &
       & '        <DataSet timestep="'//trim(string(p))//'" group="" part="0" file="'//trim(pvdfname)//'"/>'

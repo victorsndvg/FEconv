@@ -10,14 +10,10 @@ module module_gmsh
 ! load_gmsh: load a Gmsh ASCII MSH  file into a PMH structure
 ! save_gmsh: save a Gmsh MSH file from a PMH structure
 !-----------------------------------------------------------------------
-use module_compiler_dependant, only: real64, iostat_end
-use module_os_dependant, only: maxpath
-use module_report, only: error, info
-use module_convers, only: int, string, lcase, adjustlt
-use module_alloc, only: alloc, dealloc, insert_sorted, set, insert_col_sorted, find_col_sorted, reduce, find_first
+use basicmod, only: real64, iostat_end, maxpath, error, info, int, string, lcase, adjustlt, is_arg, get_post_arg, &
+                    alloc, dealloc, insert_sorted, set, find_sorted, reduce, find_first
 use module_fe_database_pmh, only: FEDB, check_fe
 use module_pmh, only: pmh_mesh, build_vertices, build_node_coordinates
-use module_args, only: is_arg, get_post_arg
 implicit none
 
 !Private procedures
@@ -30,7 +26,7 @@ contains
 !-----------------------------------------------------------------------
 subroutine load_gmsh(filename, iu, pmh)
 character(*), intent(in) :: filename
-integer,      intent(in) :: iu      
+integer,      intent(in) :: iu
 type(pmh_mesh), intent(inout) :: pmh
 integer :: res, i, j, k, ios, nel, elt, nelt, id4gmsh(93), xxx, ntags, tag(100), tmp(100)
 integer, allocatable :: el_type(:), inv_el_type(:), new4old(:), old4new(:)
@@ -38,7 +34,7 @@ character(maxpath) :: cad
 
 !id4gmsh("gmsh element id") = "pmh element id"
 id4gmsh(15) = check_fe(.true.,      1, 1,  0, 0) ! 1
-id4gmsh( 1) = check_fe(.true.,      2, 2,  1, 0) ! 2 
+id4gmsh( 1) = check_fe(.true.,      2, 2,  1, 0) ! 2
 id4gmsh( 8) = check_fe(.false.,     3, 2,  1, 0) ! 3
 id4gmsh( 2) = check_fe(.true.,      3, 3,  3, 0) ! 4
 id4gmsh( 9) = check_fe(.false.,     6, 3,  3, 0) ! 5
@@ -62,7 +58,7 @@ if (allocated(pmh%pc)) then
 else
   allocate(pmh%pc(1), stat = res, errmsg = cad)
   if (res /= 0) call error('(module_gmsh/load_gmsh) Unable to allocate piece: '//trim(cad))
-end if  
+end if
 !open file
 open (unit=iu, file=filename, form='formatted', status='old', position='rewind', iostat=ios)
 if (ios /= 0) call error('load/open, #'//trim(string(ios)))
@@ -119,8 +115,8 @@ associate (m => pmh%pc(1)) !m: current mesh
     i = inv_el_type(elt) !index of m%el() where elt was saved
     tmp(1:FEDB(m%el(i)%type)%lnn) = new4old(tmp(1:FEDB(m%el(i)%type)%lnn)) !use the new node indices
     tmp(FEDB(m%el(i)%type)%lnn+1) = tag(1) !save the (first found) physical tag as reference, initially in nn
-    if (find_col_sorted(m%el(i)%nn, tmp(1:FEDB(m%el(i)%type)%lnn), m%el(i)%nel) <= 0) then !this element was not previously saved
-      call insert_col_sorted(m%el(i)%nn, tmp(1:FEDB(m%el(i)%type)%lnn+1), m%el(i)%nel, fit=[.true., .false.])
+    if (find_sorted(2, m%el(i)%nn, tmp(1:FEDB(m%el(i)%type)%lnn), m%el(i)%nel) <= 0) then !this element was not previously saved
+      call insert_sorted(2, m%el(i)%nn, tmp(1:FEDB(m%el(i)%type)%lnn+1), m%el(i)%nel, fit=[.true., .false.])
     end if
   end do
   !save references in el()%ref and reduce el()%nn
@@ -163,7 +159,7 @@ id4pmh(check_fe(.true.,   6, 6,  9, 5)) =  6 !Wedge, Lagrange P1
 
 !valid elements types to save a MFM mesh (all but RT, ND)
 valid_fe = [check_fe(.true.,   1, 1,  0, 0), & !Node
-            check_fe(.true.,   2, 2,  1, 0), & !Edge, Lagrange P1 
+            check_fe(.true.,   2, 2,  1, 0), & !Edge, Lagrange P1
             check_fe(.false.,  3, 2,  1, 0), & !Edge, Lagrange P2
             check_fe(.true.,   3, 3,  3, 0), & !Triangle, Lagrange P1
             check_fe(.false.,  6, 3,  3, 0), & !Triangle, Lagrange P2
@@ -184,11 +180,11 @@ else !save all pieces
   call alloc(piece2save, size(pmh%pc,1))
   piece2save = [(i, i=1, size(pmh%pc,1))]
 end if
-if (is_arg('-glue')) then 
+if (is_arg('-glue')) then
   call info('(module_freefem/save_freefem) option -glue not implemented yet')
 end if
 
-!testing 
+!testing
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   if (1 > ip .or. ip > size(pmh%pc, 1)) call error('(module_gmsh/save_gmsh) requested piece '//trim(string(ip))//&
@@ -199,7 +195,7 @@ do ipp = 1, size(piece2save,1)
         call info('(module_gmsh/save_gmsh) element type '//trim(FEDB(tp)%desc)//' found; those elements cannot be saved'//&
         &' in Gmsh format and they will be discarded')
         cycle
-      end if  
+      end if
     end associate
   end do
 end do
@@ -215,7 +211,7 @@ nel_piece(0) = 0; nnod_piece(0) = 0
 do ipp = 1, size(piece2save,1)
   ip = piece2save(ipp)
   nnod_piece(ipp) = nnod_piece(ipp-1) + pmh%pc(ip)%nnod
-  nel_piece(ipp)  =  nel_piece(ipp-1) 
+  nel_piece(ipp)  =  nel_piece(ipp-1)
   do ig = 1, size(pmh%pc(ip)%el, 1)
     nel_piece(ipp) =  nel_piece(ipp) + pmh%pc(ip)%el(ig)%nel
   end do
@@ -240,11 +236,11 @@ do ipp = 1, size(piece2save,1)
   if (.not. all_P1) then
     do j = 1, pmh%pc(ip)%nnod
       write(iu, *) nnod_piece(ipp-1)+j, (znod(i,j), i = 1,pmh%pc(ip)%dim), (0._real64, i = 1,3-pmh%pc(ip)%dim)
-    end do  
+    end do
   else
     do j = 1, pmh%pc(ip)%nver
       write(iu, *) nnod_piece(ipp-1)+j, (pmh%pc(ip)%z(i,j), i = 1,pmh%pc(ip)%dim), (0._real64, i = 1,3-pmh%pc(ip)%dim)
-    end do  
+    end do
   end if
 end do
 write(iu, '(a)') '$EndNodes'
@@ -264,7 +260,7 @@ do ipp = 1, size(piece2save,1)
         do k = 1, elg%nel
           write(iu, *) prev_nel+k, id4pmh(elg%type), 2, elg%ref(k), 2, (nnod_piece(ipp-1)+elg%mm(i,k), i = 1,FEDB(elg%type)%lnv)
         end do
-      end if 
+      end if
       prev_nel = prev_nel + elg%nel
     end associate
   end do
@@ -278,7 +274,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! search_mark: searches for a mark
-! RETURN: 0 if the mark is found; iostat_end if end-of-file is found; 
+! RETURN: 0 if the mark is found; iostat_end if end-of-file is found;
 ! non-zero otherwise
 !-----------------------------------------------------------------------
 function search_mark(id, mark) result(res)

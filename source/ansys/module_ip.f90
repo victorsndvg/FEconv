@@ -10,10 +10,7 @@ module module_ip
 !   load_ip: loads a field from a IP format file
 !   save_ip: saves a field in a IP format file
 !-----------------------------------------------------------------------
-use module_compiler_dependant, only: real64
-use module_files, only: get_unit
-use module_convers, only: string, replace
-use module_report, only:error
+use basicmod, only: real64, get_unit, string, replace, error
 use module_utils_msh
 use module_pmh
 
@@ -30,9 +27,9 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
   type(pmh_mesh),             intent(inout) :: pmh
   character(*), allocatable,  intent(inout) :: infieldnames(:) !Inpùt field names
   character(*), allocatable,  intent(inout) :: outfieldnames(:) !Output field names
-  real(real64), optional,        intent(in) :: param 
+  real(real64), optional,        intent(in) :: param
   character(len=maxpath)                    :: filename, aux
-  integer                                   :: iu, ios, i, j, k, idx, maxtdimtotnel  
+  integer                                   :: iu, ios, i, j, k, idx, maxtdimtotnel
   integer                                   :: ncomp, maxtdim, compcount
   integer                                   :: version, n_points, n_comps, n_fields, ncells, dim
   integer, allocatable                      :: fieldcomp(:,:) ! [(field number, number of component) x every component]
@@ -57,31 +54,31 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
       !open file
       open (unit=iu, file=filename, form='formatted', status='old', position='rewind', iostat=ios)
       if (ios /= 0) call error('load_ip/open, #'//trim(string(ios)))
-    
+
       read(unit=iu, fmt=*, iostat=ios) version
       if (ios /= 0) call error('load_ip/version, #'//trim(string(ios)))
-  
+
       read(unit=iu, fmt=*, iostat=ios) dim
       if (ios /= 0) call error('load_ip/dim, #'//trim(string(ios)))
-  
+
       read(unit=iu, fmt=*, iostat=ios) n_points
       if (ios /= 0) call error('load_ip/n_points, #'//trim(string(ios)))
-  
+
       read(unit=iu, fmt=*, iostat=ios) n_comps
       if (ios /= 0) call error('load/n_comps, #'//trim(string(ios)))
-  
+
       if(allocated(compnames)) deallocate(compnames)
       allocate(compnames(n_comps))
 
       if(allocated(found_comp)) deallocate(found_comp)
       allocate(found_comp(n_comps))
-  
+
       if(allocated(fnames)) deallocate(fnames)
       allocate(fnames(n_comps))
-  
+
       if(allocated(fieldcomp)) deallocate(fieldcomp)
       allocate(fieldcomp(2,n_comps))
-  
+
       if(allocated(compsperfield)) deallocate(compsperfield)
       allocate(compsperfield(n_comps))
 
@@ -131,7 +128,7 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
 !          compsperfield(n_fields) = 1
 !          fnames(n_fields) = trim(compnames(i))
 !        endif
-!      enddo  
+!      enddo
 
 
       ! Read fieldnames and searchs patterns to build vector fields
@@ -146,7 +143,7 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
         if (ios /= 0) call error('load_ip/fieldnames, #'//trim(string(ios)))
         if(allocated(infieldnames)) then
           found_comp(i) = .false.
-          do k=1, size(infieldnames,1) 
+          do k=1, size(infieldnames,1)
             if(trim(compnames(i)) == trim(infieldnames(k))) found_comp(i)=.true.
           enddo
         endif
@@ -157,7 +154,7 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
               n_fields = n_fields + 1
               compcount = 1
             else
-              compcount = compcount + 1 
+              compcount = compcount + 1
             endif
 
             if(size(outfieldnames,1)<n_fields) call error('Input components and output fieldnames not agree!')
@@ -187,7 +184,7 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
           if(i > n_points) exit
           read(iu,fmt='(A)', iostat=ios) aux
           if (ios /= 0) call error('load_ip/coordinates, #'//trim(string(ios)))
-          call replace_char(aux, '(', ' ') 
+          call replace_char(aux, '(', ' ')
           call replace_char(aux, ')', ' ')
           if(is_blank_line(aux)) cycle
           i = i + 1
@@ -212,7 +209,7 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
           if(i > n_points) exit
           read(iu,fmt='(A)', iostat=ios) aux
           if (ios /= 0) call error('load_ip/values, #'//trim(string(ios)))
-          call replace_char(aux, '(', ' ') 
+          call replace_char(aux, '(', ' ')
           call replace_char(aux, ')', ' ')
           if(is_blank_line(aux)) cycle
           if(fieldcomp(1,k)==0) then
@@ -232,7 +229,7 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
         ncells = 0
         ! Field over nodes. 1,2 or 3 components allowed
         if (n_points == pmh%pc(1)%nnod) then
-          if(.not. allocated(pmh%pc(1)%fi)) then 
+          if(.not. allocated(pmh%pc(1)%fi)) then
             allocate(pmh%pc(1)%fi(1))
           else
             if(allocated(tempfields)) deallocate(tempfields)
@@ -244,8 +241,8 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
           call info('  Assigning node field: '//trim(fnames(k)))
           pmh%pc(1)%fi(idx)%name = trim(fnames(k))
           if(allocated(pmh%pc(1)%fi(idx)%param)) deallocate(pmh%pc(1)%fi(idx)%param)
-          allocate(pmh%pc(1)%fi(idx)%param(1))      
-          if(present(param)) then 
+          allocate(pmh%pc(1)%fi(idx)%param(1))
+          if(present(param)) then
             pmh%pc(1)%fi(idx)%param(1) = param
           else
             pmh%pc(1)%fi(idx)%param(1) = 0._real64
@@ -272,8 +269,8 @@ subroutine load_ip(pmh, filenames, infieldnames, outfieldnames, param)
                 call info('  Assigning cell field: '//trim(fnames(k)))
                 pmh%pc(1)%el(i)%fi(idx)%name = trim(fnames(k))
                 if(allocated(pmh%pc(1)%el(i)%fi(idx)%param)) deallocate(pmh%pc(1)%el(i)%fi(idx)%param)
-                allocate(pmh%pc(1)%el(i)%fi(idx)%param(1))      
-                if(present(param)) then 
+                allocate(pmh%pc(1)%el(i)%fi(idx)%param(1))
+                if(present(param)) then
                   pmh%pc(1)%el(i)%fi(idx)%param(1) = param
                 else
                   pmh%pc(1)%el(i)%fi(idx)%param(1) = 0._real64
@@ -382,7 +379,7 @@ subroutine save_ip(pmh, filenames, infieldnames, outfieldnames, nparam)
             lnv = FEDB(pmh%pc(piece2save(i))%el(j)%type)%lnv
             do k=1,pmh%pc(piece2save(i))%el(j)%nel
               do l=1,lnv
-                call add_col(cellcoords, &
+                call add(2, cellcoords, &
                        & pmh%pc(piece2save(i))%z(1:maxdim,pmh%pc(piece2save(i))%el(j)%mm(l,k)), &
                        &  counter, fit=[.true.,.false.])
               enddo
@@ -411,7 +408,7 @@ subroutine save_ip(pmh, filenames, infieldnames, outfieldnames, nparam)
             lnv = FEDB(pmh%pc(piece2save(i))%el(j)%type)%lnv
             do k=1,pmh%pc(piece2save(i))%el(j)%nel
               do l=1,lnv
-                call add_col(cellcoords, &
+                call add(2, cellcoords, &
                        & pmh%pc(piece2save(i))%z(1:maxdim,pmh%pc(piece2save(i))%el(j)%mm(l,k)), &
                        &  counter, fit=[.true.,.false.])
               enddo
@@ -456,13 +453,13 @@ subroutine save_ip(pmh, filenames, infieldnames, outfieldnames, nparam)
 
     write(unit=iu, fmt= '(A)', iostat=ios) trim(string(3))
     if (ios /= 0) call error('save_ip/version, #'//trim(string(ios)))
-  
+
     write(unit=iu, fmt= '(A)', iostat=ios) trim(string(maxdim))
     if (ios /= 0) call error('save_ip/dim, #'//trim(string(ios)))
-  
+
     write(unit=iu, fmt= '(A)', iostat=ios) trim(string(n_points))
     if (ios /= 0) call error('save_ip/n_points, #'//trim(string(ios)))
-  
+
     write(unit=iu, fmt='(A)', iostat=ios) trim(string(n_comps))
     if (ios /= 0) call error('save_ip/n_comps, #'//trim(string(ios)))
 
@@ -557,7 +554,7 @@ subroutine save_ip(pmh, filenames, infieldnames, outfieldnames, nparam)
                 if(allocated(pmh%pc(piece2save(i))%el(k)%fi(p)%val)) then
                   do n=1,size(pmh%pc(piece2save(i))%el(k)%fi(p)%val,1)
                     do o=1,size(pmh%pc(piece2save(i))%el(k)%fi(p)%val,2)
-                      write(unit=iu, fmt='(A)', iostat=ios) & 
+                      write(unit=iu, fmt='(A)', iostat=ios) &
                         & trim(inichar)//trim(string(pmh%pc(piece2save(i))%el(k)%fi(p)%val(n,o,np)))
                       if (ios /= 0) call error('save_ip/Node values, #'//trim(string(ios)))
                       if(o==size(pmh%pc(piece2save(i))%el(k)%fi(p)%val,2)) write(unit=iu, fmt='(A)', iostat=ios) ')'
@@ -608,7 +605,7 @@ function get_field_components(fieldname) result(res)
     elseif(i1 == 0) then
       res = 1
     elseif(i2>i1 .and. i2-i1>=2) then
-      read(fieldname(i1+1:i2-1),fmt=*,iostat=ios) res 
+      read(fieldname(i1+1:i2-1),fmt=*,iostat=ios) res
     else
       call error('Cannot parse number of componentes in field "'//trim(fieldname)//'"')
     endif
@@ -643,4 +640,3 @@ function get_field_name(fieldname) result(res)
 end function
 
 end module
-

@@ -14,9 +14,8 @@ module module_manage_pf3
 ! write_pf3: Write a PF3 file
 !-----------------------------------------------------------------------
 
-use module_ALLOC
-use module_files, only: get_unit
-use module_mesh
+use basicmod
+!use module_mesh
 use module_read_pf3
 use module_write_pf3
 
@@ -136,7 +135,7 @@ subroutine write_pf3(this, pmh, infield, outfield, path, param)
   character(*), allocatable, intent(in) :: infield(:)  ! In field names
   character(*), allocatable, intent(in) :: outfield(:) ! Out field names
   character(*),              intent(in) :: path !file names
-  real(real64), optional,    intent(in) :: param 
+  real(real64), optional,    intent(in) :: param
   integer                       :: i, ios, prevnnod
   logical                       :: all_P1
   real(real64), allocatable     :: znod(:,:)

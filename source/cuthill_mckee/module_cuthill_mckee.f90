@@ -2,7 +2,7 @@ module module_cuthill_mckee
 !-----------------------------------------------------------------------
 ! Module to reduce bandwidth using Cuthill-McKee algoritm
 !
-! Licensing: This code is distributed under the GNU LGPL license. 
+! Licensing: This code is distributed under the GNU LGPL license.
 ! Author: John Burkardt
 ! Date: 26 February 2013
 ! Modified by: Iban Constenla
@@ -37,7 +37,7 @@ module module_cuthill_mckee
 !    each node has an X, Y and Z coordinate.  In some applications, it
 !    may be desirable to specify more information.  This program
 !    will accept node data that includes DIM_NUM entries on each line,
-!    as long as DIM_NUM is the same for each entry.  
+!    as long as DIM_NUM is the same for each entry.
 !
 !  Usage:
 !
@@ -52,7 +52,7 @@ module module_cuthill_mckee
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -63,9 +63,7 @@ module module_cuthill_mckee
 !    John Burkardt
 !
 !use globals
-use module_compiler_dependant, only: real64
-use module_os_dependant, only: maxpath
-use module_report, only: error
+use basicmod, only: real64, maxpath, error
 use module_vtu, only: type_cell, edge_tetra
 implicit none
 
@@ -201,9 +199,9 @@ real(real64), intent(in)    :: node_xyz(:,:)   !z
 
 !print*, 'Falta cambiar nra...'
 
-!  print*,'========================================'  
+!  print*,'========================================'
 !  print*,'Reordening ... '
-! print*,'========================================'  
+! print*,'========================================'
 !**************************************************************************
 
 !  call timestamp ( )
@@ -419,7 +417,7 @@ real(real64), intent(in)    :: node_xyz(:,:)   !z
 !    rewind(20)
 !    write(20) nel,nnod,nver,dim,nnoel,npuel,narel,ncael
 !    write(20) ((mm(i,k),            i=1,4),     k=1,nel), &
-!       &      ((tetra_node(i,k),    i=1,10),    k=1,nel), &    
+!       &      ((tetra_node(i,k),    i=1,10),    k=1,nel), &
 !       &      ((nrc(i,k),           i=1,4),     k=1,nel), &
 !       &      ((nra(i,k),           i=1,6),     k=1,nel), &
 !       &      ((nrv(i,k),           i=1,4),     k=1,nel), &
@@ -437,7 +435,7 @@ real(real64), intent(in)    :: node_xyz(:,:)   !z
 !
 !  call i4mat_write ( element_rcm_filename, tetra_order, tetra_num, &
 !    tetra_node )
-!    
+!
 !  write ( *, '(a)' ) ' '
 !  write ( *, '(a)' ) '  Created the tet_mesh file "' &
 !    // trim ( element_rcm_filename ) //'".'
@@ -524,9 +522,9 @@ real(real64), intent(in)    :: node_xyz(:,:)   !znod
 !    tetra_node = nn
 !  end if
 
-!  print*,'========================================'  
+!  print*,'========================================'
 !  print*,'Reordening ... '
-! print*,'========================================'  
+! print*,'========================================'
 !**************************************************************************
 
 !  call timestamp ( )
@@ -742,7 +740,7 @@ real(real64), intent(in)    :: node_xyz(:,:)   !znod
 !    rewind(20)
 !    write(20) nel,nnod,nver,dim,nnoel,npuel,narel,ncael
 !    write(20) ((mm(i,k),            i=1,4),     k=1,nel), &
-!       &      ((tetra_node(i,k),    i=1,10),    k=1,nel), &    
+!       &      ((tetra_node(i,k),    i=1,10),    k=1,nel), &
 !       &      ((nrc(i,k),           i=1,4),     k=1,nel), &
 !       &      ((nra(i,k),           i=1,6),     k=1,nel), &
 !       &      ((nrv(i,k),           i=1,4),     k=1,nel), &
@@ -760,7 +758,7 @@ real(real64), intent(in)    :: node_xyz(:,:)   !znod
 !
 !  call i4mat_write ( element_rcm_filename, tetra_order, tetra_num, &
 !    tetra_node )
-!    
+!
 !  write ( *, '(a)' ) ' '
 !  write ( *, '(a)' ) '  Created the tet_mesh file "' &
 !    // trim ( element_rcm_filename ) //'".'
@@ -795,7 +793,7 @@ function adj_bandwidth ( node_num, adj_num, adj_row, adj )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -819,7 +817,7 @@ function adj_bandwidth ( node_num, adj_num, adj_row, adj )
 !
 !    Input, integer ( kind = 4 ) ADJ_NUM, the number of adjacency entries.
 !
-!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I 
+!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I
 !    is stored in entries ADJ_ROW(I) through ADJ_ROW(I+1)-1 of ADJ.
 !
 !    Input, integer ( kind = 4 ) ADJ(ADJ_NUM), the adjacency structure.
@@ -869,11 +867,11 @@ function adj_perm_bandwidth ( node_num, adj_num, adj_row, adj, perm, perm_inv )
 !
 !  Discussion:
 !
-!    The matrix is defined by the adjacency information and a permutation.  
+!    The matrix is defined by the adjacency information and a permutation.
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -897,16 +895,16 @@ function adj_perm_bandwidth ( node_num, adj_num, adj_row, adj, perm, perm_inv )
 !
 !    Input, integer ( kind = 4 ) ADJ_NUM, the number of adjacency entries.
 !
-!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I 
+!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I
 !    is stored in entries ADJ_ROW(I) through ADJ_ROW(I+1)-1 of ADJ.
 !
 !    Input, integer ( kind = 4 ) ADJ(ADJ_NUM), the adjacency structure.
 !    For each row, it contains the column indices of the nonzero entries.
 !
-!    Input, integer ( kind = 4 ) PERM(NODE_NUM), integer PERM_INV(NODE_NUM), 
+!    Input, integer ( kind = 4 ) PERM(NODE_NUM), integer PERM_INV(NODE_NUM),
 !    the permutation and inverse permutation.
 !
-!    Output, integer ( kind = 4 ) ADJ_PERM_BANDWIDTH, the bandwidth of the 
+!    Output, integer ( kind = 4 ) ADJ_PERM_BANDWIDTH, the bandwidth of the
 !    permuted adjacency matrix.
 !
   implicit none
@@ -969,7 +967,7 @@ subroutine adj_print ( node_num, adj_num, adj_row, adj, title )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1032,7 +1030,7 @@ subroutine adj_print_some ( node_num, node_lo, node_hi, adj_num, adj_row, adj )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1120,7 +1118,7 @@ subroutine ch_cap ( c )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1160,7 +1158,7 @@ function ch_eqi ( c1, c2 )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1218,7 +1216,7 @@ subroutine ch_to_digit ( c, digit )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1272,7 +1270,7 @@ subroutine degree ( root, adj_num, adj_row, adj, mask, deg, iccsze, ls, &
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1298,19 +1296,19 @@ subroutine degree ( root, adj_num, adj_row, adj, mask, deg, iccsze, ls, &
 !
 !    Input, integer ( kind = 4 ) ADJ_NUM, the number of adjacency entries.
 !
-!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I 
+!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I
 !    is stored in entries ADJ_ROW(I) through ADJ_ROW(I+1)-1 of ADJ.
 !
 !    Input, integer ( kind = 4 ) ADJ(ADJ_NUM), the adjacency structure.
 !    For each row, it contains the column indices of the nonzero entries.
 !
-!    Input, integer ( kind = 4 ) MASK(NODE_NUM), is nonzero for those nodes 
+!    Input, integer ( kind = 4 ) MASK(NODE_NUM), is nonzero for those nodes
 !    which are to be considered.
 !
-!    Output, integer ( kind = 4 ) DEG(NODE_NUM), contains, for each  node in 
+!    Output, integer ( kind = 4 ) DEG(NODE_NUM), contains, for each  node in
 !    the connected component, its degree.
 !
-!    Output, integer ( kind = 4 ) ICCSIZE, the number of nodes in the 
+!    Output, integer ( kind = 4 ) ICCSIZE, the number of nodes in the
 !    connected component.
 !
 !    Output, integer ( kind = 4 ) LS(NODE_NUM), stores in entries 1 through
@@ -1422,7 +1420,7 @@ subroutine file_column_count ( input_filename, column_num )
 !    The file is assumed to be a simple text file.
 !
 !    Most lines of the file is presumed to consist of COLUMN_NUM words,
-!    separated by spaces.  There may also be some blank lines, and some 
+!    separated by spaces.  There may also be some blank lines, and some
 !    comment lines,
 !    which have a "#" in column 1.
 !
@@ -1434,7 +1432,7 @@ subroutine file_column_count ( input_filename, column_num )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1551,7 +1549,7 @@ subroutine file_row_count ( input_filename, row_num )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1642,7 +1640,7 @@ subroutine genrcm ( node_num, adj_num, adj_row, adj, perm )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1667,7 +1665,7 @@ subroutine genrcm ( node_num, adj_num, adj_row, adj, perm )
 !
 !    Input, integer ( kind = 4 ) ADJ_NUM, the number of adjacency entries.
 !
-!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about 
+!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about
 !    row I is stored in entries ADJ_ROW(I) through ADJ_ROW(I+1)-1 of ADJ.
 !
 !    Input, integer ( kind = 4 ) ADJ(ADJ_NUM), the adjacency structure.
@@ -1678,7 +1676,7 @@ subroutine genrcm ( node_num, adj_num, adj_row, adj, perm )
 !  Local Parameters:
 !
 !    Local, integer LEVEL_ROW(NODE_NUM+1), the index vector for a level
-!    structure.  The level structure is stored in the currently unused 
+!    structure.  The level structure is stored in the currently unused
 !    spaces in the permutation vector PERM.
 !
 !    Local, integer MASK(NODE_NUM), marks variables that have been numbered.
@@ -1759,7 +1757,7 @@ subroutine get_unit ( iunit )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1810,7 +1808,7 @@ subroutine i4_swap ( i, j )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1866,7 +1864,7 @@ subroutine i4col_compare ( m, n, a, i, j, isgn )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -1880,7 +1878,7 @@ subroutine i4col_compare ( m, n, a, i, j, isgn )
 !
 !    Input, integer ( kind = 4 ) M, N, the number of rows and columns.
 !
-!    Input, integer ( kind = 4 ) A(M,N), an array of N columns of vectors 
+!    Input, integer ( kind = 4 ) A(M,N), an array of N columns of vectors
 !    of length M.
 !
 !    Input, integer ( kind = 4 ) I, J, the columns to be compared.
@@ -1980,7 +1978,7 @@ subroutine i4col_sort_a ( m, n, a )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -2070,7 +2068,7 @@ subroutine i4col_sort2_a ( m, n, a )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -2171,7 +2169,7 @@ subroutine i4col_sorted_unique_count ( m, n, a, unique_num )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -2251,7 +2249,7 @@ subroutine i4col_swap ( m, n, a, j1, j2 )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -2263,7 +2261,7 @@ subroutine i4col_swap ( m, n, a, j1, j2 )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) M, N, the number of rows and columns in 
+!    Input, integer ( kind = 4 ) M, N, the number of rows and columns in
 !    the array.
 !
 !    Input/output, integer ( kind = 4 ) A(M,N), an array of N columns of length M.
@@ -2469,7 +2467,7 @@ subroutine i4mat_transpose_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -2655,7 +2653,7 @@ subroutine i4row_compare ( m, n, a, i, j, isgn )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -2669,7 +2667,7 @@ subroutine i4row_compare ( m, n, a, i, j, isgn )
 !
 !    Input, integer ( kind = 4 ) M, N, the number of rows and columns.
 !
-!    Input, integer ( kind = 4 ) A(M,N), an array of M rows of vectors 
+!    Input, integer ( kind = 4 ) A(M,N), an array of M rows of vectors
 !    of length N.
 !
 !    Input, integer ( kind = 4 ) I, J, the rows to be compared.
@@ -2791,7 +2789,7 @@ subroutine i4row_sort_a ( m, n, a )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -2875,7 +2873,7 @@ subroutine i4row_swap ( m, n, a, irow1, irow2 )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -2942,7 +2940,7 @@ subroutine i4vec_print ( n, a, title )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -3014,7 +3012,7 @@ subroutine i4vec_reverse ( n, a )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -3063,7 +3061,7 @@ subroutine level_set ( root, adj_num, adj_row, adj, mask, level_num, &
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -3089,7 +3087,7 @@ subroutine level_set ( root, adj_num, adj_row, adj, mask, level_num, &
 !
 !    Input, integer ( kind = 4 ) ADJ_NUM, the number of adjacency entries.
 !
-!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I 
+!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I
 !    is stored in entries ADJ_ROW(I) through ADJ_ROW(I+1)-1 of ADJ.
 !
 !    Input, integer ( kind = 4 ) ADJ(ADJ_NUM), the adjacency structure.
@@ -3208,7 +3206,7 @@ subroutine mesh_base_one ( node_num, element_order, element_num, element_node )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -3244,7 +3242,7 @@ subroutine mesh_base_one ( node_num, element_order, element_num, element_node )
 
   node_min = node_num + 1
   node_max = -1
-  
+
   node_min = minval ( element_node(1:element_order,1:element_num) )
   node_max = maxval ( element_node(1:element_order,1:element_num) )
 
@@ -3282,7 +3280,7 @@ subroutine perm_check ( n, p, ierror )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -3342,7 +3340,7 @@ subroutine perm_inverse3 ( n, perm, perm_inv )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -3409,7 +3407,7 @@ subroutine r8col_permute ( m, n, a, p )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -3665,7 +3663,7 @@ subroutine r8mat_transpose_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -3852,7 +3850,7 @@ subroutine rcm ( root, adj_num, adj_row, adj, mask, perm, iccsze, node_num )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -3878,15 +3876,15 @@ subroutine rcm ( root, adj_num, adj_row, adj, mask, perm, iccsze, node_num )
 !
 !    Input, integer ( kind = 4 ) ADJ_NUM, the number of adjacency entries.
 !
-!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I 
+!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I
 !    is stored in entries ADJ_ROW(I) through ADJ_ROW(I+1)-1 of ADJ.
 !
 !    Input, integer ( kind = 4 ) ADJ(ADJ_NUM), the adjacency structure.
 !    For each row, it contains the column indices of the nonzero entries.
 !
 !    Input/output, integer ( kind = 4 ) MASK(NODE_NUM), a mask for the nodes.
-!    Only those nodes with nonzero input mask values are considered by the 
-!    routine.  The nodes numbered by RCM will have their mask values 
+!    Only those nodes with nonzero input mask values are considered by the
+!    routine.  The nodes numbered by RCM will have their mask values
 !    set to zero.
 !
 !    Output, integer ( kind = 4 ) PERM(NODE_NUM), the RCM ordering.
@@ -3898,7 +3896,7 @@ subroutine rcm ( root, adj_num, adj_row, adj, mask, perm, iccsze, node_num )
 !
 !  Local parameters:
 !
-!    Workspace, integer DEG(NODE_NUM), a temporary vector used to hold 
+!    Workspace, integer DEG(NODE_NUM), a temporary vector used to hold
 !    the degree of the nodes in the section graph specified by mask and root.
 !
   implicit none
@@ -3955,7 +3953,7 @@ subroutine rcm ( root, adj_num, adj_row, adj, mask, perm, iccsze, node_num )
       node = perm(i)
       jstrt = adj_row(node)
       jstop = adj_row(node+1) - 1
-      
+
 !
 !  Find the unnumbered neighbors of NODE.
 !
@@ -4057,7 +4055,7 @@ subroutine root_find ( root, adj_num, adj_row, adj, mask, level_num, &
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -4077,13 +4075,13 @@ subroutine root_find ( root, adj_num, adj_row, adj, mask, level_num, &
 !    LC: QA188.G46
 !
 !    Norman Gibbs, William Poole, Paul Stockmeyer,
-!    An Algorithm for Reducing the Bandwidth 
+!    An Algorithm for Reducing the Bandwidth
 !    and Profile of a Sparse Matrix,
 !    SIAM Journal on Numerical Analysis,
 !    Volume 13, Number 2, April 1976, pages 236-250.
 !
 !    Norman Gibbs,
-!    Algorithm 509: 
+!    Algorithm 509:
 !    A Hybrid Profile Reduction Algorithm,
 !    ACM Transactions on Mathematical Software,
 !    Volume 2, Number 4, December 1976, pages 378-387.
@@ -4096,7 +4094,7 @@ subroutine root_find ( root, adj_num, adj_row, adj, mask, level_num, &
 !
 !    Input, integer ( kind = 4 ) ADJ_NUM, the number of adjacency entries.
 !
-!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I 
+!    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1).  Information about row I
 !    is stored in entries ADJ_ROW(I) through ADJ_ROW(I+1)-1 of ADJ.
 !
 !    Input, integer ( kind = 4 ) ADJ(ADJ_NUM), the adjacency structure.
@@ -4105,7 +4103,7 @@ subroutine root_find ( root, adj_num, adj_row, adj, mask, level_num, &
 !    Input, integer ( kind = 4 ) MASK(NODE_NUM), specifies a section subgraph.
 !    Nodes for which MASK is zero are ignored by FNROOT.
 !
-!    Output, integer ( kind = 4 ) LEVEL_NUM, is the number of levels in the 
+!    Output, integer ( kind = 4 ) LEVEL_NUM, is the number of levels in the
 !    level structure rooted at the node ROOT.
 !
 !    Output, integer ( kind = 4 ) LEVEL_ROW(NODE_NUM+1), integer LEVEL(NODE_NUM),
@@ -4230,7 +4228,7 @@ subroutine s_to_i4 ( s, ival, ierror, length )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -4251,7 +4249,7 @@ subroutine s_to_i4 ( s, ival, ierror, length )
 !    0, no error.
 !    1, an error occurred.
 !
-!    Output, integer ( kind = 4 ) LENGTH, the number of characters of S 
+!    Output, integer ( kind = 4 ) LENGTH, the number of characters of S
 !    used to make IVAL.
 !
   implicit none
@@ -4345,7 +4343,7 @@ subroutine s_to_i4vec ( s, n, ivec, ierror )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -4451,7 +4449,7 @@ subroutine s_to_r8 ( s, dval, ierror, length )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -4685,7 +4683,7 @@ subroutine s_to_r8vec ( s, n, rvec, ierror )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -4748,7 +4746,7 @@ subroutine s_word_count ( s, nword )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -4812,7 +4810,7 @@ subroutine sort_heap_external ( n, indx, i, j, isgn )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -5010,7 +5008,7 @@ subroutine tet_mesh_order4_adj_count ( node_num, tetra_num, tetra_node, &
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -5026,7 +5024,7 @@ subroutine tet_mesh_order4_adj_count ( node_num, tetra_num, tetra_node, &
 !
 !    Input, integer ( kind = 4 ) TETRA_NUM, the number of tetrahedrons.
 !
-!    Input, integer ( kind = 4 ) TETRA_NODE(4,TETRA_NUM), the indices of 
+!    Input, integer ( kind = 4 ) TETRA_NODE(4,TETRA_NUM), the indices of
 !    the nodes.
 !
 !    Output, integer ( kind = 4 ) ADJ_NUM, the total number of adjacency
@@ -5146,7 +5144,7 @@ subroutine tet_mesh_order4_adj_set ( node_num, tetra_num, tetra_node, &
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -5162,7 +5160,7 @@ subroutine tet_mesh_order4_adj_set ( node_num, tetra_num, tetra_node, &
 !
 !    Input, integer ( kind = 4 ) TETRA_NUM, the number of tetrahedrons.
 !
-!    Input, integer ( kind = 4 ) TETRA_NODE(4,TETRA_NUM), the indices of 
+!    Input, integer ( kind = 4 ) TETRA_NODE(4,TETRA_NUM), the indices of
 !    the nodes.
 !
 !    Input, integer ( kind = 4 ) ADJ_NUM, the total number of adjacency
@@ -5275,7 +5273,7 @@ subroutine tet_mesh_order10_adj_count ( node_num, tet_num, tet_node, &
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -5291,7 +5289,7 @@ subroutine tet_mesh_order10_adj_count ( node_num, tet_num, tet_node, &
 !
 !    Input, integer ( kind = 4 ) TET_NUM, the number of tetrahedrons.
 !
-!    Input, integer ( kind = 4 ) TET_NODE(10,TET_NUM), the indices of 
+!    Input, integer ( kind = 4 ) TET_NODE(10,TET_NUM), the indices of
 !    the nodes.
 !
 !    Output, integer ( kind = 4 ) ADJ_NUM, the total number of adjacency
@@ -5402,7 +5400,7 @@ subroutine tet_mesh_order10_adj_set ( node_num, tet_num, tet_node, &
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
@@ -5418,10 +5416,10 @@ subroutine tet_mesh_order10_adj_set ( node_num, tet_num, tet_node, &
 !
 !    Input, integer ( kind = 4 ) TET_NUM, the number of tetrahedrons.
 !
-!    Input, integer ( kind = 4 ) TET_NODE(10,TET_NUM), the indices of 
+!    Input, integer ( kind = 4 ) TET_NODE(10,TET_NUM), the indices of
 !    the nodes.
 !
-!    Input, integer ( kind = 4 ) ADJ_NUM, the total number of adjacency 
+!    Input, integer ( kind = 4 ) ADJ_NUM, the total number of adjacency
 !    relationships,
 !
 !    Input, integer ( kind = 4 ) ADJ_ROW(NODE_NUM+1), the ADJ pointer array.
@@ -5495,7 +5493,7 @@ subroutine tet_mesh_order10_adj_set ( node_num, tet_num, tet_node, &
     adj_row_copy(j) = adj_row_copy(j) + 1
 
   end do
-  
+
   return
 end subroutine
 
@@ -5511,7 +5509,7 @@ subroutine timestamp ( )
 !
 !  Licensing:
 !
-!    This code is distributed under the GNU LGPL license. 
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !

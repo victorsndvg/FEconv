@@ -12,12 +12,9 @@ module module_mphtxt
 ! save_mphtxt: loads a mesh from a MPHTXT format file
 !-----------------------------------------------------------------------
 
-use module_compiler_dependant, only: real64
-use module_os_dependant, only: maxpath
-use module_report
-use module_convers
+use basicmod
 use module_manage_mphtxt
-use module_mesh
+!use module_mesh
 use module_pmh
 use module_fe_database_pmh
 
@@ -41,8 +38,8 @@ subroutine load_mphtxt(filename, pmh)
   integer                               :: dim
 
   ! Inital settings
-  call report_option('level', 'stdout')
- 
+  !call report_option('output', 'std')
+
   ! Open mphtxt file and reads the mesh
   call info('Reading mphtxt file ...')
   call open_mphtxt(u, filename)

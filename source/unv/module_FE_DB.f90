@@ -9,7 +9,7 @@ module module_FE_DB
 ! OUTPUT PROCEDURES:
 !   find_descriptorID: checks whether the given descriptor is in the database
 !-----------------------------------------------------------------------
-use module_OS_DEPENDANT, only: MAXPATH
+use basicmod, only: MAXPATH
 implicit none
 
 !Constants
@@ -17,8 +17,8 @@ implicit none
 integer, parameter :: ND_EDGE_P2(20) = [1,3,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 integer, parameter :: ND_TRIA_P2(20) = [1,4,2,5,3,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 integer, parameter :: ND_QUAD_P2(20) = [1,5,2,6,3,7,4,8,0,0,0,0,0,0,0,0,0,0,0,0]
-integer, parameter :: ND_TETR_P2(20) = [1,5,2,6,3,7,8,9,10,4,0,0,0,0,0,0,0,0,0,0] 
-integer, parameter :: ND_HEXA_P2(20) = [1,9,2,10,3,11,4,12,13,14,15,16,5,17,6,18,7,19,8,20] 
+integer, parameter :: ND_TETR_P2(20) = [1,5,2,6,3,7,8,9,10,4,0,0,0,0,0,0,0,0,0,0]
+integer, parameter :: ND_HEXA_P2(20) = [1,9,2,10,3,11,4,12,13,14,15,16,5,17,6,18,7,19,8,20]
 
 
 !Types
@@ -52,7 +52,7 @@ FE_DB( 24) = fe_db_type('Parabolic beam',                      1, 3,2, 1,0,.true
 FE_DB( 41) = fe_db_type('Plane Stress Linear Triangle',        2, 3,3, 3,0,.false.,         0)
 FE_DB( 42) = fe_db_type('Plane Stress Parabolic Triangle',     2, 6,3, 3,0,.false.,ND_TRIA_P2)
 FE_DB( 44) = fe_db_type('Plane Stress Linear Quadrilateral',   2, 4,4, 4,0,.false.,         0)
-FE_DB( 45) = fe_db_type('Plane Stress Parabolic Quadrilateral',2, 8,4, 4,0,.false.,ND_QUAD_P2)  
+FE_DB( 45) = fe_db_type('Plane Stress Parabolic Quadrilateral',2, 8,4, 4,0,.false.,ND_QUAD_P2)
 
 FE_DB( 81) = fe_db_type('Axisymetric Solid Linear Triangle',   2, 3,3, 3,0,.false.,         0)
 FE_DB( 82) = fe_db_type('Axisymetric Solid Parabolic Triangle',3, 6,3, 3,0,.false.,ND_TRIA_P2)
@@ -194,4 +194,3 @@ end module
 !   222 Parabolic rigin surface
 !   231 Axisymetric linear rigid surface
 !   232 Axisymentric parabolic rigid surface
-

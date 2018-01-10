@@ -19,7 +19,7 @@ module module_utils_pf3
 ! write_header_line(iu,line,ch,comm): write a line in the PF3 file
 !-----------------------------------------------------------------------
 
-use module_alloc, only:set_col,insert_col, reduce
+use basicmod, only: insert, reduce
 use module_pmh
 
 implicit none
@@ -52,7 +52,7 @@ function pf3_assign_element_type(desc1, desc2, desc3) result(res)
   if(desc1 == 1 .and. desc2 == 1 .and. desc3 == 2) then ! Vertex
     res = check_fe(.true., 1, 1, 0, 0)
     call info('Element type: Vertex')
-  elseif(desc1 == 2 .and. desc2 == 2 .and. desc3 == 3) then ! Edge P1  
+  elseif(desc1 == 2 .and. desc2 == 2 .and. desc3 == 3) then ! Edge P1
     res = check_fe(.true., 2, 2, 1, 0)
     call info('Element type: Edge Lagrange P1')
   elseif(desc1 == 2 .and. desc2 == 3 .and. desc3 == 4) then ! Edge P2
@@ -214,7 +214,7 @@ function pf3_get_element_desc1(tp) result(res)
 
   if(tp ==  check_fe(.true., 1, 1, 0, 0)) then ! Vertex
     res = 1
-  elseif(tp == check_fe(.true., 2, 2, 1, 0) .or. tp == check_fe(.false., 3, 2, 1, 0)) then ! Edge P1-P2  
+  elseif(tp == check_fe(.true., 2, 2, 1, 0) .or. tp == check_fe(.false., 3, 2, 1, 0)) then ! Edge P1-P2
     res = 2
   elseif(tp == check_fe(.true., 3, 3, 3, 0) .or. tp == check_fe(.false., 6, 3, 3, 0)) then ! Triangle P1-P2
     res = 3
@@ -251,9 +251,9 @@ function pf3_get_element_desc2(tp) result(res)
     res = 1
   elseif(tp == check_fe(.true., 2, 2, 1, 0)) then ! Edge P1
     res = 2
-  elseif(tp == check_fe(.false., 3, 2, 1, 0)) then ! Edge P2  
+  elseif(tp == check_fe(.false., 3, 2, 1, 0)) then ! Edge P2
     res = 3
-  elseif(tp == check_fe(.true., 3, 3, 3, 0) .or. tp == check_fe(.false., 6, 3, 3, 0)) then  ! Triangle P1-P2  
+  elseif(tp == check_fe(.true., 3, 3, 3, 0) .or. tp == check_fe(.false., 6, 3, 3, 0)) then  ! Triangle P1-P2
     res = 7
   elseif(tp == check_fe(.true., 4, 4, 4, 0)) then ! Quadrangle P1
     res = 202
@@ -299,7 +299,7 @@ function pf3_get_element_desc3(tp) result(res)
     res = 2
   elseif(tp == check_fe(.true., 2, 2, 1, 0)) then ! Edge P1
     res = 3
-  elseif(tp == check_fe(.false., 3, 2, 1, 0)) then ! Edge P2  
+  elseif(tp == check_fe(.false., 3, 2, 1, 0)) then ! Edge P2
     res = 4
   elseif(tp == check_fe(.true., 3, 3, 3, 0)) then  ! Triangle P1
     res = 5
@@ -434,7 +434,7 @@ end function
 subroutine extend_elgroup(v, d)
   type(elgroup), allocatable          :: v(:), temp(:)
   integer, intent(in)           :: d !new dimension given by the user
-  integer :: res, s, ns 
+  integer :: res, s, ns
   character(maxpath) :: cad
 
     if (.not. allocated(v)) then
@@ -447,7 +447,7 @@ subroutine extend_elgroup(v, d)
       s = size(v,1)
       if (d > s) then !reallocation is mandatory
         !DIMENSIONS
-        ns = d                  
+        ns = d
         !REALLOCATION
         allocate(temp(ns), stat = res, errmsg = cad)
         if (res /= 0) call error('module_utils_pf3/extend_elgroup # unable to allocate variable temp: '//trim(cad))
@@ -518,4 +518,3 @@ subroutine write_header_line(iu,line,num)
 end subroutine
 
 end module
-

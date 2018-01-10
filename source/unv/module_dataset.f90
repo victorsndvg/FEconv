@@ -1,14 +1,13 @@
 module module_dataset
 !-----------------------------------------------------------------------
-! Module for datasets 
+! Module for datasets
 !
-! In a previous version, dataset was an abstract type. We changed this 
+! In a previous version, dataset was an abstract type. We changed this
 ! since it appears that was incompatible with the allocatable member feL
 !
-! Last update: 04/04/2010   
+! Last update: 04/04/2010
 !-----------------------------------------------------------------------
-use module_REPORT
-use module_CONVERS
+use basicmod
 implicit none
 
 contains

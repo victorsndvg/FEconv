@@ -10,13 +10,8 @@ module module_feconv
 ! convert: converts between several mesh and FE field formats
 ! is_arg: returns true when the argument is present
 !-----------------------------------------------------------------------
-use module_compiler_dependant, only: real64
-use module_os_dependant, only: maxpath, slash
-use module_report, only: error
-use module_convers, only: adjustlt, lcase, word_count
-use module_files, only: get_unit
-use module_alloc, only: set
-use module_args, only: get_arg, is_arg, get_post_arg, args_count, set_args
+use basicmod, only: real64, maxpath, slash, error, adjustlt, lcase, word_count, get_unit, set, get_arg, is_arg, &
+                    get_post_arg, args_count, set_args, file_exists, operator(.IsNewerThan.)
 use module_transform, only: lagr2l2, lagr2rt, lagr2nd, to_l1
 use module_cuthill_mckee, only: cuthill_mckee
 use module_msh, only: load_msh,save_msh
@@ -67,23 +62,25 @@ contains
 !-----------------------------------------------------------------------
 ! convert: converts between several mesh and FE field formats
 !-----------------------------------------------------------------------
-subroutine convert(cad, mempmh)
-character(*),   optional, intent(in)    :: cad
-type(pmh_mesh), optional, intent(inout) :: mempmh
+subroutine convert(argstr, inpmh, outpmh, force)
+character(*),   optional, intent(in)    :: argstr !! String with arguments.
+type(pmh_mesh), optional, intent(inout) :: inpmh  !! Input PMH structure.
+type(pmh_mesh), optional, intent(inout) :: outpmh !! Output PMH structure.
+logical,        optional, intent(in)    :: force  !! Whether to force to save `outfile`.
 character(maxpath) :: infile=' ', inmesh=' ', inext=' ', outfile=' ', outmesh=' ', outext=' '
 character(maxpath) :: infext=' ', outfext=' ', outpath = ' '!,fieldfilename = ' '
 character(maxpath), allocatable :: infieldfile(:), outfieldfile(:),infieldname(:), outfieldname(:)
 character(maxpath) :: str
 integer :: p, nargs, q, comp
 integer, allocatable :: nsd0(:), chref(:)
-logical :: there_is_field
+logical :: there_is_field, force_to_save
 !Variables for extratction
 integer,      allocatable :: submm(:,:), subnrv(:,:), subnra(:,:), subnrc(:,:), subnsd(:), globv(:), globel(:)
 real(real64), allocatable :: subz(:,:)
 real(real64)              :: padval
 
-if(present(cad)) then
-  call set_args(cad)
+if(present(argstr)) then
+  call set_args(argstr)
 else
   call info('String options for convert not found. Reading options from command line')
 endif
@@ -96,25 +93,26 @@ if(is_arg('-l')) then
   p = index( infile, '.', back=.true.)
   inmesh =  infile(1:p-1)
   inext =  lcase(infile(p+1:len_trim( infile)))
-elseif(present(mempmh)) then
+elseif(present(outpmh)) then
   infile = get_arg(nargs)
   p = index(infile, '.', back=.true.)
   inmesh = infile(1:p-1)
   inext = lcase(infile(p+1:len_trim(infile)))
 else
-  infile = get_arg(nargs-1); p = index( infile, '.', back=.true.); &
-      & inmesh =  infile(1:p-1);  inext =  lcase(infile(p+1:len_trim( infile)))
-  outfile = get_arg(nargs);  p = index(outfile, '.', back=.true.); &
-      & outmesh = outfile(1:p-1); outext = lcase(outfile(p+1:len_trim(outfile)))
+  infile = get_arg(nargs-1); p      = index( infile, '.', back=.true.)
+  inmesh = infile(1:p-1);    inext  =  lcase(infile(p+1:len_trim( infile)))
+  outfile = get_arg(nargs);  p      = index(outfile, '.', back=.true.)
+  outmesh = outfile(1:p-1);  outext = lcase(outfile(p+1:len_trim(outfile)))
   p = index(outfile, slash(), back=.true.); outpath = outfile(1:p)
 endif
 
 !check mesh names and extensions
-if (len_trim(infile)  == 0) call error('(module_feconv/fe_conv) unable to find input file.')
-if (len_trim(inext)   == 0) call error('(module_feconv/fe_conv) unable to find input file extension.')
-if(.not. is_arg('-l') .and. .not. present(mempmh)) then
-  if (len_trim(outfile) == 0) call error('(module_feconv/fe_conv) unable to find output file.')
-  if (len_trim(outext)  == 0) call error('(module_feconv/fe_conv) unable to find output file extension.')
+if (len_trim(infile)  == 0) call error('(module_feconv/fe_conv) unable to find input file: '//trim(infile))
+if (.not. file_exists(infile)) call error('(module_feconv/fe_conv) input file does mot exist: '//trim(infile))
+if (len_trim(inext)   == 0) call error('(module_feconv/fe_conv) unable to find input file extension: '//trim(inext))
+if(.not. is_arg('-l') .and. .not. present(outpmh)) then
+  if (len_trim(outfile) == 0) call error('(module_feconv/fe_conv) unable to find output file: '//trim(outfile))
+  if (len_trim(outext)  == 0) call error('(module_feconv/fe_conv) unable to find output file extension: '//trim(outext))
   select case (trim(adjustlt(outext))) !check outfile extension now (avoid reading infile when outfile is invalid)
   case('mfm', 'mum', 'vtu', 'mphtxt', 'unv', 'pf3', 'msh', 'mesh', 'pmh', 'pvd')
     continue
@@ -122,6 +120,12 @@ if(.not. is_arg('-l') .and. .not. present(mempmh)) then
     call error('(module_feconv/fe_conv) output file extension not implemented: '//trim(adjustlt(outext)))
   end select
 endif
+
+! set force_to_save
+force_to_save = .true.
+if (present(force)) force_to_save = force
+if (.not. file_exists(outfile)) force_to_save = .true.
+if (infile .IsNewerThan. outfile) force_to_save = .true.
 
 !check isoparametric option, for UNV only
 !if (trim(adjustlt(inext)) /= 'unv' .and. is_arg('-is')) call error('(module_feconv/fe_conv) only UNV input files can '//&
@@ -131,13 +135,13 @@ if ( (is_arg('-l1') .or. is_arg('-l2') .or. is_arg('-rt') .or. is_arg('-nd') .or
      (is_arg('-if') .or. is_arg('-of')) ) call error('(module_feconv/fe_conv) options for mesh transformation (-l1, -l2, '//&
      &'-rt, -nd and -cm) are incompatible with fields (-if, -of).')
 !set PMH mesh tolerance (all load procedures must consider intent(inout) for PMH argument)
-if (is_arg('-t')) then 
+if (is_arg('-t')) then
   pmh%ztol = dble(get_post_arg('-t'))
-end if    
+end if
 
 !field selection
 there_is_field = .true.
-if(is_arg('-l') .or. present(mempmh)) then
+if(is_arg('-l') .or. present(outpmh)) then
   if (is_arg('-if')) then
     !there is -if
     str = get_post_arg('-if')
@@ -338,64 +342,68 @@ else
 endif
 
 !read mesh
-is_pmh = .false.
-select case (trim(lcase(adjustlt(inext))))
-case('mfm')
-  print '(a)', 'Loading MFM mesh file...'
-  call load_mfm(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  print '(a)', 'Done!'
-case('mum')
-  print '(a)', 'Loading MUM mesh file...'
-  call load_mum(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  print '(a)', 'Done!'
-case('msh')
-  if (is_arg('-ff')) then !FreeFem++
-    print '(a)', 'Loading FreFem++ (.msh) mesh file...'
-    call load_freefem_msh(infile, get_unit(), pmh); is_pmh = .true.
-  elseif (is_arg('-gm')) then !Gmsh
-    print '(a)', 'Loading Gmsh (.msh) mesh file...'
-    call load_gmsh(infile, get_unit(), pmh); is_pmh = .true.
-  else !ANSYS
-    print '(a)', 'Loading ANSYS mesh file...'
-    call load_msh(infile, pmh); is_pmh = .true.
-  end if
-  print '(a)', 'Done!'
-case('unv')
-  print '(a)', 'Loading UNV mesh file...'
-  call load_unv(infile, pmh, padval, infieldname, is_arg('-ca')); is_pmh = .true.
-  print '(a)', 'Done!'
-case('bdf')
-  print '(a)', 'Loading MD Nastran input file...'
-  call load_patran(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-  print '(a)', 'Done!'
-case('mphtxt')
-  print '(a)', 'Loading COMSOL mesh file...'
-  call load_mphtxt(infile, pmh); is_pmh = .true.
-  print '(a)', 'Done!'
-case('pf3')
-  print '(a)', 'Loading FLUX mesh file...'
-  call load_pf3(infile, pmh); is_pmh = .true.
-case('vtu')
-  print '(a)', 'Loading VTU mesh file...'
-  call load_vtu( infile, pmh, infieldname); is_pmh = .true.
-  print '(a)', 'Done!'
-case('pvd')
-  print '(a)', 'Loading PVD file...'
-  call load_pvd( infile, pmh, infieldname); is_pmh = .true.
-  print '(a)', 'Done!'
-case('mesh')
-  print '(a)', 'Loading FreFem++ (Tetrahedral Lagrange P1) MESH file...'
-  call load_freefem_mesh(infile, get_unit(), pmh); is_pmh = .true.
-  print '(a)', 'Done!'
-case default
-  call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
-end select
+if (present(inpmh)) then
+  pmh = inpmh
+  is_pmh = .true.
+else
+  is_pmh = .false.
+  select case (trim(lcase(adjustlt(inext))))
+  case('mfm')
+    print '(a)', 'Loading MFM mesh file...'
+    call load_mfm(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+      print '(a)', 'Done!'
+  case('mum')
+    print '(a)', 'Loading MUM mesh file...'
+    call load_mum(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    print '(a)', 'Done!'
+  case('msh')
+    if (is_arg('-ff')) then !FreeFem++
+      print '(a)', 'Loading FreFem++ (.msh) mesh file...'
+      call load_freefem_msh(infile, get_unit(), pmh); is_pmh = .true.
+    elseif (is_arg('-gm')) then !Gmsh
+      print '(a)', 'Loading Gmsh (.msh) mesh file...'
+      call load_gmsh(infile, get_unit(), pmh); is_pmh = .true.
+    else !ANSYS
+      print '(a)', 'Loading ANSYS mesh file...'
+      call load_msh(infile, pmh); is_pmh = .true.
+    end if
+    print '(a)', 'Done!'
+  case('unv')
+    print '(a)', 'Loading UNV mesh file...'
+    call load_unv(infile, pmh, padval, infieldname, is_arg('-ca')); is_pmh = .true.
+    print '(a)', 'Done!'
+  case('bdf')
+    print '(a)', 'Loading MD Nastran input file...'
+    call load_patran(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    print '(a)', 'Done!'
+  case('mphtxt')
+    print '(a)', 'Loading COMSOL mesh file...'
+    call load_mphtxt(infile, pmh); is_pmh = .true.
+    print '(a)', 'Done!'
+  case('pf3')
+    print '(a)', 'Loading FLUX mesh file...'
+    call load_pf3(infile, pmh); is_pmh = .true.
+  case('vtu')
+    print '(a)', 'Loading VTU mesh file...'
+    call load_vtu( infile, pmh, infieldname); is_pmh = .true.
+    print '(a)', 'Done!'
+  case('pvd')
+    print '(a)', 'Loading PVD file...'
+    call load_pvd( infile, pmh, infieldname); is_pmh = .true.
+    print '(a)', 'Done!'
+  case('mesh')
+    print '(a)', 'Loading FreFem++ (Tetrahedral Lagrange P1) MESH file...'
+    call load_freefem_mesh(infile, get_unit(), pmh); is_pmh = .true.
+    print '(a)', 'Done!'
+  case default
+    call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
+  end select
+end if
 
 ! Read field files
-if(there_is_field .and. is_arg('-if')) then
+if (there_is_field .and. is_arg('-if') .and. (.not. present(inpmh))) then
   if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   is_pmh = .true.
-
   select case (trim(lcase(adjustlt(infext))))
     case('mff')
       call load_mff(pmh, infieldfile, infieldname)
@@ -406,7 +414,6 @@ if(there_is_field .and. is_arg('-if')) then
     case('ip')
       call load_ip(pmh, infieldfile, infieldname, outfieldname)
   end select
-
 endif
 
 ! Show PMH info in screen
@@ -417,7 +424,6 @@ if(is_arg('-l')) then
   stop
 endif
 
-
 ! Remove a component of the space dimension
 if (is_arg('-rc')) then
  comp = int(get_post_arg('-rc'))
@@ -425,10 +431,8 @@ if (is_arg('-rc')) then
    call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
    is_pmh=.true.
  endif
-
  call remove_coordinate(pmh, comp)
 endif
-
 
 !extract (only for Lagrange P1 meshes)
 if (is_arg('-es')) then
@@ -524,11 +528,11 @@ if (is_arg('-ch')) then
   call change_pmh_references(pmh, chref)
 end if
 
-if(present(mempmh)) then
+!save mesh
+if(present(outpmh)) then
   if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-  mempmh = pmh
-else
-  !save mesh
+  outpmh = pmh
+elseif (force_to_save) then
   select case (trim(adjustlt(outext)))
   case('mfm')
     print '(/a)', 'Saving MFM mesh file...'
@@ -614,7 +618,7 @@ else
         call info('Field file extension "'//trim(lcase(adjustlt(outfext)))//'" not supported!')
     end select
   endif
-endif 
+endif
 end subroutine
 
 end module

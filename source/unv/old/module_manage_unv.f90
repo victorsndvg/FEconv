@@ -63,12 +63,12 @@ subroutine read_unv(this, m, maxdim, is_opt)
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
   if (search_dataset_type(this,2411) /= 0) then
-    if (search_dataset_type(this,781) /= 0) then  
+    if (search_dataset_type(this,781) /= 0) then
       call error('unv/read, dataset 2411 or 781 not found')
     else
       continue
     end if
-  end if          
+  end if
   call read_2411(this%unit, m(n))
 
 ! dataset 2412, elements
@@ -76,14 +76,14 @@ subroutine read_unv(this, m, maxdim, is_opt)
   if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
   if (search_dataset_type(this,2412) /= 0) call error('unv/read, dataset 2412 not found')
   call read_2412(this%unit, m, maxdim, is_opt)
-  if (maxdim < n) then !mesh dimension is less than the allocated one  
+  if (maxdim < n) then !mesh dimension is less than the allocated one
     do j = 1, m(n)%nd  !transfer node coordinates from m(n) to m(maxdim)
       m(maxdim)%nd = m(maxdim)%nd + 1
       fit = [.true., .false.]
-      call set_col(m(maxdim)%xd, m(n)%xd(1:3,j), m(maxdim)%nd, fit)
+      call set(2, m(maxdim)%xd, m(n)%xd(1:3,j), m(maxdim)%nd, fit)
     enddo
     call reduce(m(maxdim)%xd, size(m(maxdim)%xd,1), m(maxdim)%nd)
-    do j = maxdim+1,n !deallocate meshes from m(maxdim+1) to m(n) 
+    do j = maxdim+1,n !deallocate meshes from m(maxdim+1) to m(n)
       call dealloc_mesh(m(j))
     enddo
     n = maxdim
@@ -155,7 +155,7 @@ function search_dataset_type(this, ds) result(res)
   integer :: res, dsnumber
 
   do
-    res = search_dataset_delimiter(this) 
+    res = search_dataset_delimiter(this)
     if (res /= 0) return
 !   read the type of dataset
     read (unit=this%unit, fmt='(I10)', iostat=res) dsnumber
@@ -181,10 +181,10 @@ if (m%LNN /= m%LNV) then
   do k = 1, m%nl
     do j = 1, m%LNV
       if (m%id(j,k) == 0) cycle
-      pos = bsearch(vert2node, m%id(j,k), nv2d) 
+      pos = bsearch(vert2node, m%id(j,k), nv2d)
       if (pos < 0) then
         call insert(vert2node, m%id(j,k), -pos, nv2d, fit=.false.)
-        nv2d = nv2d + 1 
+        nv2d = nv2d + 1
       endif
     end do
   end do

@@ -10,11 +10,7 @@ module module_mum
 !   load_mum: loads a mesh from a MUM format file
 !   save_mum: saves a mesh in a MUM format file
 !-----------------------------------------------------------------------
-use module_compiler_dependant, only: real64
-use module_os_dependant, only: maxpath
-use module_report, only: error
-use module_convers, only: string, int
-use module_feed, only: feed, empty
+use basicmod, only: real64, maxpath, error, string, int, feed, empty
 implicit none
 
 contains
@@ -42,13 +38,13 @@ integer, allocatable   :: nrc(:,:)   !face reference array
 real(real64), allocatable :: z(:,:)  !vertices coordinates array
 integer, allocatable   :: nsd(:)     !subdomain index array
 integer :: i, j, k, ln2, ios
-  
+
 !open file
 open (unit=iu, file=filename, form='unformatted', status='old', position='rewind', iostat=ios)
 if (ios /= 0) call error('load/open, #'//trim(string(ios)))
 
 !try read scalar data from file: nel, nnod, nver, dim, lnn, lnv, lne, lnf
-read (unit=iu, iostat=ios) nel, nnod, nver, dim, lnn, lnv, lne, lnf   
+read (unit=iu, iostat=ios) nel, nnod, nver, dim, lnn, lnv, lne, lnf
 if (ios /= 0) then
   !try read scalar data from file: nel, nnod, nver
   backspace(unit=iu, iostat=ios)
@@ -81,9 +77,9 @@ deallocate( z,            stat=ios); if (ios /= 0) call error('dealloc (z), unab
 if (allocated(nsd)) then
 deallocate(nsd,           stat=ios); if (ios /= 0) call error('dealloc (nsd), unable to deallocate'); end if
   allocate(nsd(nel),      stat=ios); if (ios /= 0) call error(  'alloc (nsd), unable to allocate')
-!ln2: lecture of nodes, only if (nnod /= nver) 
-ln2 = 0; if (nnod /= nver) ln2 = lnn  
-!arrays from file ([nn,if nnod/=nver], mm, [nrc,if dim==3], [nra,if dim==2], nrv, x)  
+!ln2: lecture of nodes, only if (nnod /= nver)
+ln2 = 0; if (nnod /= nver) ln2 = lnn
+!arrays from file ([nn,if nnod/=nver], mm, [nrc,if dim==3], [nra,if dim==2], nrv, x)
 select case(dim)
 case(1)
   read (unit=iu, iostat=ios) ((nn(i,k),  i=1,ln2), k=1,nel), &
@@ -93,14 +89,14 @@ case(1)
 case(2)
   read (unit=iu, iostat=ios) ((nn(i,k),  i=1,ln2), k=1,nel), &
                              ((mm(i,k),  i=1,lnv), k=1,nel), &
-                             ((nra(i,k), i=1,lne), k=1,nel), &                                 
+                             ((nra(i,k), i=1,lne), k=1,nel), &
                              ((nrv(i,k), i=1,lnv), k=1,nel), &
                              ((z(i,j),   i=1,dim), j=1,nver)
 case(3)
   read (unit=iu, iostat=ios) ((nn(i,k),  i=1,ln2), k=1,nel), &
                              ((mm(i,k),  i=1,lnv), k=1,nel), &
-                             ((nrc(i,k), i=1,lnf), k=1,nel), &      
-                             ((nra(i,k), i=1,lne), k=1,nel), &                                 
+                             ((nrc(i,k), i=1,lnf), k=1,nel), &
+                             ((nra(i,k), i=1,lne), k=1,nel), &
                              ((nrv(i,k), i=1,lnv), k=1,nel), &
                              ((z(i,j),   i=1,dim), j=1,nver)
 case default
@@ -111,7 +107,7 @@ if (ios /= 0) call error('read (mm,...) #'//trim(string(ios)))
 read (unit=iu, iostat=ios) (nsd(k), k=1,nel)
 if (ios /= 0) call error('read (nsd), #'//trim(string(ios)))
 close(iu)
-! nn was read only if (nnod /= nver) 
+! nn was read only if (nnod /= nver)
 !if (nnod == nver) nn(1:lnv,1:nel) = mm
 
 print'(a,i9)','MUM file loaded!'

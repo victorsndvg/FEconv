@@ -10,16 +10,13 @@ module module_dex
 !   load_dex: loads a mesh from a DEX format file
 !   save_dex: saves a mesh in a DEX format file
 !-----------------------------------------------------------------------
-use module_compiler_dependant, only: real64
-use module_files, only: get_unit
-use module_convers, only: string, replace
-use module_report, only:error
+use basicmod, only: real64, get_unit, string, replace, error
 use module_pmh
 
 implicit none!
 
 !type field
-!  character(maxpath)        :: name 
+!  character(maxpath)        :: name
 !  real(real64), allocatable :: param(:)   !nshot
 !  real(real64), allocatable :: val(:,:,:) !ncomp x nnod x nshot
 !end type
@@ -31,7 +28,7 @@ subroutine load_dex(pmh, filenames, fieldnames, param)
   character(len=*), allocatable, intent(in) :: filenames(:) !fields file names
   type(pmh_mesh),             intent(inout) :: pmh
   character(*), allocatable,     intent(in) :: fieldnames(:) !field names
-  real(real64), optional,        intent(in) :: param 
+  real(real64), optional,        intent(in) :: param
   character(len=maxpath)                    :: filename, fieldname, aux
   integer                                   :: nb_real, nb_comp, nb_point
   integer                                   :: iu, ios, i, j, idx
@@ -50,8 +47,8 @@ subroutine load_dex(pmh, filenames, fieldnames, param)
 
     open (unit=iu, file=filename, form='formatted', status='old', position='rewind', iostat=ios)
     if (ios /= 0) call error('load/open, #'//trim(string(ios)))
-  
-    !try read field name. 
+
+    !try read field name.
     read(unit=iu, fmt=*, iostat=ios) aux,aux,aux,aux,aux,aux,fieldname
     if(allocated(fieldnames)) then
       if(trim(adjustl(fieldnames(j)))/=trim(adjustl(fieldname))) then
@@ -59,11 +56,11 @@ subroutine load_dex(pmh, filenames, fieldnames, param)
         cycle
       endif
     endif
-    
+
     if (ios /= 0) call error('load/open, #'//trim(string(ios)))
     !try read number of real, number of components and number of points
     read(unit=iu, fmt=*, iostat=ios) aux,aux,nb_real,aux,aux,nb_comp,aux,aux,nb_point
-    if (ios /= 0) call error('load/open, #'//trim(string(ios)))  
+    if (ios /= 0) call error('load/open, #'//trim(string(ios)))
 
     if(size(pmh%pc,1) == 1) then
       if(pmh%pc(1)%nnod /= nb_point) then
@@ -76,9 +73,9 @@ subroutine load_dex(pmh, filenames, fieldnames, param)
         ! Read coords and values
         do i=1,nb_point
           read(unit=iu, fmt=*, iostat=ios) coords(:,i),vals(:,i)
-          if (ios /= 0) call error('load/open, #'//trim(string(ios)))  
+          if (ios /= 0) call error('load/open, #'//trim(string(ios)))
         enddo
-        if(.not. allocated(pmh%pc(1)%fi)) then 
+        if(.not. allocated(pmh%pc(1)%fi)) then
           allocate(pmh%pc(1)%fi(1))
         else
           if(allocated(tempfields)) deallocate(tempfields)
@@ -90,8 +87,8 @@ subroutine load_dex(pmh, filenames, fieldnames, param)
         call info('Reading node field "'//trim(adjustl(fieldname))//'" from: '//trim(adjustl(filenames(j))))
         pmh%pc(1)%fi(idx)%name = trim(fieldname)
         if(allocated(pmh%pc(1)%fi(idx)%param)) deallocate(pmh%pc(1)%fi(idx)%param)
-        allocate(pmh%pc(1)%fi(idx)%param(1))      
-        if(present(param)) then 
+        allocate(pmh%pc(1)%fi(idx)%param(1))
+        if(present(param)) then
           pmh%pc(1)%fi(idx)%param(1) = param
         else
           pmh%pc(1)%fi(idx)%param(1) = 0._real64
@@ -116,7 +113,7 @@ subroutine save_dex(pmh, infieldname, outfieldname, outfieldfile, param)
   character(*), allocatable, intent(in) :: infieldname(:)  ! In field names
   character(*), allocatable, intent(in) :: outfieldname(:)  ! Out field names
   character(*), allocatable, intent(in) :: outfieldfile(:) ! Out field file name
-  real(real64), optional,    intent(in) :: param 
+  real(real64), optional,    intent(in) :: param
   real(real64),allocatable              :: znod(:,:)
   character(len=maxpath)                :: filename, fieldname !file names
   integer                               :: i,j,k,l,pi,mtdim
@@ -175,7 +172,7 @@ subroutine save_dex(pmh, infieldname, outfieldname, outfieldfile, param)
               call info('  Wrong number of values. Skipped!')
               cycle
             endif
-            iu = get_unit() 
+            iu = get_unit()
             open (unit=iu, file=trim(filename), form='formatted', position='rewind', iostat=ios)
             if (ios /= 0) call error('save_dex/header, #'//trim(string(ios)))
 
@@ -219,7 +216,7 @@ subroutine save_dex(pmh, infieldname, outfieldname, outfieldfile, param)
                 if (ios /= 0) call error('save_dex/nodes, #'//trim(string(ios)))
               enddo
             endif
-            fidx = fidx + 1 
+            fidx = fidx + 1
             close(iu)
           endif
         enddo
@@ -243,4 +240,3 @@ subroutine fix_filename(filename)
 end subroutine
 
 end module
-

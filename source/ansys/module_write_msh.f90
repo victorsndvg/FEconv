@@ -9,15 +9,11 @@ module module_write_msh
 !
 ! PUBLIC PROCEDURES:
 !-----------------------------------------------------------------------
-
+use basicmod
 use module_transform, only: to_l1
 use module_pmh
 use module_utils_msh
-use module_alloc
-use module_set
-
 implicit none
-
 
 contains
 
@@ -178,10 +174,10 @@ subroutine write_msh_cells(iu, pmh, maxtopdim, maxref)
   !        call add(alltypes, pmh%pc(ip)%el(ig)%type,size(alltypes), fit=.true.)
         endif
       enddo
-    enddo  
+    enddo
 
 
-  
+
 
 end subroutine
 
@@ -215,7 +211,7 @@ subroutine build_msh_faces(pmh, maxtopdim)
           do i=1,pmh%pc(ip)%el(ig)%nel
             do j=1,lne
              findx = face_indx(faces%mm, totfaces, sf+counter, pmh%pc(ip)%el(ig)%mm(edge(:,j),i))
-              if(findx < 0) then 
+              if(findx < 0) then
                 counter = counter + 1
                 call add(faces%type, ft, sf+counter, .true.)
                 call extend_varlen(faces%mm,sf+counter,.false.)
@@ -237,7 +233,7 @@ subroutine build_msh_faces(pmh, maxtopdim)
           do i=1,pmh%pc(ip)%el(ig)%nel
             do j=1,lnf
              findx = face_indx(faces%mm, totfaces, sf+counter, pmh%pc(ip)%el(ig)%mm(face(1:fnv,j),i))
-              if(findx < 0) then 
+              if(findx < 0) then
                 counter = counter + 1
                 call add(faces%type, ft, sf+counter, .true.)
                 call extend_varlen(faces%mm,sf+counter,.false.)
@@ -305,7 +301,7 @@ else !save all pieces
   call alloc(piece2save, size(pmh%pc,1))
   piece2save = [(i, i=1, size(pmh%pc,1))]
 end if
-if (is_arg('-glue')) then 
+if (is_arg('-glue')) then
   call info('(module_pmh/pmh2msh) option -glue not implemented yet')
 end if
 
@@ -341,7 +337,7 @@ do ipp = 1, size(piece2save,1)
   !first round: save in mmr edges and faces (when max_tdim = 3)
   do ig = 1, size(pmh%pc(ip)%el, 1)
     associate(elg => pmh%pc(ip)%el(ig)) !elg: current group
-      if ((FEDB(elg%type)%tdim == 1 .and. max_tdim == 2) .or. (FEDB(elg%type)%tdim == 2 .and. max_tdim == 3)) then 
+      if ((FEDB(elg%type)%tdim == 1 .and. max_tdim == 2) .or. (FEDB(elg%type)%tdim == 2 .and. max_tdim == 3)) then
         ! Renumber references
         if(allocated(aux_refs)) deallocate(aux_refs)
         call sunique(pack(elg%ref, elg%ref/=0), aux_refs)
@@ -359,18 +355,18 @@ do ipp = 1, size(piece2save,1)
         do k = 1, elg%nel
            nv = FEDB(elg%type)%lnv
           ! If reference is 0
-          if(elg%ref(k)==0) then 
+          if(elg%ref(k)==0) then
             tempref = maxref
           else
             tempref = new_refs(elg%ref(k))
           endif
           call set(auxsver(nv)%tmp, [sort(nver_piece(ipp-1) + elg%mm(:,k)), tempref], &
                & [(i, i=1,nv+3)], fit=.true.)
-          call insert_row_sorted(auxsver(nv)%mmr, auxsver(nv)%tmp, used=auxsver(nv)%n, fit=ft,pos=pos)
+          call insert_sorted(1, auxsver(nv)%mmr, auxsver(nv)%tmp, used=auxsver(nv)%n, fit=ft,pos=pos)
 !Nuevo
           sver(nv)%n = auxsver(nv)%n
-          call insert_row(sver(nv)%mmr, [nver_piece(ipp-1) + elg%mm(:,k), tempref,0,0],&
-            & abs(pos), maxrow=sver(nv)%n, fit=ft)
+          call insert(1, sver(nv)%mmr, [nver_piece(ipp-1) + elg%mm(:,k), tempref,0,0],&
+            & abs(pos), used=sver(nv)%n, fit=ft)
         enddo
       end if
     end associate
@@ -399,20 +395,20 @@ do ipp = 1, size(piece2save,1)
           do j = 1, FEDB(elg%type)%lnf
             if (FEDB(elg%type)%f_type == 0) nsv = VF_WEDG(j) !vertices per face (wedge)
             ! If reference is 0
-            if(elg%ref(k)==0) then 
+            if(elg%ref(k)==0) then
               tempref = maxref
             else
               tempref = new_refs(elg%ref(k))
             endif
             call set(auxsver(nsv)%tmp, [sort(nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(1:nsv,j),k)), 0], &
                  & [(i, i=1,nsv+3)], fit=.true.)
-            call insert_row_sorted(auxsver(nsv)%mmr, auxsver(nsv)%tmp(1:nsv), used=auxsver(nsv)%n, fit=ft, pos=pos) !ref not saved
+            call insert_sorted(1, auxsver(nsv)%mmr, auxsver(nsv)%tmp(1:nsv), used=auxsver(nsv)%n, fit=ft, pos=pos) !ref not saved
             sver(nsv)%n = auxsver(nsv)%n
             if(pos<0) then
 !Nuevo
-              call insert_row(sver(nsv)%mmr, &
+              call insert(1, sver(nsv)%mmr, &
                 & [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k),tempref, nel_piece(ipp)+k], &
-                & -pos, maxrow=sver(nsv)%n, fit=ft)
+                & -pos, used=sver(nsv)%n, fit=ft)
 !              call set(sver(nsv)%mmr, new_refs(elg%ref(k)), -pos, nsv+1, fit=[.true.,.true.])
 !              call set(sver(nsv)%mmr, nel_piece(ipp)+k, -pos, nsv+2, fit=[.true.,.true.])
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -421,7 +417,7 @@ do ipp = 1, size(piece2save,1)
 !print*, '+',nsv,'-', j,k, '-',sver(nsv)%mmr(-pos,nsv+2),'-', trim(string(elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)))
             else
               if(sver(nsv)%mmr(pos,nsv+2) == 0) then
-                call set_row(sver(nsv)%mmr, [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)], &
+                call set(1, sver(nsv)%mmr, [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)], &
                   & pos, fit=tt)
                 call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+2, fit=tt)
 !print*, '-',nsv,'-', j,k, '-',sver(nsv)%mmr(pos,nsv+2:nsv+3),'-', trim(string(elg%mm(FEDB(elg%type)%face(nsv:1:-1,j),k)))
@@ -453,7 +449,7 @@ do ipp = 1, size(piece2save,1)
         do k = 1, elg%nel
           do j = 1, FEDB(elg%type)%lne
             ! If reference is 0
-            if(elg%ref(k)==0) then 
+            if(elg%ref(k)==0) then
               tempref = maxref
             else
               tempref = new_refs(elg%ref(k))
@@ -461,18 +457,18 @@ do ipp = 1, size(piece2save,1)
             call set(auxsver(2)%tmp, &
             & [sort(nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%edge(:,j),k)), 0], &
             & [(i, i=1,nsv+3)], .true.)
-            call insert_row_sorted(auxsver(nsv)%mmr, auxsver(nsv)%tmp(1:nsv), &
+            call insert_sorted(1, auxsver(nsv)%mmr, auxsver(nsv)%tmp(1:nsv), &
               &used=auxsver(nsv)%n, fit=tt, pos=pos) !ref not saved
             sver(nsv)%n = auxsver(nsv)%n
             if(pos<0) then
 !Nuevo
-              call insert_row(sver(nsv)%mmr, &
+              call insert(1, sver(nsv)%mmr, &
                 [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%edge(:,j),k), tempref, nel_piece(ipp)+k], &
-                & -pos, maxrow=sver(nsv)%n, fit=ft) !ref not saved
+                & -pos, used=sver(nsv)%n, fit=ft) !ref not saved
 !              call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+2, fit=[.true.,.true.])
             else
               if(sver(nsv)%mmr(pos,nsv+2) == 0) then
-                call set_row(sver(nsv)%mmr, [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%edge(:,j),k)], &
+                call set(1, sver(nsv)%mmr, [nver_piece(ipp-1) + elg%mm(FEDB(elg%type)%edge(:,j),k)], &
                   & pos, fit=tt)
                 call set(sver(nsv)%mmr, nel_piece(ipp)+k, pos, nsv+2, fit=tt)
               else
@@ -517,7 +513,7 @@ do i = 2, 4
     write(eltype_ch,'(z20)') i
     do j=1, size(refs,1)
       check = .false.
-      numfaces = count( sver(i)%mmr(:,i+1)==refs(j) ) 
+      numfaces = count( sver(i)%mmr(:,i+1)==refs(j) )
       if(refs(j) == 0) then
         maxref = maxref + 1
         zone = maxref
@@ -583,7 +579,7 @@ do j=1,size(refs,1)
     call info('Unknown zone type: '//trim(string(string(refs(j)))))
   endif
 enddo
-  
+
 end subroutine
 
 

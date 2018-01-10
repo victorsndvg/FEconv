@@ -1,6 +1,6 @@
 module module_ALLOC_int_alloc_r2
 !-----------------------------------------------------------------------
-! Module for memory allocation of allocatable arrays composed of 
+! Module for memory allocation of allocatable arrays composed of
 ! integer allocatable arrays
 ! Last update: 28/07/2009
 ! Programmer: fran.pena@usc.es
@@ -10,7 +10,7 @@ module module_ALLOC_int_alloc_r2
 ! - "reduce" cuts off an array filled without fitting
 ! - "enlarge" ensures the allocation of a given position
 !-----------------------------------------------------------------------
-use module_ALLOC
+use basicmod
 implicit none
 
 !Constants
@@ -47,7 +47,7 @@ subroutine dealloc_prv(v)
 
   type(int_alloc_r2) :: v
   integer :: res, i
-  
+
   if (.not. allocated(v%row)) return
   do i = 1, size(v%row, 1)
     if (.not. allocated(v%row(i)%col)) cycle
@@ -55,7 +55,7 @@ subroutine dealloc_prv(v)
   end do
   deallocate(v%row, stat = res) !In f2003 add: errmsg = cad
   if (res /= 0) call error('(module_ALLOC_int_alloc_r2/dealloc) Unable to deallocate variable')
-  
+
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -75,15 +75,15 @@ subroutine alloc_prv(v, rows)
   if (res /= 0) call error('(module_ALLOC_int_alloc_r2/alloc) Unable to allocate variable')
   do i = 1, n
     if (allocated(v%row(i)%col)) call dealloc(v%row(i)%col)
-  end do    
-  
+  end do
+
 end subroutine
 
 !-----------------------------------------------------------------------
-! extend: extend the array 
+! extend: extend the array
 !-----------------------------------------------------------------------
 subroutine extend_prv(v, extension)
-  
+
   type(int_alloc_r2) :: v
   integer, intent(in), optional :: extension
   type(int_alloc_r2) :: temp
@@ -100,7 +100,7 @@ subroutine extend_prv(v, extension)
   m = size(v%row, 1)
   call alloc(temp, m)    !temporal storage
   call transf(v, temp)   !data copy
-  call dealloc(v)     
+  call dealloc(v)
   call alloc(v, m + ext) !final allocation
   call transf(temp, v)   !data copy
   call dealloc(temp)
@@ -108,10 +108,10 @@ subroutine extend_prv(v, extension)
 end subroutine
 
 !-----------------------------------------------------------------------
-! reduce: reduce the array 
+! reduce: reduce the array
 !-----------------------------------------------------------------------
 subroutine reduce_prv(v, rows)
-  
+
   type(int_alloc_r2) :: v, temp
   integer, intent(in) :: rows
 
@@ -120,10 +120,10 @@ subroutine reduce_prv(v, rows)
   end if
   if (rows > size(v%row, 1)) then
     call info('(module_ALLOC_int_alloc_r2/reduce) Given dimension is too large'); return
-  end if    
+  end if
   call alloc(temp, rows)  !temporal storage
   call transf(v, temp)    !data copy
-  call dealloc(v)     
+  call dealloc(v)
   call alloc(v, rows)     !final allocation
   call transf(temp, v)    !data copy
   call dealloc(temp)
@@ -134,46 +134,46 @@ end subroutine
 ! enlarge: enlarge an array for ensuring a given position
 !-----------------------------------------------------------------------
 subroutine enlarge_prv(v, row, col, fit_row, fit_col)
-    
+
   type(int_alloc_r2)           :: v
   integer, intent(in), optional :: row, col
   logical, intent(in), optional :: fit_row, fit_col
   integer :: r, c
-  
+
   r = enlarge_rows(v, row, fit_row)    !extension in rows, if necessary
   c = enlarge_cols(v, r, col, fit_col) !extension in cols, if necessary
-  
+
 end subroutine
 
 !-----------------------------------------------------------------------
 ! set: set a value in the array
 !-----------------------------------------------------------------------
 subroutine set_prv(v, val, row, col, fit_row, fit_col, add)
-    
+
   type(int_alloc_r2)           :: v
   integer, intent(in)              :: val
   integer, intent(in), optional :: row, col
   logical, intent(in), optional :: fit_row, fit_col, add
   integer :: r, c
   integer :: preval
-  
+
   r = enlarge_rows(v, row, fit_row)    !extension in rows, if necessary
   c = enlarge_cols(v, r, col, fit_col) !extension in cols, if necessary
   preval = 0 !previous value
   if (present(add)) then; if (add) preval = v%row(r)%col(c); end if
-  v%row(r)%col(c) = preval + val 
-  
+  v%row(r)%col(c) = preval + val
+
 end subroutine
 
 !***********************************************************************
 ! PRIVATE PROCEDURES
 !***********************************************************************
 !-----------------------------------------------------------------------
-! enlarge_rows: enlarge the rows 
+! enlarge_rows: enlarge the rows
 ! RESULT: p, row prepared to set data
 !-----------------------------------------------------------------------
 function enlarge_rows(v, row, fit) result(p)
-    
+
   type(int_alloc_r2)           :: v
   integer, intent(in), optional :: row
   logical, intent(in), optional :: fit
@@ -184,7 +184,7 @@ function enlarge_rows(v, row, fit) result(p)
   p = n + 1 !position
   if (present(row)) p = row
   !ALLOCATE
-  if (present(fit)) then 
+  if (present(fit)) then
     if (fit) then; call extend(v, p-n)  !fit is true
     else !fit is false
       do while (n < p)
@@ -206,7 +206,7 @@ end function
 ! RESULT: p, row prepared to set data
 !-----------------------------------------------------------------------
 function enlarge_cols(v, r, col, fit) result(p)
-    
+
   type(int_alloc_r2)            :: v
   integer, intent(in)           :: r
   integer, intent(in), optional :: col
@@ -218,19 +218,19 @@ function enlarge_cols(v, r, col, fit) result(p)
   p = n + 1 !position
   if (present(col)) p = col
   !ALLOCATE
-  if (present(fit)) then 
+  if (present(fit)) then
     if (fit) then; call extend(v%row(r)%col, p)   !fit is true
     else !fit is false
       do while (n < p)
         call extend(v%row(r)%col, p, fit=.false.)
         n = size(v%row(r)%col, 1)
-      end do 
+      end do
     end if
   else !fit is false
     do while (n < p)
       call extend(v%row(r)%col, p, fit=.false.)
       n = size(v%row(r)%col, 1)
-    end do   
+    end do
   end if
 
 end function
@@ -239,7 +239,7 @@ end function
 ! transf: transfer data between to int_alloc_r2 objects
 !-----------------------------------------------------------------------
 subroutine transf(u, v)
-  
+
   type(int_alloc_r2) :: u, v
   integer :: i
 

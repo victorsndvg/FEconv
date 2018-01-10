@@ -54,9 +54,10 @@ module module_dataset_2412
 !        171       160       155       156
 !     -1
 !-----------------------------------------------------------------------
-use module_ALLOC
+use basicmod
+use module_alloc_common_bmod, only: search_multiple !basicmod does not directly provides this procedure
 use module_dataset
-use module_mesh
+use module_mesh_unv
 use module_FE_DB
 use module_cells
 use module_pmh, only:piece
@@ -112,8 +113,8 @@ do
     elsingroup(Field2) = gcounter
     gcounter = gcounter + 1
   endif
-  !allocate pc%el 
-  if(.not. allocated(pc%el)) then 
+  !allocate pc%el
+  if(.not. allocated(pc%el)) then
     allocate(pc%el(elsingroup(Field2)))
     pc%el(elsingroup(Field2))%type = &
     & check_fe(FE_DB(Field2)%LNN==FE_DB(Field2)%LNV, FE_DB(Field2)%LNN, &
@@ -131,7 +132,7 @@ do
     & FE_DB(Field2)%LNV, FE_DB(Field2)%LNE, FE_DB(Field2)%LNF)
     call info('  Element type: '//trim(FEDB(pc%el(elsingroup(Field2))%type)%desc))
   endif
-  
+
   !record 2:  *** FOR BEAM ELEMENTS ONLY ***
   if (FE_DB(Field2)%Beam) then
     read (unit=iu, fmt='(3I10)', iostat = ios) &
@@ -147,8 +148,8 @@ do
   !call reorder_nodes_pmh(pc%z, pc%el(elsingroup(Field2))%type, nn, is_opt)
   fit = [.true., .false.]
   pc%el(elsingroup(Field2))%nel = pc%el(elsingroup(Field2))%nel + 1
-  call set_col(pc%el(elsingroup(Field2))%nn, nn, pc%el(elsingroup(Field2))%nel, fit)
-  call set_col(els_loc, [elsingroup(Field2), pc%el(elsingroup(Field2))%nel], Field1, fit)
+  call set(2, pc%el(elsingroup(Field2))%nn, nn, pc%el(elsingroup(Field2))%nel, fit)
+  call set(2, els_loc, [elsingroup(Field2), pc%el(elsingroup(Field2))%nel], Field1, fit)
   if (ios /= 0) call error('dataset_2412/read, #'//trim(string(ios)))
 end do
 
@@ -214,7 +215,7 @@ elseif (m%LNN /= m%LNV) then
       end if
     end do
     !if it is not a midpoint, it is a vertex
-    vf = vf + 1    
+    vf = vf + 1
     newnn(vf) = nn(i)
     !if (vf >= m%LNV) exit NODES !found enough vertices (this is useful to deal with singular edges)
     if (vf > m%LNV)  call error('dataset_2412/reorder_nodes, too many non midpoints in an element (isoparametric P2 elements &
@@ -222,7 +223,7 @@ elseif (m%LNN /= m%LNV) then
   end do NODES
   !identify midpoints
   do i = 1, m%LNN !nodes
-    if (find_first(newnn == nn(i))>0) cycle !it is a vertex
+    if (find_first(newnn, nn(i))>0) cycle !it is a vertex
     do j = 1, size(m%edge,2) !avoid the use of LNE: it is 0 for beams
       if ( maxval(abs((mx%xd(:,newnn(m%edge(1,j)))+mx%xd(:,newnn(m%edge(2,j))))/2-mx%xd(:,nn(i)))) < 1e3*epsilon(mx%xd) ) then
         newnn(m%LNV+j) = nn(i)
@@ -269,7 +270,7 @@ real(real64),allocatable,dimension(:,:), intent(in) :: z     !mesh coordinates
 integer,                            intent(in) :: eltype      !mesh
 integer,                         intent(inout) :: nn(:)  !nodes
 logical,                            intent(in) :: is_opt !-is option
-integer, dimension(2,12)                       :: edge   
+integer, dimension(2,12)                       :: edge
 integer :: i, j, l, vf, newnn(20), lnn,lnv,lne,lnf,dim
 real(real64) :: a2(3), a3(3), a4(3)
 ! Init newnn
@@ -305,7 +306,7 @@ elseif (lnn /= lnv) then
       end if
     end do
     !if it is not a midpoint, it is a vertex
-    vf = vf + 1    
+    vf = vf + 1
     newnn(vf) = nn(i)
     !if (vf >= lnv) exit NODES !found enough vertices (this is useful to deal with singular edges)
     if (vf > lnv)  call error('dataset_2412/reorder_nodes, too many non midpoints in an element (isoparametric P2 elements &
@@ -313,8 +314,8 @@ elseif (lnn /= lnv) then
   end do NODES
   !identify midpoints
   do i = 1, lnn !nodes
-    if (find_first(newnn == nn(i))>0) cycle !it is a vertex
-    do j = 1, lne 
+    if (find_first(newnn, nn(i))>0) cycle !it is a vertex
+    do j = 1, lne
       if ( maxval(abs((z(:,newnn(edge(1,j)))+z(:,newnn(edge(2,j))))/2-z(:,nn(i)))) < 1e3*epsilon(0._real64) ) then
         newnn(lnv+j) = nn(i)
         exit
@@ -356,7 +357,7 @@ end subroutine
 !-----------------------------------------------------------------------
 function find_prv(v) result(res)
 logical, dimension(:), intent(in) :: v
-integer :: res, tmp(size(v,1)), a(1) 
+integer :: res, tmp(size(v,1)), a(1)
 
 tmp = 0
 where (v); tmp = 1; end where

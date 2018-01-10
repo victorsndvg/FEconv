@@ -14,13 +14,10 @@ module module_utils_msh
 ! write_msh: Write a MSH file
 !-----------------------------------------------------------------------
 
-use module_ALLOC
-use module_report, only: error
-use module_convers, only: string
+use basicmod
+use module_alloc_common_bmod, only: search_multiple !basicmod does not directly provides this procedure
 use module_pmh, only: elgroup,piece,pmh_mesh
 use module_fe_database_pmh, only: check_fe,FEDB,FA_HEXA
-use module_compiler_dependant, only: real64
-
 implicit none
 
 integer, parameter, private :: DEFAULT_ALLOC  = 1000 !initial size for allocation
@@ -79,7 +76,7 @@ function get_section_index(line) result(res)
 
   auxline(:) = line(:)
   indx = index(line,'(')
-  if(indx == 0) then 
+  if(indx == 0) then
     res = -1
   else
     call replace_char(auxline, '(', ' ')
@@ -133,7 +130,7 @@ end function
 subroutine extend_elgroup(v, d)
   type(elgroup), allocatable          :: v(:), temp(:)
   integer, intent(in)           :: d !new dimension given by the user
-  integer :: res, s, ns 
+  integer :: res, s, ns
   character(len=MAXPATH) :: cad
 
     if (.not. allocated(v)) then
@@ -146,7 +143,7 @@ subroutine extend_elgroup(v, d)
       s = size(v,1)
       if (d > s) then !reallocation is mandatory
         !DIMENSIONS
-        ns = d                  
+        ns = d
         !REALLOCATION
         allocate(temp(ns), stat = res, errmsg = cad)
         if (res /= 0) call error('module_utils_pf3/extend_elgroup # unable to allocate variable temp: '//trim(cad))
@@ -162,7 +159,7 @@ subroutine extend_varlen(v, d, fit)
   type(varlen), allocatable                :: temp(:)
   integer, intent(in)           :: d !new dimension given by the user
   logical, optional, intent(in)           :: fit !new dimension given by the user
-  integer :: res, s, ns 
+  integer :: res, s, ns
   character(len=MAXPATH) :: cad
 
     if (.not. allocated(v)) then
@@ -300,8 +297,8 @@ subroutine check_interface_names(izones)
           izones%id(i) = 0
         endif
       enddo
-!      if(izones%id(i) /= 0) print*, 'Zone '//trim(string(izones%id(i)))//' named "'//& 
-!         trim(izones%names(i))//'" of type '//trim(izones%types(i)) 
+!      if(izones%id(i) /= 0) print*, 'Zone '//trim(string(izones%id(i)))//' named "'//&
+!         trim(izones%names(i))//'" of type '//trim(izones%types(i))
       else
         print*, 'Reference '//trim(string(izones%id(i)))//' ('//trim(izones%types(i))//&
           ') named "'//trim(izones%names(i))//'"'
@@ -324,7 +321,7 @@ end subroutine
 !  if(.not. allocated(faces(1)%mm)) call error("MSH without faces, could be a binary file")
 !  if(.not. allocated(pmh%pc)) call error("PMH without pieces, could be a binary file")
 !  if(.not. allocated(pmh%pc(1)%z)) call error("PMH without nodes, could be a binary file")
-!  
+!
 !  if(.not.allocated(groups)) allocate(groups(size(FEDB,1)))
 !  groups = 0
 !
@@ -373,7 +370,7 @@ subroutine add_faces_to_pmh(faces,izones,pmh)
   if(.not. allocated(faces%mm)) call error("MSH without faces, could be a binary file")
   if(.not. allocated(pmh%pc)) call error("PMH without pieces, could be a binary file")
   if(.not. allocated(pmh%pc(1)%z)) call error("PMH without nodes, could be a binary file")
-  
+
   if(.not.allocated(groups)) allocate(groups(size(FEDB,1)))
   groups = 0
 
@@ -393,7 +390,7 @@ subroutine add_faces_to_pmh(faces,izones,pmh)
       numgroups = numgroups + 1
       groups(faces%type(i)) = numgroups
       if(.not. allocated(pmh%pc(1)%el)) allocate(pmh%pc(1)%el(numgroups))
-      if(size(pmh%pc(1)%el,1)<numgroups) then 
+      if(size(pmh%pc(1)%el,1)<numgroups) then
         call extend_elgroup(pmh%pc(1)%el,numgroups)
         if(pmh%pc(1)%el(numgroups)%type == 0) pmh%pc(1)%el(numgroups)%type = faces%type(i)
         numface = 0
@@ -405,7 +402,7 @@ subroutine add_faces_to_pmh(faces,izones,pmh)
 
     numface = numface+1
 
-    call set_col(pmh%pc(1)%el(group)%mm,faces%mm(i)%data,numface,fit=tf)
+    call set(2, pmh%pc(1)%el(group)%mm,faces%mm(i)%data,numface,fit=tf)
     call set(pmh%pc(1)%el(group)%ref,faces%zone(i), numface,.false.)
     pmh%pc(1)%el(group)%nel = pmh%pc(1)%el(group)%nel + 1
 
@@ -436,7 +433,7 @@ subroutine build_cells(faces,cells, pmh)
   if(.not. allocated(cells%type)) call error("MSH without cells, could be a binary file")
   if(.not. allocated(pmh%pc)) call error("PMH without pieces, could be a binary file")
   if(.not. allocated(pmh%pc(1)%z)) call error("PMH without nodes, could be a binary file")
-  
+
   if(.not.allocated(groups)) allocate(groups(size(FEDB,1)))
   groups = 0
 
@@ -467,7 +464,7 @@ subroutine build_cells(faces,cells, pmh)
       ct = get_cell_pmh_type(cells%type(ac))
       if(nodesadded(ac) == FEDB(ct)%lnv) cycle
       ft = faces%type(i)
-      
+
 
       if (groups(ct) == 0) then
         numgroups = numgroups + 1
@@ -503,7 +500,7 @@ subroutine build_cells(faces,cells, pmh)
         else
           face = [FEDB(pmh%pc(1)%el(group)%type)%edge(:,1),0,0]
         endif
-        if(pmh%pc(1)%el(group)%type == check_fe(.true.,6,6,9,5)) then 
+        if(pmh%pc(1)%el(group)%type == check_fe(.true.,6,6,9,5)) then
           if(FEDB(ft)%lnv == 4) then
             if(j == 1 .and. .false.) then ! First adjacent cell: reverse orientation
               do k=1, FEDB(ft)%lnv
@@ -534,7 +531,7 @@ subroutine build_cells(faces,cells, pmh)
         !!!!!!!!!!!!!!!!!!!!!!!!!
         ! Build hexahedrons
         !!!!!!!!!!!!!!!!!!!!!!!!!
-        if(pmh%pc(1)%el(group)%type == check_fe(.true.,8,8,12,6)) then 
+        if(pmh%pc(1)%el(group)%type == check_fe(.true.,8,8,12,6)) then
           call nodes_not_in_cell(pmh%pc(1)%el(group)%mm(1:4,numcell),faces%mm(i)%data(:), newnodes, posinsubcell, posincell)
           snn = size(newnodes,1)
           if(snn == 2) then
@@ -553,7 +550,7 @@ subroutine build_cells(faces,cells, pmh)
         !!!!!!!!!!!!!!!!!!!!!!!!!
         ! Build wedges
         !!!!!!!!!!!!!!!!!!!!!!!!!
-        elseif(pmh%pc(1)%el(group)%type == check_fe(.true.,6,6,9,5)) then 
+        elseif(pmh%pc(1)%el(group)%type == check_fe(.true.,6,6,9,5)) then
           call nodes_not_in_cell(pmh%pc(1)%el(group)%mm(1:4,numcell),faces%mm(i)%data(:), newnodes, &
                                & posinsubcell, posincell,reverse=.true.)
           snn = size(newnodes,1)
@@ -657,7 +654,7 @@ subroutine nodes_not_in_cell(cell, subcell, nodes, posinsubcell, posincell, reve
         numold = numold + 1
         if(present(posincell)) call insert(posincell,j,numold)
         if(present(reverse)) then
-          if(reverse) call insert(posinsubcell,i,numold)            
+          if(reverse) call insert(posinsubcell,i,numold)
         endif
         exit
       endif
@@ -694,9 +691,9 @@ end subroutine
 subroutine face_positive_jacobian(mm,z)
   integer, intent(inout) :: mm(:)
   real(real64), allocatable,    intent(in) :: z(:,:)
-  integer, allocatable :: pos(:) 
+  integer, allocatable :: pos(:)
   real(real64) ::  s, t
-  logical :: QJac(4) 
+  logical :: QJac(4)
 
 
   if(.not. allocated(z)) call error("Positive jacobian: coordinates not allocated")
@@ -719,7 +716,7 @@ subroutine face_positive_jacobian(mm,z)
       call swap(mm(1), mm(2))
       call swap(mm(3), mm(4))
     end if
-    !counterclockwise orientation is not ensured by a positive jacobian in the (s,t)-plane: instead, check if 3rd component 
+    !counterclockwise orientation is not ensured by a positive jacobian in the (s,t)-plane: instead, check if 3rd component
     !of the normal vector is positive
     if ((z(1,mm(2))-z(1,mm(1)))*(z(2,mm(4))-z(2,mm(1))) - &
       (z(2,mm(2))-z(2,mm(1)))*(z(1,mm(4))-z(1,mm(1))) < 0._real64) then
@@ -799,12 +796,11 @@ end function
 !integer function search_multiple(a,b)
 !integer, intent(in) :: a, b
 !
-!if (b > a) then 
+!if (b > a) then
 !  search_multiple = int(2**real(ceiling(log(real(b)/a)/log(2.)))*a)
-!else 
+!else
 !  search_multiple = a
 !end if
-!end function 
+!end function
 
 end module
-

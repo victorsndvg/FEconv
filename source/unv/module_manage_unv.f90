@@ -3,8 +3,7 @@ module module_manage_unv
 ! Module for UNV file management
 ! Last update: 04/04/2010
 !-----------------------------------------------------------------------
-use module_ALLOC
-use module_files, only: get_unit
+use basicmod
 !use module_mesh
 use module_pmh, only: pmh_mesh
 use module_dataset_2411
@@ -65,12 +64,12 @@ n = size(pmh%pc,1)
 rewind(unit=this%unit, iostat=ios)
 if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
 if (search_dataset_type(this,2411) /= 0) then
-  if (search_dataset_type(this,781) /= 0) then  
+  if (search_dataset_type(this,781) /= 0) then
     call error('unv/read, dataset 2411 or 781 not found')
   else
     continue
   end if
-end if          
+end if
 call read_2411(this%unit, pmh%pc(n))
 
 !dataset 2412, elements
@@ -96,7 +95,7 @@ nfield = 0
 do i = 1, size(fgroup,1)
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('unv/read/rewind, #'//trim(string(ios)))
-  do while (search_dataset_type(this,fgroup(i)) == 0) 
+  do while (search_dataset_type(this,fgroup(i)) == 0)
     call read_2414(this%unit, pmh, n, nfield, eloc, fgroup(i), infield, ca_opt,  padval )
     !exit not needed, reading multiple fields
   end do
@@ -140,7 +139,7 @@ integer,   intent(in) :: ds   !dataset type
 integer :: res, dsnumber
 
 do
-  res = search_dataset_delimiter(this) 
+  res = search_dataset_delimiter(this)
   if (res /= 0) return
   !read the type of dataset
   read (unit=this%unit, fmt='(I6)', iostat=res) dsnumber
@@ -165,10 +164,10 @@ if (m%LNN /= m%LNV) then
   do k = 1, m%nl
     do j = 1, m%LNV
       if (m%id(j,k) == 0) cycle
-      pos = bsearch(vert2node, m%id(j,k), nv2d) 
+      pos = bsearch(vert2node, m%id(j,k), nv2d)
       if (pos < 0) then
         call insert(vert2node, m%id(j,k), -pos, nv2d, fit=.false.)
-        nv2d = nv2d + 1 
+        nv2d = nv2d + 1
       endif
     end do
   end do

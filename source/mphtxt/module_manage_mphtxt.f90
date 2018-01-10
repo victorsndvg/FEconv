@@ -14,9 +14,8 @@ module module_manage_mphtxt
 ! write_mphtxt: Write a MPHTXT file
 !-----------------------------------------------------------------------
 
-use module_ALLOC
-use module_files, only: get_unit
-use module_mesh
+use basicmod
+!use module_mesh
 use module_read_mphtxt
 use module_write_mphtxt
 use module_utils_mphtxt
@@ -100,9 +99,9 @@ subroutine read_mphtxt(this, pmh, maxdim)
   rewind(unit=this%unit, iostat=ios)
   if (ios /= 0) call error('mphtxt/read/rewind, #'//trim(string(ios)))
   ! Reads the mphtxt file header and allocates the number of pieces
-  call read_mphtxt_header(this%unit, pmh) 
+  call read_mphtxt_header(this%unit, pmh)
   if (.not. allocated(pmh%pc)) call error('mphtxt/read/object, objects not allocated')
-  ! Reads every piece of the mesh 
+  ! Reads every piece of the mesh
   do i = 1, size(pmh%pc,1)
       call info('Reading piece '//trim(string(i))//' ...')
       call read_mphtxt_object(this%unit, pmh%pc(i))
@@ -157,7 +156,7 @@ subroutine write_mphtxt(this, pmh)
     do j = 1, size(pmh%pc(i)%el, 1)
       tp = pmh%pc(i)%el(j)%type
       mphlnn = mphtxt_get_lnn(tp)
-      if(mphlnn >= FEDB(tp)%lnn + 1) then                
+      if(mphlnn >= FEDB(tp)%lnn + 1) then
         ! build element baricenters
         call build_elements_baricenter(pmh%pc(i),i,j,znod)
         if((FEDB(tp)%lnv + FEDB(tp)%lnf) > (FEDB(tp)%lnv))  then

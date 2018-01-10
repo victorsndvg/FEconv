@@ -8,7 +8,7 @@ module module_groups
 !  - groups(d+1)%cell(:,1:d+1) are the numbers of vertices of the cells
 !  - groups(d+1)%cell(:,  d+2) are the reference numbers of the cells
 !-----------------------------------------------------------------------
-use module_ALLOC
+use basicmod
 implicit none
 
 !Types
@@ -30,7 +30,7 @@ private :: binary_search, insert_prv, alloc_prv, insert_groups
 contains
 
 !-----------------------------------------------------------------------
-! alloc: alloc memory 
+! alloc: alloc memory
 !-----------------------------------------------------------------------
 subroutine alloc_prv(v, n)
 
@@ -50,7 +50,7 @@ subroutine alloc_prv(v, n)
   end if
   allocate(v(n), stat = res) !In f2003 add: errmsg = cad
   if (res /= 0) call error('(module_groups/alloc/allocate) Unable to allocate variable v')
-    
+
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -171,11 +171,11 @@ elseif ((i+1) <= n) then
     pos = -(i+1)
   else
     pos = -(i+2)
-  end if  
+  end if
 else
   pos = -(i+1)
 end if
-    
+
 !  right = n
 !  left = 1
 !  previous_center = 0

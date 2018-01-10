@@ -13,12 +13,8 @@ module module_read_pf3
 ! read_pf3_coordinates: read PF3 coordinates
 !-----------------------------------------------------------------------
 
-use module_COMPILER_DEPENDANT, only: real64
-use module_os_dependant, only: maxpath
-use module_report, only:error
-use module_convers
-use module_ALLOC
-use module_mesh
+use basicmod
+!use module_mesh
 use module_pmh
 use module_utils_pf3
 
@@ -84,9 +80,9 @@ subroutine read_pf3_header(iu, pmh, nel, nelvol, nelsur, neledge, nelpoint)
       elseif(index(line,'NOMBRE DE REGIONS MACRO-ELEMENTAIRES') /= 0) then
 !        read(line,*) nregvol
       elseif(index(line,'NOMBRE DE NOEUDS DANS 1 ELEMENT (MAX)') /= 0) then
-!        read(line,*) 
+!        read(line,*)
       elseif(index(line,'NOMBRE DE POINTS D''INTEGRATION / ELEMENT (MAX)') /= 0) then
-!        read(line,*) 
+!        read(line,*)
         readed = .true.  ! Force exit. Solo si la cabecera está ordenada
       elseif(index(line,'NOMBRE DE POINTS') /= 0) then
         read(line,*) pmh%pc(1)%nnod
@@ -168,7 +164,7 @@ subroutine read_pf3_elements(iu, pmh, nel, nelvol, nelsur, neledge, nelpoint)
         allocate(pmh%pc(1)%el(abs(pos))%nn(lnn,nel))
         if(.not. allocated(pmh%pc(1)%el(abs(pos))%ref)) allocate(pmh%pc(1)%el(abs(pos))%ref(nel))
         pmh%pc(1)%el(abs(pos))%type = pf3_assign_element_type(desc1, desc2, desc3)
-      endif 
+      endif
 
       ! Counts the number of element of each type
       pmh%pc(1)%el(abs(pos))%nel = pmh%pc(1)%el(abs(pos))%nel + 1

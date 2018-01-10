@@ -16,12 +16,11 @@ module module_patran
 !   References are constructed from entries SPC, FORCE of the "Bulk section"
 !   For more information, consult "MD Nastran 2006 Quick Reference Guide"
 !-----------------------------------------------------------------------
-use module_compiler_dependant, only: real64, iostat_end
+use basicmod, only: real64, iostat_end, det
 use module_desplazamientos
 use module_fuerzas
 !use module_caras_interiores
 !use module_RECONVXX
-use module_MATH
 use module_groups
 use module_assign_references, only: dos, tres, cuatro
 implicit none
@@ -114,15 +113,15 @@ implicit none
 !  function dos(nrv1, nrv2, ndir) result(nra)
 !  implicit none
 !  integer, intent(in) :: nrv1, nrv2
-!  integer, intent(in) :: ndir    
-!  integer :: nra 
+!  integer, intent(in) :: ndir
+!  integer :: nra
 !  end function
 !end interface
 !interface
 !  function tres(nrv1, nrv2, nrv3, ndir) result(nrc)
 !  implicit none
 !  integer, intent(in) :: nrv1, nrv2, nrv3
-!  integer, intent(in) :: ndir     
+!  integer, intent(in) :: ndir
 !  integer :: nrc
 !  end function
 !end interface
@@ -131,7 +130,7 @@ implicit none
 !  implicit none
 !  integer, intent(in) :: nrv1, nrv2, nrv3, nrv4
 !  integer, intent(in) :: ndir
-!  integer :: nrc 
+!  integer :: nrc
 !  end function
 !end interface
 
@@ -157,7 +156,7 @@ integer :: i, j, k, kk, h, g, itopo, nmat, nodo(8), status, hd, npe, &
 vpe, ape, cpe, nnnod, io !form
 integer, allocatable :: m(:,:), mmver(:), mmnod(:), nnrv(:)
 real(real64), allocatable :: zn(:,:), zz(:,:)
-integer :: tmp 
+integer :: tmp
 character(maxpath) :: str !Modificacion_Fran
 
 !Modificacion_Fran
@@ -1046,7 +1045,7 @@ rewind(iu)
 
     !Modificacion_Fran
     !Modificacion para la lectura de nrc en caso de tetraedros Tet4
-    !Se supone que tenemos tetraedros y que sus caras son CTRIA3. Cada 
+    !Se supone que tenemos tetraedros y que sus caras son CTRIA3. Cada
     !cara lleva un número de referncia asociado, que debemos guardar en nrc
     !se usa el mecanismo creado para unv2mfm para pasar la información a nrc
 

@@ -9,12 +9,6 @@ windows
 
 <sources>
 source
-source/basicmod
-source/basicmod/gfortran
-source/basicmod/args
-source/basicmod/alloc
-source/basicmod/vtk
-source/basicmod/xml
 source/cuthill_mckee
 source/ansys
 source/patran
@@ -28,15 +22,20 @@ source/flux
 source/freefem
 source/fem_extract
 source/gmsh
+source/main
 </sources>
- 
+
 <compiler>
 gfortran
 </compiler>
 
 <fflags>
--Wall -ggdb -fcheck=all -fbacktrace -fall-intrinsics 
+-Wall -ggdb -fcheck=all -fbacktrace -fall-intrinsics -Iinclude\gfortran.windows
 </fflags>
 
-</content>
+<ldflags>
+-static -ggdb -static -Llib -lbasicmod-17.12-gfortran-windows
+</ldflags>
 
+
+</content>

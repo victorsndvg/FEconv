@@ -13,17 +13,11 @@ module module_unv
 !   NOTES: 1) mesh must be composed of a single FE type
 !          2) planar meshes must lay in the XY plane
 !-----------------------------------------------------------------------
-use module_compiler_dependant, only: real64
-use module_os_dependant, only: maxpath
-use module_report, only: error, info
-use module_convers, only: string, int, word_count, lcase
-use module_alloc, only: sfind
-use module_set, only: sunique
-use module_args, only: is_arg, get_post_arg
+use basicmod, only: real64, maxpath, error, info, string, int, word_count, lcase, sfind, sunique, is_arg, get_post_arg
 use module_pmh
 use module_fe_database_pmh, only: FEDB, check_fe
 use module_manage_unv
-use module_mesh
+use module_mesh_unv
 implicit none
 
 contains
@@ -40,7 +34,7 @@ logical,          intent(in) :: ca_opt
 type(unv)                    :: u
 
 !inital settings
-call report_option('level', 'stdout')
+!call report_option('level', 'stdout')
 !process universal file
 call open_unv(u, unvfile)
 call read_unv(u, pmh, padval, infield, ca_opt)
@@ -73,7 +67,7 @@ else !save all pieces
   call alloc(piece2save, size(pmh%pc,1))
   piece2save = [(i, i=1, size(pmh%pc,1))]
 end if
-if (is_arg('-glue')) then 
+if (is_arg('-glue')) then
   call info('(module_pmh/pmh2mfm) option -glue not implemented yet')
 end if
 
@@ -137,21 +131,21 @@ do ipp = 1, size(piece2save,1)
         idesc = check_unv_fe(FEDB(tp)%tdim, FEDB(tp)%lnn, FEDB(tp)%lnv, FEDB(tp)%lne, FEDB(tp)%lnf)
         if (idesc == 0) call error('(module_unv/save_unv) unable to find a UNV equivalente to element type '//&
         &trim(FEDB(tp)%desc)//'; piece '//trim(string(ip))//', group '//trim(string(ig)))
-        if (FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne) then !Lagrange P2 elements      
+        if (FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne) then !Lagrange P2 elements
           do k = 1, elg%nel
             write(iu,'(6I10)') prev_nel + k, idesc, 2, 1, 7, FEDB(tp)%lnn
             do l = 0, (FEDB(tp)%lnn-1)/8
               write(iu,'(8I10)') (prev_coord + elg%nn(FE_DB(idesc)%nn_order(i),k), i = 1+8*l, min(8*(l+1), FEDB(tp)%lnn))
-            end do 
+            end do
           end do
-        else !non-Lagrange P2 elements      
+        else !non-Lagrange P2 elements
           do k = 1, elg%nel
             write(iu,'(6I10)') prev_nel + k, idesc, 2, 1, 7, FEDB(tp)%lnv
             do l = 0, (FEDB(tp)%lnv-1)/8
-              !ATTENTION: if we have P1 and P2 mixed, znod was written above; we assume here that mm has the same global numbering 
+              !ATTENTION: if we have P1 and P2 mixed, znod was written above; we assume here that mm has the same global numbering
               !than nn in vertices
-              write(iu,'(8I10)') (prev_coord + elg%mm(i,k), i = 1+8*l, min(8*(l+1), FEDB(tp)%lnv)) 
-            end do 
+              write(iu,'(8I10)') (prev_coord + elg%mm(i,k), i = 1+8*l, min(8*(l+1), FEDB(tp)%lnv))
+            end do
           end do
         end if
         prev_nel = prev_nel + elg%nel
@@ -159,17 +153,17 @@ do ipp = 1, size(piece2save,1)
         idesc = check_unv_fe(FEDB(tp)%tdim, FEDB(tp)%lnn, FEDB(tp)%lnv, FEDB(tp)%lne, FEDB(tp)%lnf)
         if (idesc == 0) call error('(module_unv/save_unv) find a UNV correspondence to element type '//&
         &trim(FEDB(tp)%desc)//'; piece '//trim(string(ip))//', group '//trim(string(ig)))
-        if (FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne) then !Lagrange P2 elements      
+        if (FEDB(tp)%lnn == FEDB(tp)%lnv + FEDB(tp)%lne) then !Lagrange P2 elements
           do k = 1, elg%nel
             write(iu,'(6I10)') prev_nel + k, idesc, 2, 1, 7, FEDB(tp)%lnn
-            write(iu,'(3I10)') 0, 0, 0 
+            write(iu,'(3I10)') 0, 0, 0
             write(iu,'(8I10)') (prev_coord + elg%nn(FE_DB(idesc)%nn_order(i),k), i = 1, FEDB(tp)%lnn)
           end do
-        else !non-Lagrange P2 elements      
+        else !non-Lagrange P2 elements
           do k = 1, elg%nel
             write(iu,'(6I10)') prev_nel + k, idesc, 2, 1, 7, FEDB(tp)%lnv
-            write(iu,'(3I10)') 0, 0, 0 
-            !ATTENTION: if we have P1 and P2 mixed, znod was written above; we assume here that mm has the same global numbering 
+            write(iu,'(3I10)') 0, 0, 0
+            !ATTENTION: if we have P1 and P2 mixed, znod was written above; we assume here that mm has the same global numbering
             !than nn in vertices
             write(iu,'(8I10)') prev_coord + elg%mm(:,k)
           end do
@@ -186,7 +180,7 @@ end do
 write(iu,'(I6)') -1
 
 !save groups
-call info('Writing references ...')  
+call info('Writing references ...')
 write(iu,'(I6)') -1
 write(iu,'(I6)') 2467
 prev_coord = 0; prev_nel = 0
@@ -198,7 +192,7 @@ do ipp = 1, size(piece2save,1)
       do ir = 1, size(unique_ref,1)
         call info('  piece_'//trim(string(ip))//'_group_'//trim(string(ig))//'_ref_'//trim(string(unique_ref(ir))))
         call sfind(elg%ref, unique_ref(ir), k_ref)
-        write(iu,'(8I10)') unique_ref(ir), 0, 0, 0, 0, 0, 0, size(k_ref, 1) 
+        write(iu,'(8I10)') unique_ref(ir), 0, 0, 0, 0, 0, 0, size(k_ref, 1)
         write(iu,'(A)') 'piece_'//trim(string(ip))//'_group_'//trim(string(ig))//'_ref_'//trim(string(unique_ref(ir)))
         if (FEDB(tp)%tdim > 0) then !non-vertex elements
           write(iu,'(8i10)') (8, prev_nel + k_ref(i), 0, 0, i = 1, size(k_ref,1))
@@ -271,7 +265,7 @@ do i = 1,size(piece2save,1)
           if(allocated(infield)) then
             do k=1,size(infield,1)
               if(trim(adjustl(pc%fi(j)%name))==trim(adjustl(infield(k)))) &
-                & fieldname = trim(adjustl(outfield(k))) 
+                & fieldname = trim(adjustl(outfield(k)))
             enddo
           else
             fieldname = trim(adjustl(outfield(k)))
@@ -306,7 +300,7 @@ do i = 1,size(piece2save,1)
             write(iu,'(6I10)') 0,0,dc,1000+counter,4,ncomp
           endif
           if(ds == 2414) then
-            !Design set ID, Iteration number, Solution set ID, Boundary condition, Load set, Mode number, Time step number, 
+            !Design set ID, Iteration number, Solution set ID, Boundary condition, Load set, Mode number, Time step number,
             !Frequency number, ...
             write(iu,'(8I10)') (/j,np-1,j,0,0,np-1,np-1,np-1/) ! Record10: Integer analysis type speciic data (1-8) (2414)
             write(iu,'(8I10)') (/(0,m=1,2)/)                   ! Record11: Integer analysis type speciic data (9-10) (2414)
@@ -341,7 +335,7 @@ do i = 1,size(piece2save,1)
             if(allocated(infield)) then
               do l=1,size(infield,1)
                 if(trim(adjustl(pc%el(j)%fi(k)%name))==trim(adjustl(infield(l)))) &
-                  & fieldname = trim(adjustl(outfield(l))) 
+                  & fieldname = trim(adjustl(outfield(l)))
               enddo
             else
               fieldname = trim(adjustl(outfield(counter)))
@@ -376,7 +370,7 @@ do i = 1,size(piece2save,1)
               write(iu,'(6I10)') &
                 & get_ca_field_record9(fieldname, (/0,0,dc,1000+counter,4,ncomp/))
             else
-              write(iu,'(6I10)') 0,0,dc,1000+counter,4,ncomp        
+              write(iu,'(6I10)') 0,0,dc,1000+counter,4,ncomp
             endif
             if(ds == 2414) then
               write(iu,'(8I10)') (/(0,m=1,8)/)                 ! Record10: Integer analysis type speciic data (1-8) (2414)
@@ -403,7 +397,7 @@ do i = 1,size(piece2save,1)
       endif
       prev_nel = prev_nel+pc%el(j)%nel
     enddo
-  end associate 
+  end associate
 enddo
 end subroutine
 

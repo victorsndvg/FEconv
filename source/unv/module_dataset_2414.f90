@@ -21,7 +21,7 @@ module module_dataset_2414
 !Record 5:        FORMAT (40A2)
 !                 Field 1:      -- ID line 2
 !
-! 
+!
 !Record 6:        FORMAT (40A2)
 !                 Field 1:      -- ID line 3
 !Record 7:        FORMAT (40A2)
@@ -29,12 +29,12 @@ module module_dataset_2414
 !Record 8:        FORMAT (40A2)
 !                 Field 1:      -- ID line 5
 !Record 9:        FORMAT (6I10)
-!                 Field 1:      -- Model type 
+!                 Field 1:      -- Model type
 !                                   0:   Unknown
 !                                   1:   Structural
 !                                   2:   Heat transfer
 !                                   3:   Fluid flow
-!                 Field 2:      -- Analysis type 
+!                 Field 2:      -- Analysis type
 !                                   0:   Unknown
 !                                   1:   Static
 !                                   2:   Normal mode
@@ -49,11 +49,11 @@ module module_dataset_2414
 !                                  12:   Effective mass modes
 !                                  13:   Effective mass matrix
 !                                  14:   Effective mass matrix
-!                 Field 3:      -- Data characteristic     
+!                 Field 3:      -- Data characteristic
 !                                   0:   Unknown
 !                                   1:   Scalar
 !                                   2:   3 DOF global translation vector
-!                                   3:   6 DOF global translation & rotation 
+!                                   3:   6 DOF global translation & rotation
 !                                         vector
 !                                   4:   Symmetric global tensor
 !                                   6:   Stress resultants
@@ -115,7 +115,7 @@ module module_dataset_2414
 !                                  58:Safety Factor
 !                                  59:Fatigue Damage
 !                                  60:Fatigue Damage With Direction
-!                                  61:Fatigue Life                      
+!                                  61:Fatigue Life
 !                                  62:Quality Index
 !                                  94:Unknown Scalar
 !                                  95:Unknown 3DOF Vector
@@ -201,13 +201,13 @@ module module_dataset_2414
 !                                 304:Sound Energy
 !                                 305:Sound Energy Density
 !                                >1000:  User defined result type
-!                 Field 5:      -- Data type               
+!                 Field 5:      -- Data type
 !                                   1:   Integer
 !                                   2:   Single precision floating point
 !                                   4:   Double precision floating point
 !                                   5:   Single precision complex
 !                                   6:   Double precision complex
-!                 Field 6:      -- Number of data values for the data 
+!                 Field 6:      -- Number of data values for the data
 !                                  component (NVALDC)
 !Record 10:       FORMAT (8I10)
 !                 Field 1:      -- Integer analysis type specific data (1-8)
@@ -223,33 +223,33 @@ module module_dataset_2414
 !                 Field 1:      -- Node number
 !Record 15:       FORMAT (6E13.5)
 !                 Fields 1-N:   -- Data at this node (NDVAL real or complex values)
-!                 Note: Records 14 and 15 are repeated for each node.      
+!                 Note: Records 14 and 15 are repeated for each node.
 !Dataset class: Data at elements
 !Record 14:       FORMAT (2I10)
 !                 Field 1:      -- Element number
 !                 Field 2:      -- Number Of data values For this element(NDVAL)
 !Record 15:       FORMAT (6E13.5)
 !                 Fields 1-N:   -- Data on element(NDVAL Real Or Complex Values)
-!                 Note: Records 14 and 15 are repeated for all elements. 
+!                 Note: Records 14 and 15 are repeated for all elements.
 !Dataset class: Data at nodes on elements
 !RECORD 14:       FORMAT (4I10)
 !                 Field 1:      -- Element number
-!                 Field 2:      -- Data expansion code (IEXP) 
+!                 Field 2:      -- Data expansion code (IEXP)
 !                                  1: Data present for all nodes
 !                                  2: Data present for only 1st node -All other
 !                                     nodes the same.
 !                 Field 3:      -- Number of nodes on elements (NLOCS)
-!                 Field 4:      -- Number of data values per node (NVLOC) 
+!                 Field 4:      -- Number of data values per node (NVLOC)
 !RECORD 15:       FORMAT (6E13.5)
 !                 Fields 1-N:   -- Data Values At Node 1 (NVLOC Real Or
 !                                  Complex Values)
-!                 Note:  Records 14 And 15 Are repeated For each Element.      
+!                 Note:  Records 14 And 15 Are repeated For each Element.
 !                        For Iexp = 1 Record 15 Is repeated NLOCS Times
-!                        For Iexp = 2 Record 15 appears once          
+!                        For Iexp = 2 Record 15 appears once
 !Dataset class: Data at points
 !RECORD 14:       FORMAT (5I10)
 !                 Field 1:      -- Element number
-!                 Field 2:      -- Data expansion code (IEXP) 
+!                 Field 2:      -- Data expansion code (IEXP)
 !                                  1: Data present for all points
 !                                  2: Data present for only 1st point -All other
 !                                     points the same.
@@ -258,15 +258,13 @@ module module_dataset_2414
 !                 Field 5:      -- Element order
 !RECORD 15:       FORMAT (6E13.5)
 !                 Fields 1-N:   -- Data Values At point 1 (NVLOC Real Or
-!                                  Complex Values) 
-!                 Note:  Records 14 And 15 Are repeated For each Element.      
+!                                  Complex Values)
+!                 Note:  Records 14 And 15 Are repeated For each Element.
 !                        For Iexp = 1 Record 15 Is repeated NLOC Times
-!                        For Iexp = 2 Record 15 appears once          
+!                        For Iexp = 2 Record 15 appears once
 !-----------------------------------------------------------------------
-use module_COMPILER_DEPENDANT, only: real64
-use module_ALLOC
+use basicmod
 use module_dataset
-use module_convers, only:string
 use module_pmh, only: pmh_mesh, field
 use module_fe_database_pmh, only: FEDB
 implicit none
@@ -297,8 +295,8 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
  real(real64)                      :: paramval
  integer :: lbl, dloc, ncomp, fidx, n_nod, n_el, iexp, n_nod_el,nval
  character(len=maxpath) :: name, aux
- real(real64), allocatable, dimension(:) :: val, tempval
- type(field), allocatable, dimension(:) :: auxfi
+ real(real64), allocatable :: val(:), tempval(:), mat3(:,:,:)
+ type(field),  allocatable :: auxfi(:)
  logical :: found = .true.
 
   ! Single param
@@ -306,7 +304,7 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
   paramval = 0._real64
   counter = 0
 
-  if(dataset == 2414) then 
+  if(dataset == 2414) then
     read (unit=iu, fmt='(1I10)', iostat = ios) lbl   ! Analysis dataset label. Record1
       if (ios /= 0) call error('dataset_2414/read, #'//trim(string(ios)))
     read (unit=iu, fmt='(1A80)', iostat = ios) name  ! Analysis dataset name. Record 2
@@ -437,10 +435,9 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
     else
       call set(pmh%pc(npc)%fi(fidx)%param,paramval,nparam,fit=.true.)
     endif
-
-    call set(pmh%pc(npc)%fi(fidx)%val, (/(padval,i=1,pmh%pc(npc)%nnod*ncomp)/), &
-      & (/(i,i=1,ncomp)/), (/(i,i=1,pmh%pc(npc)%nnod)/), (/nparam/), fit=[.true.,.true.,.true.])
-
+    call alloc(mat3, ncomp, pmh%pc(npc)%nnod, 1)
+    mat3 = reshape([(padval,i=1,pmh%pc(npc)%nnod*ncomp)], [ncomp, pmh%pc(npc)%nnod, 1])
+    call set(pmh%pc(npc)%fi(fidx)%val, mat3, [(i,i=1,ncomp)], [(i,i=1,pmh%pc(npc)%nnod)], [nparam], fit=[.true.,.true.,.true.])
     do
       if (is_dataset_delimiter(iu, back=.true.)) exit
     ! Node or element number. Record14
@@ -519,8 +516,9 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
           else
             call set(elg%fi(fidx)%param,paramval,nparam,fit=.true.)
           endif
-          call set(elg%fi(fidx)%val, (/(padval,i=1,elg%nel*ncomp)/), &
-            & (/(i,i=1,ncomp)/), (/(i,i=1,elg%nel)/), (/nparam/), fit=[.true.,.true.,.true.])
+          call alloc(mat3, ncomp, elg%nel, 1)
+          mat3 = reshape([(padval, i=1,elg%nel*ncomp)], [ncomp, elg%nel, 1])
+          call set(elg%fi(fidx)%val, mat3, [(i,i=1,ncomp)], [(i,i=1,elg%nel)], [nparam], fit=[.true.,.true.,.true.])
         endif
 
       ! Data. Record15

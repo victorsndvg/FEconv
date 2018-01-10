@@ -14,12 +14,8 @@ module module_write_pf3
 ! write_pf3_node_field: write PF3 node field
 !-----------------------------------------------------------------------
 
-use module_COMPILER_DEPENDANT, only: real64
-use module_os_dependant, only: maxpath
-use module_report, only:error
-use module_set, only:unique
-use module_convers
-use module_mesh
+use basicmod
+!use module_mesh
 use module_pmh
 use module_utils_pf3
 
@@ -75,9 +71,9 @@ subroutine write_pf3_header(iu, pmh)
         endif
       enddo
       nregs = npointregs + nedgeregs + nsurfregs + nvolregs
-      if(pmh%pc(i)%nnod /= 0) then 
+      if(pmh%pc(i)%nnod /= 0) then
         npoints = npoints + pmh%pc(i)%nnod
-      else 
+      else
         npoints = npoints + pmh%pc(i)%nver
       endif
     enddo
@@ -130,7 +126,7 @@ subroutine write_pf3_header(iu, pmh)
 
 
     ! Write Flux PF3 region descriptors
-    do i = 1, nvolregs; 
+    do i = 1, nvolregs;
       write(unit=iu, fmt='(a,3I6)', iostat = ios)  ' ',0,4,5
       if (ios /= 0) call error('module_utils_pf3/write_header # '//trim(string(ios)))
     enddo
@@ -255,7 +251,7 @@ subroutine write_pf3_node_field(iu, pmh, infield, outfield, param)
   type(pmh_mesh),         intent(inout) :: pmh
   character(*), allocatable, intent(in) :: infield(:)  ! In field names
   character(*), allocatable, intent(in) :: outfield(:) ! Out field names
-  real(real64), optional,    intent(in) :: param 
+  real(real64), optional,    intent(in) :: param
   character(len=maxpath)                :: fieldname
   integer                               :: i, j, k, ios
   integer                               :: tnnod, ncomp, pindex

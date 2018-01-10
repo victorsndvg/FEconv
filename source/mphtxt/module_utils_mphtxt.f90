@@ -17,7 +17,7 @@ module module_utils_mphtxt
 ! build_faces_baricenter: build the baricenter of the faces of the given elements
 !-----------------------------------------------------------------------
 
-use module_alloc, only:set_col,insert_col, reduce
+use basicmod, only: insert, reduce
 use module_pmh
 
 implicit none
@@ -426,8 +426,8 @@ subroutine build_elements_baricenter(pc, ip, ie, znod)
       enddo
       if (pc%el(ie)%nn(mphlnn,i) == 0) pc%el(ie)%nn(mphlnn,i) = size(znod,1)+1
       indx = pc%el(ie)%nn(mphlnn,i)
-      if(indx < size(znod,2)) then; call set_col(znod, val, indx)
-      else; call insert_col(znod, val, indx); endif
+      if(indx < size(znod,2)) then; call set(2, znod, val, indx)
+      else; call insert(2, znod, val, indx); endif
       if(maxindx<max(indx,size(znod,2))) maxindx=max(indx,size(znod,2))
     end do
 
@@ -474,8 +474,8 @@ subroutine build_faces_baricenter(pc, ip, ie, znod)
           indx = FEDB(tp)%lnv+FEDB(tp)%lne+i
           if (pc%el(ie)%nn(indx,k) == 0) pc%el(ie)%nn(indx,k) = size(znod,1)+1
           val(j) = sum(pc%z(j, pc%el(ie)%mm(FEDB(tp)%face(:,i),k))) / FEDB(FEDB(tp)%f_type)%lnv
-          if(pc%el(ie)%nn(indx,k) < size(znod,2)) then; call set_col(znod, val, pc%el(ie)%nn(indx,k))
-          else; call insert_col(znod, val, pc%el(ie)%nn(indx,k)); endif
+          if(pc%el(ie)%nn(indx,k) < size(znod,2)) then; call set(2, znod, val, pc%el(ie)%nn(indx,k))
+          else; call insert(2, znod, val, pc%el(ie)%nn(indx,k)); endif
           if(maxindx<max(pc%el(ie)%nn(indx,k),size(znod,2))) maxindx=max(pc%el(ie)%nn(indx,k),size(znod,2))
         end do
       end do
