@@ -104,7 +104,7 @@ includes =
 FC =   ifort
  
 # COMPILER OPTIONS
-FFLAGS = -Ibasicmod/include/ifort.linux
+FFLAGS = -module $(dir_objetos) -Ibasicmod/include/ifort.linux
  
 # LINKER OPTIONS
 LDFLAGS = -static -Lbasicmod/lib -lbasicmod-18.01-ifort-linux
