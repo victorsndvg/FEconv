@@ -6,11 +6,14 @@ These instructions are only relevant to those who want to change the module depe
 
 1. Install creamake from https://sourceforge.net/projects/creamake/ 
 
-2. Modify the file configure/creamake.<compiler>.<os> where <compiler> can be "gfortran" 
-   or "ifort" and <os> can be "linux" or "windows" (Mac OS X is considered "linux").
+2. Modify the file configure/creamake.<compiler>.<os>.xml where 
+   - <compiler> can be "gfortran" or "ifort" and 
+   - <os> can be "linux", "windows" or "osx-<version>".
 
 3. Open a Terminal in GNU/Linux or a Command Window in Windows; type in installation folder: 
 
    creamake configure/creamake.<compiler>.<os>
   
 A new Makefile should appear in the installation folder.
+
+4. Move Makefile to Makefile.<compiler>.<os>

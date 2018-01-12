@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- Configuration data file for creamake with gfortran in Windows -->
-<!-- suggested fflags: -stand:f03 -warn:all -->
+<!-- Other suggested fflags: /nologo /stand:f15 /warn:all /check:all,noarg_temp_created /traceback /debug -->
 <content>
 
 <os>
@@ -9,12 +9,6 @@ windows
 
 <sources>
 source
-source/basicmod
-source/basicmod/intel
-source/basicmod/args
-source/basicmod/alloc
-source/basicmod/vtk
-source/basicmod/xml
 source/cuthill_mckee
 source/ansys
 source/patran
@@ -28,6 +22,7 @@ source/flux
 source/freefem
 source/fem_extract
 source/gmsh
+source/main
 </sources>
  
 <compiler>
@@ -35,7 +30,11 @@ ifort
 </compiler>
 
 <fflags>
--stand:f03 -warn:all
+/nologo /stand:f15 /warn:all /check:all,noarg_temp_created /traceback /Ibasicmod\include\ifort.windows
 </fflags>
+
+<ldflags>
+/static /link basicmod\lib\libbasicmod-18.01-ifort-windows.lib 
+</ldflags>
 
 </content>

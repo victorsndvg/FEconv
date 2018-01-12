@@ -34,7 +34,7 @@ gfortran
 </fflags>
 
 <ldflags>
--Lbasicmod\lib -lbasicmod-18.01-gfortran-linux
+-Lbasicmod/lib -lbasicmod-18.01-gfortran-linux
 </ldflags>
 
 <rules>

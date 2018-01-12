@@ -110,10 +110,10 @@ includes =
 FC = gfortran
  
 # COMPILER OPTIONS
-FFLAGS = -J$(dir_objetos) -Wall -ggdb -fcheck=all -fbacktrace -fall-intrinsics -Iinclude\gfortran.windows
+FFLAGS = -J$(dir_objetos) -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include/gfortran.windows
  
 # LINKER OPTIONS
-LDFLAGS = -static -ggdb -static -Llib -lbasicmod-17.12-gfortran-windows
+LDFLAGS = -static -Lbasicmod/lib -lbasicmod-18.01-gfortran-windows
  
 #################################################################
 # Non-modifiable part

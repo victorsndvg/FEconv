@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- Configuration data file for creamake with gfortran in Linux-->
-<!-- suggested fflags: -std=f2003 -Wall -g -fcheck=all -fbacktrace -fall-intrinsics -->
+<!-- Suggested fflags: -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -ggdb -->
 <content>
 
 <sources>
 source
-source/basicmod
-source/basicmod/gfortran
-source/basicmod/args
-source/basicmod/alloc
-source/basicmod/vtk
-source/basicmod/xml
 source/cuthill_mckee
 source/ansys
 source/patran
@@ -24,6 +18,7 @@ source/flux
 source/freefem
 source/fem_extract
 source/gmsh
+source/main
 </sources>
  
 <compiler>
@@ -31,7 +26,11 @@ gfortran
 </compiler>
 
 <fflags>
--Wall -g -fcheck=all -fbacktrace -fall-intrinsics -L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib
+-std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include/gfortran.linux
 </fflags>
+
+<ldflags>
+-static -Lbasicmod/lib -lbasicmod-18.01-gfortran-linux -L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib
+</ldflags>
 
 </content>

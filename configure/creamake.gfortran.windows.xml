@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- Configuration data file for creamake with gfortran in Windows -->
-<!-- suggested fflags: -std=f2003 -Wall -fall-intrinsics -->
+<!-- Suggested fflags: -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -ggdb -->
 <content>
 
 <os>
@@ -30,12 +30,11 @@ gfortran
 </compiler>
 
 <fflags>
--Wall -ggdb -fcheck=all -fbacktrace -fall-intrinsics -Iinclude\gfortran.windows
+-std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include/gfortran.windows
 </fflags>
 
 <ldflags>
--static -ggdb -static -Llib -lbasicmod-17.12-gfortran-windows
+-static -Lbasicmod/lib -lbasicmod-18.01-gfortran-windows
 </ldflags>
-
 
 </content>
