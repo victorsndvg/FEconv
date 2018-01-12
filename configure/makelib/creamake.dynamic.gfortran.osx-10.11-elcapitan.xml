@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- Configuration data file for creamake with gfortran in OS X -->
 <!-- Suggested fflags: -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -ggdb -->
-<!-- 
-============================================================== 
-Remember to include the path to folder lib/ in the variable DYLD_LIBRARY_PATH with:
-export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path-to-lib> 
-============================================================== 
--->
 <content>
 
 <sources>
@@ -24,19 +18,29 @@ source/flux
 source/freefem
 source/fem_extract
 source/gmsh
-source/main
 </sources>
- 
+
+<exec>
+libfeconv-18.01-gfortran-osx.dylib
+</exec>
+
 <compiler>
 gfortran
 </compiler>
 
 <fflags>
--Ibasicmod/include/gfortran.osx
+-fPIC -Ibasicmod/include/gfortran.osx
 </fflags>
 
 <ldflags>
 -Lbasicmod/lib -lbasicmod-18.01-gfortran-osx
 </ldflags>
+
+<rules>
+$(ejecutable): $(modulos_obj)
+	$(FC) -dynamiclib  -install_name $(ejecutable) -o $(ejecutable) $(condir_modulos_obj) $(LDFLAGS)
+	@mv $(ejecutable) lib/
+	@mv object/*.mod include/gfortran.osx/
+</rules>
 
 </content>
