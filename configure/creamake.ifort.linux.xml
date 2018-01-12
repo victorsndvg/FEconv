@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- Configuration data file for creamake with gfortran in Linux-->
-<!-- Other suggested fflags: -nologo -stand f15 -warn all -check all,noarg_temp_created -traceback -debug -->
+<!-- Suggested fflags: -nologo -stand f15 -warn all -check all,noarg_temp_created -traceback -debug -->
 <content>
 
 <sources>
