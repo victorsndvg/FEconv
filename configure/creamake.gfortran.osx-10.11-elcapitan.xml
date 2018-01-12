@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!-- Configuration data file for creamake with gfortran in Linux-->
+<!-- Configuration data file for creamake with gfortran in OS X -->
 <!-- Suggested fflags: -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -ggdb -->
 <content>
 
@@ -26,11 +26,11 @@ gfortran
 </compiler>
 
 <fflags>
--std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include/gfortran.linux
+-Ibasicmod/include/gfortran.osx
 </fflags>
 
 <ldflags>
--static -Lbasicmod/lib -lbasicmod-18.01-gfortran-linux -L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib
+-Lbasicmod/lib -lbasicmod-18.01-gfortran-osx
 </ldflags>
 
 </content>
