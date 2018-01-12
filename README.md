@@ -12,7 +12,17 @@ Open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the 
 
 where \<compiler\> can be "gfortran" or "ifort" and \<os\> can be "linux" or "windows". For Mac OS X, some Makefiles are provided, indicating the OS version where they were tested. If none of them works for you, maybe "linux" can be valid. Be aware that in Windows, MinGW32 distribution uses `mingw32-make` instead of `make`.
 
-# 3. Supported formats
+# 3. Use it as a library
+
+Prebuilt libraries are in folder lib/. Includes are folder include/. To build the library by your own, you must have previously installed make in your system and a Fortran 2003 compiler. At the present time, only the GNU Fortran compiler, gfortran, and the Intel Fortran compiler, ifort, are supported.
+Go to https://github.com/victorsndvg/FEconv, download the ZIP file and unzip it in the installation folder.
+Open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the installation folder and type:
+
+        make -f Makefile.makelib.<compiler>.<os>
+
+where \<compiler\> can be "gfortran" or "ifort" and \<os\> can be "linux" or "windows". For Mac OS X, some Makefiles are provided, indicating the OS version where they were tested. If none of them works for you, maybe "linux" can be valid. Be aware that in Windows, MinGW32 distribution uses `mingw32-make` instead of `make`.
+
+# 4. Supported formats
 ## The available input mesh formats are:
 
     ANSYS (.msh)
@@ -50,7 +60,7 @@ where \<compiler\> can be "gfortran" or "ifort" and \<os\> can be "linux" or "wi
     Modulef-like Unformatted Field (.muf)
     ANSYS interpolation file (.ip)
 
-# 4. License
+# 5. License
 
 «Copyright 2012 Iban Constenla, Victor Sande, Francisco Pena»
 
