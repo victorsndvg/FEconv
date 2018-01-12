@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!-- Configuration data file for creamake with gfortran in Linux -->
-<!-- See https://www.codeproject.com/articles/84461/mingw-static-and-dynamic-libraries -->
-<!-- Suggested fflags: -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -ggdb -->
+<!-- Configuration data file for creamake with ifort in Linux -->
+<!-- See http://www.nacad.ufrj.br/online/intel/Documentation/en_US/compiler_f/main_for/bldaps_for/common/bldaps_create_stlib.htm -->
+<!-- Suggested fflags: -nologo -stand f15 -warn all -check all,noarg_temp_created -traceback -debug -->
 <content>
 
 <sources>
@@ -22,26 +22,26 @@ source/gmsh
 </sources>
 
 <exec>
-libfeconv-18.01-gfortran-linux.a
+libfeconv-18.01-ifort-linux.a
 </exec>
 
 <compiler>
-gfortran
+  ifort
 </compiler>
 
 <fflags>
--Ibasicmod/include/gfortran.linux
+-Ibasicmod/include/ifort.linux
 </fflags>
 
 <ldflags>
--Lbasicmod/lib -lbasicmod-18.01-gfortran-linux
+-static -Lbasicmod/lib -lbasicmod-18.01-ifort-linux
 </ldflags>
 
 <rules>
 $(ejecutable): $(modulos_obj)
 	$(AR) rcs $(ejecutable) $(condir_modulos_obj)
 	-mv $(ejecutable) lib/
-	-mv object/*.mod include/gfortran.linux/
+	-mv object/*.mod include/ifort.linux/
 </rules>
 
 </content>

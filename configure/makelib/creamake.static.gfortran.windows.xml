@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- Configuration data file for creamake with gfortran in Windows with MinGW -->
 <!-- See https://www.codeproject.com/articles/84461/mingw-static-and-dynamic-libraries -->
-<!-- Other suggested fflags: -g -Wall -fcheck=all -fbacktrace -->
+<!-- Suggested fflags: -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -ggdb -->
 <content>
 
 <os>
@@ -34,11 +34,11 @@ gfortran
 </compiler>
 
 <fflags>
--Ibasicmod\include\gfortran.windows
+-Ibasicmod/include/gfortran.windows
 </fflags>
 
 <ldflags>
--Lbasicmod\lib -lbasicmod-17.12-gfortran-windows
+-Lbasicmod/lib -lbasicmod-18.01-gfortran-windows
 </ldflags>
 
 <rules>
