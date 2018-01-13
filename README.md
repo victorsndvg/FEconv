@@ -10,21 +10,21 @@ The prerequisites are:
  - the program _make_ (for Windows it can be found as _mingw32-make_ in the MinGW distribution) and 
  - a Fortran 2003 compiler; at the present time, only the GNU Fortran compiler, _gfortran_, and the Intel Fortran compiler, _ifort_, are supported in FEconv.
  
-After install the prerequisites, go to https://github.com/victorsndvg/FEconv, download the ZIP file and unzip it in the installation folder; open a terminal in Linux or OS X, or a Command Window in Windows, go to the installation folder and type:
+After install the prerequisites, go to https://github.com/victorsndvg/FEconv, download the ZIP file and unzip it in the installation folder; open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the installation folder and type:
 ```shell
   make -f Makefile.<compiler>.<os>
 ```
-where _\<compiler\>_  can be _gfortran_ or _ifort_ and _\<os\>_ can be _linux_ or _windows_. For OS X, some Makefiles are provided, indicating for which version they were tested. If none of them works for you, maybe _linux_ could be a valid choice. Be aware that in Windows, MinGW distribution uses _mingw32-make_ instead of _make_.
+where _\<compiler\>_  can be _gfortran_ or _ifort_ and _\<os\>_ can be _linux_, _windows_ or _osx_. For Mac OS X, some Makefiles are provided, indicating for which version they were tested. Be aware that in Windows, MinGW distribution uses _mingw32-make_ instead of _make_.
 
 ## As a library
 
 Prebuilt libraries and header files are located in folders _lib/_  and _include/_. 
 
-If you want to build the libraries by your own, you must install the prerequisites previously mentioned. Open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the installation folder and type:
+If you want to build the libraries by your own, you must install the prerequisites previously mentioned. Open a terminal in Linux or Mac Mac OS X, or a Command Window in Windows, go to the installation folder and type:
 ```shell
   make -f Makefile.makelib.<compiler>.<os>
 ```
-where _\<compiler\>_ can be _gfortran_ or _ifort_ and _\<os\>_ can be _linux_ or _windows_. For OS X, some Makefiles are provided, indicating for which version they were tested. If none of them works for you, maybe _linux_ could be a valid choice. Be aware that in Windows, MinGW distribution uses _mingw32-make_ instead of _make_.
+where _\<compiler\>_ can be _gfortran_ or _ifort_ and _\<os\>_ can be _linux_, _windows_ or _osx_. For Mac OS X, some Makefiles are provided, indicating for which version they were tested. Be aware that in Windows, MinGW distribution uses _mingw32-make_ instead of _make_.
 
 # 3. Usage
 
