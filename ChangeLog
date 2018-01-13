@@ -5,3 +5,4 @@ CHANGELOG / RELEASE NOTES
 18.01                                                                 2017-01-12
 --------------------------------------------------------------------------------
 - Add: Makefiles for OS X.
+- Add: Example of use as a library, in folder testlib/.

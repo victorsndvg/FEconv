@@ -1,0 +1,7 @@
+test: test.f90
+	ifort -static -o test test.f90 -module ../include/ifort.linux/ -module ../basicmod/include/ifort.linux/ -L../lib/ -L../basicmod/lib/ -lfeconv-18.01-ifort-linux -lbasicmod-18.01-ifort-linux
+
+.PHONY: clean
+clean:
+	rm test
+	rm *.mod

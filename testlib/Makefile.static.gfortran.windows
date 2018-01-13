@@ -1,0 +1,7 @@
+test: test.f90
+	gfortran -static -o test.exe test.f90 -I../include/gfortran.windows/ -I../basicmod/include/gfortran.windows/ -L../lib/ -L../basicmod/lib/ -lfeconv-18.01-gfortran-windows -lbasicmod-18.01-gfortran-windows
+
+.PHONY: clean
+clean:
+	del test.exe
+	del *.mod

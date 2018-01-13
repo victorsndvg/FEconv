@@ -1,0 +1,7 @@
+test: test.f90
+	gfortran -static -o test test.f90 -I../include/gfortran.linux/ -I../basicmod/include/gfortran.linux/ -L../lib/ -L../basicmod/lib/ -lfeconv-18.01-gfortran-linux -lbasicmod-18.01-gfortran-linux
+
+.PHONY: clean
+clean:
+	rm test
+	rm *.mod
