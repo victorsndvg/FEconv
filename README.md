@@ -20,7 +20,7 @@ where _\<compiler\>_  can be _gfortran_ or _ifort_ and _\<os\>_ can be _linux_, 
 
 Prebuilt libraries and header files are located in folders _lib/_  and _include/_. 
 
-If you want to build the libraries by your own, you must install the prerequisites previously mentioned. Open a terminal in Linux or Mac Mac OS X, or a Command Window in Windows, go to the installation folder and type:
+If you want to build the libraries by your own, you must install the prerequisites previously mentioned. Then open a terminal in Linux or Mac Mac OS X, or a Command Window in Windows, go to the installation folder and type:
 ```shell
   make -f Makefile.makelib.<compiler>.<os>
 ```
