@@ -25,9 +25,11 @@ elseif (lnf <= 1) then; doe = 2
 else ;                  doe = 3
 end if
 ! save mesh in MFM to disk
-if (.not. file_exists('meshout.mfm') .or. ('meshin.vtu' .IsNewerThan. 'mreshout.mfm')) then
+if (.not. file_exists('meshout.mfm') .or. ('meshin.vtu' .IsNewerThan. 'meshout.mfm')) then
   print*, 'meshout.mfm will be updated.'
   call save_mfm('meshout.mfm', get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+else
+  print*, 'meshout.mfm will not be updated.'
 end if
 end program
 
