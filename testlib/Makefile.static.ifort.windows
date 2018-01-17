@@ -1,0 +1,8 @@
+# Do not put a final backslah in option /I
+test: test.f90
+	ifort test.f90 /libs:static /exe:test.exe /I..\include\ifort.windows /I..\basicmod\include\ifort.windows /link ..\lib\libfeconv-18.01-ifort-windows.lib ..\basicmod\lib\libbasicmod-18.01-ifort-windows.lib
+
+.PHONY: clean
+clean:
+	del test.exe
+	del *.mod
