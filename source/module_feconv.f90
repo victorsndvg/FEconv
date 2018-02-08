@@ -90,12 +90,8 @@ endif
 !find infile and outfile at the end of the arguments
 nargs = args_count()
 
-if(is_arg('-l'))) then
-  ! with argument -l only outfile is read as the post-argument of -l
-  outfile = get_post_arg('-l'); p      = index( outfile, '.', back=.true.)
-  outmesh = outfile(1:p-1);     outext = lcase(outfile(p+1:len_trim(outfile)))
-elseif(present(inpmh)) then
-  ! with inpmh present, only outfile is read as the last argument
+if(is_arg('-l') .or. present(inpmh)) then
+  ! with argument -l or with inpmh present, only outfile is read as the last argument
   outfile = get_arg(nargs);     p      = index( outfile, '.', back=.true.)
   outmesh = outfile(1:p-1);     outext = lcase(outfile(p+1:len_trim(outfile)))
 elseif(present(outpmh)) then
