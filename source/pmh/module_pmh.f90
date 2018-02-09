@@ -89,90 +89,95 @@ contains
 !-----------------------------------------------------------------------
 ! save_pmh: save pmh
 !-----------------------------------------------------------------------
-subroutine save_pmh(filename, pmh, with_values)
-character(*),   intent(in) :: filename !mesh filename
-type(pmh_mesh), intent(in) :: pmh      !pmh structure
-logical, optional          :: with_values
-integer                    :: iu       !file unit
-logical :: wv
-integer :: i, j, k, ip, ig, ios
-
-wv = .true.
-if (present(with_values)) wv = with_values
-
-if(wv) then
-  iu = get_unit()
-  open (unit=iu, file=filename, form='formatted', position='rewind', iostat=ios)
-  if (ios /= 0) call error('module_pmh/save_pmh: open error #'//trim(string(ios)))
-else
-  iu = output_unit
-endif
-write(iu, '(a/)') '<?xml version="1.0" encoding="UTF-8" ?>'
-write(iu, '(a)') '<pmh>'
-do ip = 1, size(pmh%pc,1)
-  write(iu, '(2x,a)') '<piece name="'//trim(string(ip))//'">'
-  write(iu, '(4x,a)') '<nnod> '//trim(string(pmh%pc(ip)%nnod))//' </nnod>'
-  write(iu, '(4x,a)') '<nver> '//trim(string(pmh%pc(ip)%nver))//' </nver>'
-  write(iu, '(4x,a)')  '<dim> '//trim(string(pmh%pc(ip)%dim))//' </dim>'
-  if(wv) then
-    write(iu, '(4x,a)') '<z>'
-    do k = 1, pmh%pc(ip)%nver; do j = 1, pmh%pc(ip)%dim; call feed(iu, string(pmh%pc(ip)%z(j,k))); end do; end do; call empty(iu)
-    write(iu, '(4x,a)') '</z>'
-  endif
-  do ig = 1, size(pmh%pc(ip)%el,1)
-    associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
-      write(iu, '(4x,a)') '<element_group name="'//trim(string(ig))//'">'
-      write(iu, '(6x,a)')  '<nel> '//trim(string(elg%nel))//' </nel>'
-      write(iu, '(6x,a)') '<type> '//trim(string(elg%type))//' </type>'
-      write(iu, '(6x,a)') '<desc>'
-      write(iu,    '(a)') trim(FEDB(elg%type)%desc)
-      write(iu, '(6x,a)') '</desc>'
-
-      if(wv) then
-        if (allocated(elg%nn)) then
-          write(iu, '(6x,a)') '<nn>'
-          do k = 1, elg%nel; do i = 1, FEDB(tp)%lnn; call feed(iu, string(elg%nn(i,k))); end do; end do; call empty(iu)
-          write(iu, '(6x,a)') '</nn>'
-        end if
-        write(iu, '(6x,a)') '<mm>'
-        do k = 1, elg%nel; do i = 1, FEDB(tp)%lnv; call feed(iu, string(elg%mm(i,k))); end do; end do; call empty(iu)
-        write(iu, '(6x,a)') '</mm>'
-        write(iu, '(6x,a)') '<ref>'
-        do k = 1, elg%nel; call feed(iu, string(elg%ref(k))); end do; call empty(iu)
-        write(iu, '(6x,a)') '</ref>'
-      endif
-      write(iu, '(4x,a)') '</element_group>'
-    end associate
-  end do
-  write(iu, '(2x,a)') '</piece>'
-end do
-write(iu, '(a)') '</pmh>'
-if(wv) close(iu)
-end subroutine
-
+!subroutine save_pmh(filename, pmh, with_values)
+!character(*),   intent(in) :: filename !mesh filename
+!type(pmh_mesh), intent(in) :: pmh      !pmh structure
+!logical, optional          :: with_values
+!integer                    :: iu       !file unit
+!logical :: wv
+!integer :: i, j, k, ip, ig, ios
+! 
+!wv = .true.
+!if (present(with_values)) wv = with_values
+! 
+!if(wv) then
+!  iu = get_unit()
+!  open (unit=iu, file=filename, form='formatted', position='rewind', iostat=ios)
+!  if (ios /= 0) call error('module_pmh/save_pmh: open error #'//trim(string(ios)))
+!else
+!  iu = output_unit
+!endif
+!write(iu, '(a/)') '<?xml version="1.0" encoding="UTF-8" ?>'
+!write(iu, '(a)') '<pmh>'
+!do ip = 1, size(pmh%pc,1)
+!  write(iu, '(2x,a)') '<piece name="'//trim(string(ip))//'">'
+!  write(iu, '(4x,a)') '<nnod> '//trim(string(pmh%pc(ip)%nnod))//' </nnod>'
+!  write(iu, '(4x,a)') '<nver> '//trim(string(pmh%pc(ip)%nver))//' </nver>'
+!  write(iu, '(4x,a)')  '<dim> '//trim(string(pmh%pc(ip)%dim))//' </dim>'
+!  if(wv) then
+!    write(iu, '(4x,a)') '<z>'
+!    do k = 1, pmh%pc(ip)%nver; do j = 1, pmh%pc(ip)%dim; call feed(iu, string(pmh%pc(ip)%z(j,k))); end do; end do; call empty(iu)
+!    write(iu, '(4x,a)') '</z>'
+!  endif
+!  do ig = 1, size(pmh%pc(ip)%el,1)
+!    associate(elg => pmh%pc(ip)%el(ig), tp => pmh%pc(ip)%el(ig)%type)
+!      write(iu, '(4x,a)') '<element_group name="'//trim(string(ig))//'">'
+!      write(iu, '(6x,a)')  '<nel> '//trim(string(elg%nel))//' </nel>'
+!      write(iu, '(6x,a)') '<type> '//trim(string(elg%type))//' </type>'
+!      write(iu, '(6x,a)') '<desc>'
+!      write(iu,    '(a)') trim(FEDB(elg%type)%desc)
+!      write(iu, '(6x,a)') '</desc>'
+! 
+!      if(wv) then
+!        if (allocated(elg%nn)) then
+!          write(iu, '(6x,a)') '<nn>'
+!          do k = 1, elg%nel; do i = 1, FEDB(tp)%lnn; call feed(iu, string(elg%nn(i,k))); end do; end do; call empty(iu)
+!          write(iu, '(6x,a)') '</nn>'
+!        end if
+!        write(iu, '(6x,a)') '<mm>'
+!        do k = 1, elg%nel; do i = 1, FEDB(tp)%lnv; call feed(iu, string(elg%mm(i,k))); end do; end do; call empty(iu)
+!        write(iu, '(6x,a)') '</mm>'
+!        write(iu, '(6x,a)') '<ref>'
+!        do k = 1, elg%nel; call feed(iu, string(elg%ref(k))); end do; call empty(iu)
+!        write(iu, '(6x,a)') '</ref>'
+!      endif
+!      write(iu, '(4x,a)') '</element_group>'
+!    end associate
+!  end do
+!  write(iu, '(2x,a)') '</piece>'
+!end do
+!write(iu, '(a)') '</pmh>'
+!if(wv) close(iu)
+!end subroutine
 
 !-----------------------------------------------------------------------
 ! save_pmh: save pmh
 !-----------------------------------------------------------------------
-subroutine save_pmh2(filename, pmh, with_values)
-character(*),   intent(in) :: filename !mesh filename
-type(pmh_mesh), intent(in) :: pmh      !pmh structure
-logical, optional          :: with_values
-integer                    :: iu       !file unit
+subroutine save_pmh(pmh, filename, with_values)
+!! Prints or saves a PMH structure.  
+!! 
+!! When argument `with_values' is true or not present, the PMH structure is completely saved in `filename`; 
+!! otherwise, the scalar data of the structure is printed (and `filename` is not used).  
+!!
+!! @note The renovated version of this procedure takes into account the PMH fields. It also includes scalar data as attibutes in 
+!! tags  `piece`, `field`, `element_group`. For example,  
+!! `<piece name="1" nnod="2236" nver="2155" dim="3">`  
+type(pmh_mesh),         intent(in) :: pmh         !! Input PMH structure
+character(*), optional, intent(in) :: filename    !! Output filename.
+logical,      optional, intent(in) :: with_values !! Whether the arrays values are preinted or not.
+integer :: iu
 logical :: wv
 integer :: i, j, k, ip, ig, ifi, ios
 
 wv = .true.
 if (present(with_values)) wv = with_values
 
-if(.not. wv) call info('Filename: '//trim(adjustl(filename)))
-
-if(wv) then
+iu = output_unit
+if (wv) then
   iu = get_unit()
+  if (.not. present(filename)) call error('(module_pmh::save_pmh) filename  not present.')
   open (unit=iu, file=filename, form='formatted', position='rewind', iostat=ios)
   if (ios /= 0) call error('module_pmh/save_pmh: open error #'//trim(string(ios)))
-else
-  iu = output_unit
 endif
 write(iu, '(a/)') '<?xml version="1.0" encoding="UTF-8" ?>'
 write(iu, '(a)') '<pmh>'
@@ -201,12 +206,10 @@ do ip = 1, size(pmh%pc,1)
                                      & '" nel="'//trim(string(elg%nel))//&
                                      & '" type="'//trim(string(elg%type))//'">'
       write(iu, '(6x,a)') '<desc> '//trim(FEDB(elg%type)%desc)//' </desc>'
-
       if(wv) then
         if (allocated(elg%nn)) then
           write(iu, '(6x,a)') '<nn>'
           do k = 1, elg%nel; do i = 1, FEDB(tp)%lnn; call feed(iu, string(elg%nn(i,k))); end do; end do; call empty(iu)
-
           write(iu, '(6x,a)') '</nn>'
         end if
         write(iu, '(6x,a)') '<mm>'

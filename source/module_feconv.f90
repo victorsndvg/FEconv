@@ -11,7 +11,7 @@ module module_feconv
 ! is_arg: returns true when the argument is present
 !-----------------------------------------------------------------------
 use basicmod, only: real64, maxpath, slash, error, adjustlt, lcase, word_count, get_unit, set, get_arg, is_arg, &
-                    get_post_arg, args_count, set_args, file_exists, operator(.IsNewerThan.)
+                    get_post_arg, args_count, set_args, file_exists, operator(.IsNewerThan.), report_option
 use module_transform_fcnv, only: lagr2l2, lagr2rt, lagr2nd, to_l1
 use module_cuthill_mckee_fcnv, only: cuthill_mckee
 use module_msh_fcnv, only: load_msh,save_msh
@@ -54,8 +54,10 @@ integer, allocatable, dimension(:,:) :: nra !edge reference array
 integer, allocatable, dimension(:,:) :: nrc !face reference array
 real(real64), allocatable, dimension(:,:) :: z !vertices coordinates array
 integer, allocatable, dimension(:) :: nsd !subdomain index array
-
 logical :: is_pmh !true if the working mesh is PMH, false if is MFM
+
+!Private procedures
+private :: get_fieldfile, get_fieldname
 
 contains
 
@@ -79,45 +81,47 @@ integer,      allocatable :: submm(:,:), subnrv(:,:), subnra(:,:), subnrc(:,:), 
 real(real64), allocatable :: subz(:,:)
 real(real64)              :: padval
 
+call report_option('info', 'std')
 if(present(argstr)) then
   call set_args(argstr)
 else
-  call info('String options for convert not found. Reading options from command line')
+  call info('String options for convert not found; reading options from command line.')
 endif
 
 !find infile and outfile at the end of the arguments
 nargs = args_count()
 
-if(is_arg('-l')) then
-  infile = get_post_arg('-l')
-  p = index( infile, '.', back=.true.)
-  inmesh =  infile(1:p-1)
-  inext =  lcase(infile(p+1:len_trim( infile)))
-elseif(present(outpmh)) then
-  infile = get_arg(nargs)
-  p = index(infile, '.', back=.true.)
-  inmesh = infile(1:p-1)
-  inext = lcase(infile(p+1:len_trim(infile)))
+if(present(inpmh)) then
+  ! with inpmh present, only outfile is read as the last argument
+  outfile = get_arg(nargs);     p      = index( outfile, '.', back=.true.)
+  outmesh = outfile(1:p-1);     outext = lcase(outfile(p+1:len_trim(outfile)))
+elseif(present(outpmh) .or. is_arg('-l')) then
+  ! with outpmh present or with argument -l, only infile is read as the last argument
+  infile = get_arg(nargs);      p = index(infile, '.', back=.true.)
+  inmesh = infile(1:p-1);       inext = lcase(infile(p+1:len_trim(infile)))
 else
-  infile = get_arg(nargs-1); p      = index( infile, '.', back=.true.)
-  inmesh = infile(1:p-1);    inext  =  lcase(infile(p+1:len_trim( infile)))
-  outfile = get_arg(nargs);  p      = index(outfile, '.', back=.true.)
-  outmesh = outfile(1:p-1);  outext = lcase(outfile(p+1:len_trim(outfile)))
+  ! otherwise, inmesh outmesh are read as the two last arguments
+  infile = get_arg(nargs-1);    p      = index( infile, '.', back=.true.)
+  inmesh = infile(1:p-1);       inext  =  lcase(infile(p+1:len_trim( infile)))
+  outfile = get_arg(nargs);     p      = index(outfile, '.', back=.true.)
+  outmesh = outfile(1:p-1);     outext = lcase(outfile(p+1:len_trim(outfile)))
   p = index(outfile, slash(), back=.true.); outpath = outfile(1:p)
 endif
 
 !check mesh names and extensions
-if (len_trim(infile)  == 0) call error('(module_feconv/fe_conv) unable to find input file: '//trim(infile))
-if (.not. file_exists(infile)) call error('(module_feconv/fe_conv) input file does mot exist: '//trim(infile))
-if (len_trim(inext)   == 0) call error('(module_feconv/fe_conv) unable to find input file extension: '//trim(inext))
-if(.not. is_arg('-l') .and. .not. present(outpmh)) then
-  if (len_trim(outfile) == 0) call error('(module_feconv/fe_conv) unable to find output file: '//trim(outfile))
-  if (len_trim(outext)  == 0) call error('(module_feconv/fe_conv) unable to find output file extension: '//trim(outext))
+if (.not. present(inpmh)) then
+  if (len_trim(infile)  == 0)    call error('(module_feconv::convert) unable to find input file: '//trim(infile))
+  if (.not. file_exists(infile)) call error('(module_feconv::convert) input file does mot exist: '//trim(infile))
+  if (len_trim(inext)   == 0)    call error('(module_feconv::convert) unable to find input file extension: '//trim(inext))
+end if
+if(.not. (present(outpmh) .or. is_arg('-l'))) then
+  if (len_trim(outfile) == 0)    call error('(module_feconv::convert) unable to find output file: '//trim(outfile))
+  if (len_trim(outext)  == 0)    call error('(module_feconv::convert) unable to find output file extension: '//trim(outext))
   select case (trim(adjustlt(outext))) !check outfile extension now (avoid reading infile when outfile is invalid)
   case('mfm', 'mum', 'vtu', 'mphtxt', 'unv', 'pf3', 'msh', 'mesh', 'pmh', 'pvd')
     continue
   case default
-    call error('(module_feconv/fe_conv) output file extension not implemented: '//trim(adjustlt(outext)))
+    call error('(module_feconv::convert) output file extension not implemented: '//trim(adjustlt(outext)))
   end select
 endif
 
@@ -126,6 +130,7 @@ force_to_save = .true.
 if (present(force)) force_to_save = force
 if (.not. file_exists(outfile)) force_to_save = .true.
 if (infile .IsNewerThan. outfile) force_to_save = .true.
+call info('Forcing to save output file: '//string(force_to_save))
 
 !check isoparametric option, for UNV only
 !if (trim(adjustlt(inext)) /= 'unv' .and. is_arg('-is')) call error('(module_feconv/fe_conv) only UNV input files can '//&
@@ -139,198 +144,77 @@ if (is_arg('-t')) then
   pmh%ztol = dble(get_post_arg('-t'))
 end if
 
-!field selection
+! field selection
 there_is_field = .true.
-if(is_arg('-l') .or. present(outpmh)) then
+if (present(outpmh)) then
+  ! inext does not exist but -if must be read
   if (is_arg('-if')) then
-    !there is -if
-    str = get_post_arg('-if')
-    p = index(str, '[')
-    if (p == 0) then !a single field name
-      call set(infieldfile, str, 1, fit=.true.)
-    else !several subdomain refs. enclosed in [] and separated by ,
-      q = index(str, ']', back=.true.)
-      call alloc(infieldfile, word_count(str(p+1:q-1),','))
-      read(str(p+1:q-1),*) infieldfile
-    end if
-    p = index( infieldfile(1), '.', back=.true.)
-    infext =  infieldfile(1)(p+1:len_trim( infieldfile(1)))
+    call get_fieldfile('-if', infieldfile, infext)
   else
     there_is_field = .false.
   end if
+elseif (is_arg('-l')) then
+  ! outext does not exist but -if must be read
+  if (is_arg('-if')) then
+    call get_fieldfile('-if', infieldfile, infext)
+  else
+    there_is_field = .false.
+  endif
+elseif (present(inpmh)) then
+  ! outext does not exist but -of must be read
+  if (is_arg('-of')) then
+    call get_fieldfile('-of', outfieldfile, outfext)
+  else
+    there_is_field = .false.
+  endif
 else
+  ! both inext and outext exist
   if (FLDB(id_mesh_ext(inext))%is_field_outside) then
-    if (FLDB(id_mesh_ext(outext))%is_field_outside) then
-      !infieldfile and outfieldfile are both mesh external
+    if (FLDB(id_mesh_ext(outext))%is_field_outside) then 
+      ! infieldfile and outfieldfile are both mesh external
       if (.not. is_arg('-if') .and. is_arg('-of')) then
         call error('(module_feconv/fe_conv) option -if is mandatory to read external fields')
-      elseif (.not. is_arg('-if')) then
-        !there is not -if, there is not -of
+      elseif (.not. is_arg('-if')) then                  ! there is neither -if nor -of
         there_is_field = .false.
-      elseif (is_arg('-if') .or. is_arg('-of')) then
-        !there is -if
+      elseif (is_arg('-if') .or. is_arg('-of')) then     ! there is -if or -of
         if (is_arg('-if')) then
-          str = get_post_arg('-if')
-          p = index(str, '[')
-          if (p == 0) then !a single field name
-            call set(infieldfile, str, 1, fit=.true.)
-          else !several subdomain refs. enclosed in [] and separated by ,
-            q = index(str, ']', back=.true.)
-            call alloc(infieldfile, word_count(str(p+1:q-1),','))
-            read(str(p+1:q-1),*) infieldfile
-          endif
-          p = index( infieldfile(1), '.', back=.true.)
-          infext =  infieldfile(1)(p+1:len_trim( infieldfile(1)))
-          ! There is in and field extension is 'ip'
-          if (id_field_ext(infext) == id_field_ext('ip') .and. is_arg('-in')) then
-            str = get_post_arg('-in')
-            p = index(str, '[')
-            if (p == 0) then !a single field name
-              call set(infieldname, str, 1, fit=.true.)
-            else !several subdomain refs. enclosed in [] and separated by ,
-              q = index(str, ']', back=.true.)
-              call alloc(infieldname, word_count(str(p+1:q-1),','))
-              read(str(p+1:q-1),*) infieldname
-            end if
-          endif
+          call get_fieldfile('-if', infieldfile, infext)
+          ! read -in when field extension is 'ip'
+          if (id_field_ext(infext) == id_field_ext('ip') .and. is_arg('-in')) call get_fieldname('-in', infieldname)
         endif
         if (is_arg('-of')) then
-          str = get_post_arg('-of')
-          p = index(str, '[')
-          if (p == 0) then !a single field name
-            call set(outfieldfile, str, 1, fit=.true.)
-          else !several subdomain refs. enclosed in [] and separated by ,
-            q = index(str, ']', back=.true.)
-            call alloc(outfieldfile, word_count(str(p+1:q-1),','))
-            read(str(p+1:q-1),*) outfieldfile
-          endif
-          p = index( outfieldfile(1), '.', back=.true.)
-          outfext =  outfieldfile(1)(p+1:len_trim( outfieldfile(1)))
-          ! There is on and field extension are 'ip' or 'dex'
-          if ((id_field_ext(outfext) == id_field_ext('ip') .or. &
-             & id_field_ext(outfext) == id_field_ext('dex')) .and. is_arg('-on')) then
-            str = get_post_arg('-on')
-            p = index(str, '[')
-            if (p == 0) then !a single field name
-              call set(outfieldname, str, 1, fit=.true.)
-            else !several subdomain refs. enclosed in [] and separated by ,
-              q = index(str, ']', back=.true.)
-              call alloc(outfieldname, word_count(str(p+1:q-1),','))
-              read(str(p+1:q-1),*) outfieldname
-            end if
-          endif
+          call get_fieldfile('-of', outfieldfile, outfext)
+          ! read -on when field extension are 'ip' or 'dex'
+          if (is_arg('-on') .and. (id_field_ext(outfext) == id_field_ext('ip') .or. &
+                                   id_field_ext(outfext) == id_field_ext('dex'))) call get_fieldname('-on', outfieldname)
         endif
       end if
     else
-      !infieldfile is mesh external, outfieldfile is mesh internal
+      ! infieldfile is mesh external, outfieldfile is mesh internal
       if (is_arg('-if')) then
-        !there is -if
-        str = get_post_arg('-if')
-        p = index(str, '[')
-        if (p == 0) then !a single field name
-          call set(infieldfile, str, 1, fit=.true.)
-        else !several subdomain refs. enclosed in [] and separated by ,
-          q = index(str, ']', back=.true.)
-          call alloc(infieldfile, word_count(str(p+1:q-1),','))
-          read(str(p+1:q-1),*) infieldfile
-        end if
-        p = index( infieldfile(1), '.', back=.true.)
-        infext =  infieldfile(1)(p+1:len_trim( infieldfile(1)))
-        ! There is in and field extension is 'ip' or 'mff'
-        if (is_arg('-in') .and. (id_field_ext(infext) == id_field_ext('ip') .or. id_field_ext(infext) == id_field_ext('mff'))) then
-          str = get_post_arg('-in')
-          p = index(str, '[')
-          if (p == 0) then !a single field name
-            call set(infieldname, str, 1, fit=.true.)
-          else !several subdomain refs. enclosed in [] and separated by ,
-            q = index(str, ']', back=.true.)
-            call alloc(infieldname, word_count(str(p+1:q-1),','))
-            read(str(p+1:q-1),*) infieldname
-          end if
-        endif
-        ! There is on
-        if (is_arg('-on')) then
-          str = get_post_arg('-on')
-          p = index(str, '[')
-          if (p == 0) then !a single field name
-            call set(outfieldname, str, 1, fit=.true.)
-          else !several subdomain refs. enclosed in [] and separated by ,
-            q = index(str, ']', back=.true.)
-            call alloc(outfieldname, word_count(str(p+1:q-1),','))
-            read(str(p+1:q-1),*) outfieldname
-          end if
-        endif
+        call get_fieldfile('-if', infieldfile, infext)
+        ! read -in when field extension 'ip' or 'mff'
+        if (is_arg('-in') .and. (id_field_ext(infext) == id_field_ext('ip') .or. &
+                                 id_field_ext(infext) == id_field_ext('mff'))) call get_fieldname('-in', infieldname)
+        if (is_arg('-on')) call get_fieldname('-on', outfieldname)
       else
         there_is_field = .false.
       end if
     end if
   elseif (FLDB(id_mesh_ext(outext))%is_field_outside) then
-    !infieldfile is mesh internal, outfieldfile is mesh external
+    ! infieldfile is mesh internal, outfieldfile is mesh external
     if (is_arg('-of')) then
-      !there is -of
-        str = get_post_arg('-of')
-        p = index(str, '[')
-        if (p == 0) then !a single field name
-          call set(outfieldfile, str, 1, fit=.true.)
-        else !several subdomain refs. enclosed in [] and separated by ,
-          q = index(str, ']', back=.true.)
-          call alloc(outfieldfile, word_count(str(p+1:q-1),','))
-          read(str(p+1:q-1),*) outfieldfile
-        end if
-      p = index( outfieldfile(1), '.', back=.true.)
-      outfext =  outfieldfile(1)(p+1:len_trim( outfieldfile(1)))
-      ! There is in and mesh extension is not 'pf3'
-       if (id_mesh_ext(inext) /= id_mesh_ext('pf3') .and. is_arg('-in')) then
-         str = get_post_arg('-in')
-         p = index(str, '[')
-         if (p == 0) then !a single field name
-           call set(infieldname, str, 1, fit=.true.)
-         else !several subdomain refs. enclosed in [] and separated by ,
-           q = index(str, ']', back=.true.)
-           call alloc(infieldname, word_count(str(p+1:q-1),','))
-           read(str(p+1:q-1),*) infieldname
-         end if
-       endif
-      ! There is on and field extension is not 'mff' and 'muf'
-       if ((id_field_ext(inext) /= id_field_ext('mff') .and. &
-          & id_field_ext(inext) /= id_field_ext('muf')) .and. is_arg('-on')) then
-         str = get_post_arg('-on')
-         p = index(str, '[')
-         if (p == 0) then !a single field name
-           call set(outfieldname, str, 1, fit=.true.)
-         else !several subdomain refs. enclosed in [] and separated by ,
-           q = index(str, ']', back=.true.)
-           call alloc(outfieldname, word_count(str(p+1:q-1),','))
-           read(str(p+1:q-1),*) outfieldname
-         end if
-       endif
+      call get_fieldfile('-of', outfieldfile, outfext)
+      ! read -in when mesh extension is not 'pf3'
+      if (is_arg('-in') .and. id_mesh_ext(inext) /= id_mesh_ext('pf3')) call get_fieldname('-in', infieldname) 
+      ! read -on when field extension is neither 'mff' nor 'muf'
+       if (is_arg('-on') .and. (id_field_ext(inext) /= id_field_ext('mff') .and. &
+                                id_field_ext(inext) /= id_field_ext('muf'))) call get_fieldname('-on', outfieldname)
     end if
   else
-    !infieldfile and outfieldfile are both mesh internal
-    ! There is on
-    if (is_arg('-in')) then
-      str = get_post_arg('-in')
-      p = index(str, '[')
-      if (p == 0) then !a single field name
-        call set(infieldname, str, 1, fit=.true.)
-      else !several subdomain refs. enclosed in [] and separated by ,
-        q = index(str, ']', back=.true.)
-        call alloc(infieldname, word_count(str(p+1:q-1),','))
-        read(str(p+1:q-1),*) infieldname
-      end if
-    endif
-    ! There is on
-    if (is_arg('-on')) then
-      str = get_post_arg('-on')
-      p = index(str, '[')
-      if (p == 0) then !a single field name
-        call set(outfieldname, str, 1, fit=.true.)
-      else !several subdomain refs. enclosed in [] and separated by ,
-        q = index(str, ']', back=.true.)
-        call alloc(outfieldname, word_count(str(p+1:q-1),','))
-        read(str(p+1:q-1),*) outfieldname
-      end if
-    endif
+    ! infieldfile and outfieldfile are both mesh internal
+    if (is_arg('-in')) call get_fieldname('-in', infieldname)
+    if (is_arg('-on')) call get_fieldname('-on', outfieldname)
   end if
 endif
 
@@ -349,52 +233,53 @@ else
   is_pmh = .false.
   select case (trim(lcase(adjustlt(inext))))
   case('mfm')
-    print '(a)', 'Loading MFM mesh file...'
+    call info('Loading MFM mesh file...')
     call load_mfm(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-      print '(a)', 'Done!'
+      call info('Done!')
   case('mum')
-    print '(a)', 'Loading MUM mesh file...'
+    call info('Loading MUM mesh file...')
     call load_mum(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('msh')
     if (is_arg('-ff')) then !FreeFem++
-      print '(a)', 'Loading FreFem++ (.msh) mesh file...'
+      call info('Loading FreFem++ (.msh) mesh file...')
       call load_freefem_msh(infile, get_unit(), pmh); is_pmh = .true.
     elseif (is_arg('-gm')) then !Gmsh
-      print '(a)', 'Loading Gmsh (.msh) mesh file...'
+      call info('Loading Gmsh (.msh) mesh file...')
       call load_gmsh(infile, get_unit(), pmh); is_pmh = .true.
     else !ANSYS
-      print '(a)', 'Loading ANSYS mesh file...'
+      call info('Loading ANSYS mesh file...')
       call load_msh(infile, pmh); is_pmh = .true.
     end if
-    print '(a)', 'Done!'
+    call info('Done!')
   case('unv')
-    print '(a)', 'Loading UNV mesh file...'
+    call info('Loading UNV mesh file...')
     call load_unv(infile, pmh, padval, infieldname, is_arg('-ca')); is_pmh = .true.
-    print '(a)', 'Done!'
+    call info('Done!')
   case('bdf')
-    print '(a)', 'Loading MD Nastran input file...'
+    call info('Loading MD Nastran input file...')
     call load_patran(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('mphtxt')
-    print '(a)', 'Loading COMSOL mesh file...'
+    call info('Loading COMSOL mesh file...')
     call load_mphtxt(infile, pmh); is_pmh = .true.
-    print '(a)', 'Done!'
+    call info('Done!')
   case('pf3')
-    print '(a)', 'Loading FLUX mesh file...'
+    call info('Loading FLUX mesh file...')
     call load_pf3(infile, pmh); is_pmh = .true.
+    call info('Done!')
   case('vtu')
-    print '(a)', 'Loading VTU mesh file...'
+    call info('Loading VTU mesh file...')
     call load_vtu( infile, pmh, infieldname); is_pmh = .true.
-    print '(a)', 'Done!'
+    call info('Done!')
   case('pvd')
-    print '(a)', 'Loading PVD file...'
+    call info('Loading PVD file...')
     call load_pvd( infile, pmh, infieldname); is_pmh = .true.
-    print '(a)', 'Done!'
+    call info('Done!')
   case('mesh')
-    print '(a)', 'Loading FreFem++ (Tetrahedral Lagrange P1) MESH file...'
+    call info('Loading FreFem++ (Tetrahedral Lagrange P1) MESH file...')
     call load_freefem_mesh(infile, get_unit(), pmh); is_pmh = .true.
-    print '(a)', 'Done!'
+    call info('Done!')
   case default
     call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
   end select
@@ -402,7 +287,7 @@ end if
 
 ! Read field files
 if (there_is_field .and. is_arg('-if') .and. (.not. present(inpmh))) then
-  if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   is_pmh = .true.
   select case (trim(lcase(adjustlt(infext))))
     case('mff')
@@ -418,9 +303,9 @@ endif
 
 ! Show PMH info in screen
 if(is_arg('-l')) then
-  if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   is_pmh = .true.
-  call save_pmh2(infile, pmh, with_values=.false.)
+  call save_pmh(pmh, ' ', with_values=.false.) !only printed in screen, filename is not required
   stop
 endif
 
@@ -437,7 +322,7 @@ endif
 !extract (only for Lagrange P1 meshes)
 if (is_arg('-es')) then
   str = get_post_arg('-es')
-  print '(/a)', 'Extracting subdomain(s) '//trim(str)//'...'
+  call info('Extracting subdomain(s) '//trim(str)//'...')
   p = index(str, '[')
   if (p == 0) then !a single subdomain ref.
     call set(nsd0, int(str), 1, fit=.true.)
@@ -459,42 +344,42 @@ if (is_arg('-es')) then
   call move_alloc(from=subnrc, to=nrc)
   call move_alloc(from=subz,   to=z)
   call move_alloc(from=subnsd, to=nsd)
-  print '(a)', 'Done!'
+  call info('Done!')
 end if
 
 !transform
 if (is_arg('-l1')) then
-  print '(/a)', 'Converting mesh into Lagrange P1 mesh...'
+  call info('Converting mesh into Lagrange P1 mesh...')
   if (.not. is_pmh) then
     call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     is_pmh = .true.
   end if
   call to_l1(pmh)
-  print '(a)', 'Done!'
+  call info('Done!')
 elseif (is_arg('-l2')) then
-  print '(/a)', 'Converting Lagrange P1 mesh into Lagrange P2 mesh...'
+  call info('Converting Lagrange P1 mesh into Lagrange P2 mesh...')
   if (is_pmh) then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     is_pmh = .false.
   end if
   call lagr2l2(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
-  print '(a)', 'Done!'
+  call info('Done!')
 elseif (is_arg('-rt')) then
-  print '(/a)', 'Converting Lagrange mesh into Raviart-Thomas (face) mesh...'
+  call info('Converting Lagrange mesh into Raviart-Thomas (face) mesh...')
   if (is_pmh) then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     is_pmh = .false.
   end if
   call lagr2rt(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
-  print '(a)', 'Done!'
+  call info('Done!')
 elseif (is_arg('-nd')) then
-  print '(/a)', 'Converting Lagrange mesh into Whitney (edge) mesh...'
+  call info('Converting Lagrange mesh into Whitney (edge) mesh...')
   if (is_pmh) then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     is_pmh = .false.
   end if
   call lagr2nd(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
-  print '(a)', 'Done!'
+  call info('Done!')
 end if
 
 !bandwidth optimization
@@ -535,76 +420,76 @@ if(present(outpmh)) then
 elseif (force_to_save) then
   select case (trim(adjustlt(outext)))
   case('mfm')
-    print '(/a)', 'Saving MFM mesh file...'
+    call info('Saving MFM mesh file...')
     if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     call save_mfm(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('mum')
-    print '(/a)', 'Saving MUM mesh file...'
+    call info('Saving MUM mesh file...')
     if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     call save_mum(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('vtu')
-    print '(/a)', 'Saving VTU mesh file...'
+    call info('Saving VTU mesh file...')
     if (is_pmh) then
       call save_vtu(outfile, pmh,infieldname, outfieldname, padval)
     else
       call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     endif
-    print '(a)', 'Done!'
+    call info('Done!')
   !case('vtu')
   !  print '(/a)', 'Saving VTU mesh file...'
   !  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   !  call save_vtu2(outfile, pmh)
-  !  print '(a)', 'Done!'
+  !  call info('Done!')
   case('pvd')
-    print '(/a)', 'Saving PVD file...'
+    call info('Saving PVD file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_pvd(outfile, pmh,infieldname, outfieldname, padval)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('mphtxt')
-    print '(/a)', 'Saving COMSOL mesh file...'
+    call info('Saving COMSOL mesh file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_mphtxt(outfile, pmh)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('unv')
-    print '(/a)', 'Saving I-DEAS UNV mesh file...'
+    call info('Saving I-DEAS UNV mesh file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_unv(outfile, get_unit(), pmh, infieldname, outfieldname, is_arg('-ca'))
-    print '(a)', 'Done!'
+    call info('Done!')
   case('pf3')
-    print '(/a)', 'Saving FLUX mesh file...'
+    call info('Saving FLUX mesh file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_pf3(outfile, pmh, infieldname, outfieldname, outpath)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('msh')
     if (is_arg('-ff')) then !FreeFem++
-      print '(/a)', 'Saving FreFem++ mesh file...'
+      call info('Saving FreFem++ mesh file...')
       if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
       call save_freefem_msh(outfile, get_unit(), pmh)
     elseif (is_arg('-gm')) then !Gmsh
-      print '(/a)', 'Saving Gmsh mesh file...'
+      call info('Saving Gmsh mesh file...')
       if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
       call save_gmsh(outfile, get_unit(), pmh)
     else !ANSYS
-      print '(/a)', 'Saving ANSYS mesh file...'
+      call info('Saving ANSYS mesh file...')
       if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
       call save_msh(outfile, pmh)
     end if
-    print '(a)', 'Done!'
+    call info('Done!')
   case('mesh')
-    print '(/a)', 'Saving FreFem++ mesh file...'
+    call info('Saving FreFem++ mesh file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_freefem_mesh(outfile, get_unit(), pmh)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('pmh')
-    print '(/a)', 'Saving PMH mesh file...'
+    call info('Saving PMH mesh file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
-    call save_pmh(outfile, pmh)
-    print '(a)', 'Done!'
+    call save_pmh(pmh, outfile)
+    call info('Done!')
   end select !case default, already checked before reading infile
   !save fields
-  if(is_pmh .and. there_is_field .and. is_arg('-of')) then
+  if(is_pmh .and. there_is_field .and. is_arg('-of').and. (.not. present(outpmh))) then
     select case (trim(lcase(adjustlt(outfext))))
       case('mff')
         call save_mff(pmh, outfieldfile, outpath)
@@ -620,5 +505,53 @@ elseif (force_to_save) then
   endif
 endif
 end subroutine
+
+!-----------------------------------------------------------------------
+! PRIVATE PROCEDURES
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! get_fieldfile: get variables related with option -if and -of
+!-----------------------------------------------------------------------
+subroutine get_fieldfile(opt, fieldfile, fext)
+character(*), intent(in)                 :: opt
+character(*), intent(inout), allocatable :: fieldfile(:)
+character(*), intent(inout)              :: fext
+character(maxpath) :: str
+integer :: p, q
+
+str = get_post_arg(trim(adjustl(opt)))
+p = index(str, '[')
+if (p == 0) then !a single field name
+  call set(fieldfile, str, 1, fit=.true.)
+else !several subdomain refs. enclosed in [] and separated by ,
+  q = index(str, ']', back=.true.)
+  call alloc(fieldfile, word_count(str(p+1:q-1),','))
+  read(str(p+1:q-1),*) fieldfile
+end if
+p = index(fieldfile(1), '.', back=.true.)
+fext =  fieldfile(1)(p+1:len_trim(fieldfile(1)))
+end subroutine
+
+!-----------------------------------------------------------------------
+! get_fieldname: get variables related with option -in and -on
+!-----------------------------------------------------------------------
+subroutine get_fieldname(opt, fieldname)
+character(*), intent(in)                 :: opt
+character(*), intent(inout), allocatable :: fieldname(:)
+character(maxpath) :: str
+integer :: p, q
+
+str = get_post_arg(trim(adjustl(opt)))
+p = index(str, '[')
+if (p == 0) then !a single field name
+  call set(fieldname, str, 1, fit=.true.)
+else !several subdomain refs. enclosed in [] and separated by ,
+  q = index(str, ']', back=.true.)
+  call alloc(fieldname, word_count(str(p+1:q-1),','))
+  read(str(p+1:q-1),*) fieldname
+end if
+end subroutine
+
+!Por hacer: ref guide, quitar mesh repetida revisar si el resto de prorama funciona sin imesh, outmesh
 
 end module

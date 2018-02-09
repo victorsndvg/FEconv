@@ -933,7 +933,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
 
   if(.not. file_exists) call error('Input file '//trim(filename)//' not found!')
 
-  print*, 'Reading VTK header ...'
+  !print*, 'Reading VTK header ...'
   if (vtk_ini_xml_read('Binary',filename,'UnstructuredGrid', ip)/=0) stop 'Error'
   call info('Number of pieces: '//trim(string(ip)))
 
