@@ -552,6 +552,4 @@ else !several subdomain refs. enclosed in [] and separated by ,
 end if
 end subroutine
 
-!Por hacer: ref guide, quitar mesh repetida revisar si el resto de prorama funciona sin imesh, outmesh
-
 end module
