@@ -254,11 +254,13 @@ do ipp = 1, size(piece2save,1)
     associate(elg => pmh%pc(ip)%el(ig)) !elg: current group
       if (.not. FEDB(elg%type)%nver_eq_nnod) then
         do k = 1, elg%nel
-          write(iu, *) prev_nel+k, id4pmh(elg%type), 2, elg%ref(k), 2, (nnod_piece(ipp-1)+elg%nn(i,k), i = 1,FEDB(elg%type)%lnn)
+          write(iu, *) prev_nel+k, id4pmh(elg%type), 2, elg%ref(k), prev_nel+k, (nnod_piece(ipp-1)+elg%nn(i,k), &
+          i = 1,FEDB(elg%type)%lnn)
         end do
       else
         do k = 1, elg%nel
-          write(iu, *) prev_nel+k, id4pmh(elg%type), 2, elg%ref(k), 2, (nnod_piece(ipp-1)+elg%mm(i,k), i = 1,FEDB(elg%type)%lnv)
+          write(iu, *) prev_nel+k, id4pmh(elg%type), 2, elg%ref(k), prev_nel+k, (nnod_piece(ipp-1)+elg%mm(i,k), &
+          i = 1,FEDB(elg%type)%lnv)
         end do
       end if
       prev_nel = prev_nel + elg%nel
