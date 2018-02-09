@@ -11,7 +11,7 @@ module module_feconv
 ! is_arg: returns true when the argument is present
 !-----------------------------------------------------------------------
 use basicmod, only: real64, maxpath, slash, error, adjustlt, lcase, word_count, get_unit, set, get_arg, is_arg, &
-                    get_post_arg, args_count, set_args, file_exists, operator(.IsNewerThan.)
+                    get_post_arg, args_count, set_args, file_exists, operator(.IsNewerThan.), report_option
 use module_transform_fcnv, only: lagr2l2, lagr2rt, lagr2nd, to_l1
 use module_cuthill_mckee_fcnv, only: cuthill_mckee
 use module_msh_fcnv, only: load_msh,save_msh
@@ -81,21 +81,22 @@ integer,      allocatable :: submm(:,:), subnrv(:,:), subnra(:,:), subnrc(:,:), 
 real(real64), allocatable :: subz(:,:)
 real(real64)              :: padval
 
+call report_option('info', 'std')
 if(present(argstr)) then
   call set_args(argstr)
 else
-  call info('(module_feconv::convert) string options for convert not found; reading options from command line.')
+  call info('String options for convert not found; reading options from command line.')
 endif
 
 !find infile and outfile at the end of the arguments
 nargs = args_count()
 
-if(is_arg('-l') .or. present(inpmh)) then
-  ! with argument -l or with inpmh present, only outfile is read as the last argument
+if(present(inpmh)) then
+  ! with inpmh present, only outfile is read as the last argument
   outfile = get_arg(nargs);     p      = index( outfile, '.', back=.true.)
   outmesh = outfile(1:p-1);     outext = lcase(outfile(p+1:len_trim(outfile)))
-elseif(present(outpmh)) then
-  ! with outpmh present, only infile is read as the last argument
+elseif(present(outpmh) .or. is_arg('-l')) then
+  ! with outpmh present or with argument -l, only infile is read as the last argument
   infile = get_arg(nargs);      p = index(infile, '.', back=.true.)
   inmesh = infile(1:p-1);       inext = lcase(infile(p+1:len_trim(infile)))
 else
@@ -108,12 +109,12 @@ else
 endif
 
 !check mesh names and extensions
-if (.not. is_arg('-l') .and. .not. present(inpmh)) then
+if (.not. present(inpmh)) then
   if (len_trim(infile)  == 0)    call error('(module_feconv::convert) unable to find input file: '//trim(infile))
   if (.not. file_exists(infile)) call error('(module_feconv::convert) input file does mot exist: '//trim(infile))
   if (len_trim(inext)   == 0)    call error('(module_feconv::convert) unable to find input file extension: '//trim(inext))
 end if
-if(.not. present(outpmh)) then
+if(.not. (present(outpmh) .or. is_arg('-l'))) then
   if (len_trim(outfile) == 0)    call error('(module_feconv::convert) unable to find output file: '//trim(outfile))
   if (len_trim(outext)  == 0)    call error('(module_feconv::convert) unable to find output file extension: '//trim(outext))
   select case (trim(adjustlt(outext))) !check outfile extension now (avoid reading infile when outfile is invalid)
@@ -129,7 +130,7 @@ force_to_save = .true.
 if (present(force)) force_to_save = force
 if (.not. file_exists(outfile)) force_to_save = .true.
 if (infile .IsNewerThan. outfile) force_to_save = .true.
-print*, 'infile .IsNewerThan. outfile', infile .IsNewerThan. outfile
+call info('Forcing to save output file: '//string(force_to_save))
 
 !check isoparametric option, for UNV only
 !if (trim(adjustlt(inext)) /= 'unv' .and. is_arg('-is')) call error('(module_feconv/fe_conv) only UNV input files can '//&
@@ -145,14 +146,21 @@ end if
 
 ! field selection
 there_is_field = .true.
-if (is_arg('-l') .or. present(outpmh)) then
+if (present(outpmh)) then
   ! inext does not exist but -if must be read
   if (is_arg('-if')) then
     call get_fieldfile('-if', infieldfile, infext)
   else
     there_is_field = .false.
   end if
-if (present(inpmh)) then
+elseif (is_arg('-l')) then
+  ! outext does not exist but -if must be read
+  if (is_arg('-if')) then
+    call get_fieldfile('-if', infieldfile, infext)
+  else
+    there_is_field = .false.
+  endif
+elseif (present(inpmh)) then
   ! outext does not exist but -of must be read
   if (is_arg('-of')) then
     call get_fieldfile('-of', outfieldfile, outfext)
@@ -198,7 +206,7 @@ else
     if (is_arg('-of')) then
       call get_fieldfile('-of', outfieldfile, outfext)
       ! read -in when mesh extension is not 'pf3'
-      if (is_arg('-in' .and. id_mesh_ext(inext) /= id_mesh_ext('pf3'))) call get_fieldname('-in', infieldname) 
+      if (is_arg('-in') .and. id_mesh_ext(inext) /= id_mesh_ext('pf3')) call get_fieldname('-in', infieldname) 
       ! read -on when field extension is neither 'mff' nor 'muf'
        if (is_arg('-on') .and. (id_field_ext(inext) /= id_field_ext('mff') .and. &
                                 id_field_ext(inext) /= id_field_ext('muf'))) call get_fieldname('-on', outfieldname)
@@ -225,52 +233,53 @@ else
   is_pmh = .false.
   select case (trim(lcase(adjustlt(inext))))
   case('mfm')
-    print '(a)', 'Loading MFM mesh file...'
+    call info('Loading MFM mesh file...')
     call load_mfm(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-      print '(a)', 'Done!'
+      call info('Done!')
   case('mum')
-    print '(a)', 'Loading MUM mesh file...'
+    call info('Loading MUM mesh file...')
     call load_mum(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('msh')
     if (is_arg('-ff')) then !FreeFem++
-      print '(a)', 'Loading FreFem++ (.msh) mesh file...'
+      call info('Loading FreFem++ (.msh) mesh file...')
       call load_freefem_msh(infile, get_unit(), pmh); is_pmh = .true.
     elseif (is_arg('-gm')) then !Gmsh
-      print '(a)', 'Loading Gmsh (.msh) mesh file...'
+      call info('Loading Gmsh (.msh) mesh file...')
       call load_gmsh(infile, get_unit(), pmh); is_pmh = .true.
     else !ANSYS
-      print '(a)', 'Loading ANSYS mesh file...'
+      call info('Loading ANSYS mesh file...')
       call load_msh(infile, pmh); is_pmh = .true.
     end if
-    print '(a)', 'Done!'
+    call info('Done!')
   case('unv')
-    print '(a)', 'Loading UNV mesh file...'
+    call info('Loading UNV mesh file...')
     call load_unv(infile, pmh, padval, infieldname, is_arg('-ca')); is_pmh = .true.
-    print '(a)', 'Done!'
+    call info('Done!')
   case('bdf')
-    print '(a)', 'Loading MD Nastran input file...'
+    call info('Loading MD Nastran input file...')
     call load_patran(infile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('mphtxt')
-    print '(a)', 'Loading COMSOL mesh file...'
+    call info('Loading COMSOL mesh file...')
     call load_mphtxt(infile, pmh); is_pmh = .true.
-    print '(a)', 'Done!'
+    call info('Done!')
   case('pf3')
-    print '(a)', 'Loading FLUX mesh file...'
+    call info('Loading FLUX mesh file...')
     call load_pf3(infile, pmh); is_pmh = .true.
+    call info('Done!')
   case('vtu')
-    print '(a)', 'Loading VTU mesh file...'
+    call info('Loading VTU mesh file...')
     call load_vtu( infile, pmh, infieldname); is_pmh = .true.
-    print '(a)', 'Done!'
+    call info('Done!')
   case('pvd')
-    print '(a)', 'Loading PVD file...'
+    call info('Loading PVD file...')
     call load_pvd( infile, pmh, infieldname); is_pmh = .true.
-    print '(a)', 'Done!'
+    call info('Done!')
   case('mesh')
-    print '(a)', 'Loading FreFem++ (Tetrahedral Lagrange P1) MESH file...'
+    call info('Loading FreFem++ (Tetrahedral Lagrange P1) MESH file...')
     call load_freefem_mesh(infile, get_unit(), pmh); is_pmh = .true.
-    print '(a)', 'Done!'
+    call info('Done!')
   case default
     call error('(module_feconv/fe_conv) input file extension not implemented: '//trim(adjustlt(inext)))
   end select
@@ -278,7 +287,7 @@ end if
 
 ! Read field files
 if (there_is_field .and. is_arg('-if') .and. (.not. present(inpmh))) then
-  if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   is_pmh = .true.
   select case (trim(lcase(adjustlt(infext))))
     case('mff')
@@ -294,9 +303,9 @@ endif
 
 ! Show PMH info in screen
 if(is_arg('-l')) then
-  if (.not.is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   is_pmh = .true.
-  call save_pmh(pmh, outfile, with_values=.false.)
+  call save_pmh(pmh, ' ', with_values=.false.) !only printed in screen, filename is not required
   stop
 endif
 
@@ -313,7 +322,7 @@ endif
 !extract (only for Lagrange P1 meshes)
 if (is_arg('-es')) then
   str = get_post_arg('-es')
-  print '(/a)', 'Extracting subdomain(s) '//trim(str)//'...'
+  call info('Extracting subdomain(s) '//trim(str)//'...')
   p = index(str, '[')
   if (p == 0) then !a single subdomain ref.
     call set(nsd0, int(str), 1, fit=.true.)
@@ -335,42 +344,42 @@ if (is_arg('-es')) then
   call move_alloc(from=subnrc, to=nrc)
   call move_alloc(from=subz,   to=z)
   call move_alloc(from=subnsd, to=nsd)
-  print '(a)', 'Done!'
+  call info('Done!')
 end if
 
 !transform
 if (is_arg('-l1')) then
-  print '(/a)', 'Converting mesh into Lagrange P1 mesh...'
+  call info('Converting mesh into Lagrange P1 mesh...')
   if (.not. is_pmh) then
     call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     is_pmh = .true.
   end if
   call to_l1(pmh)
-  print '(a)', 'Done!'
+  call info('Done!')
 elseif (is_arg('-l2')) then
-  print '(/a)', 'Converting Lagrange P1 mesh into Lagrange P2 mesh...'
+  call info('Converting Lagrange P1 mesh into Lagrange P2 mesh...')
   if (is_pmh) then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     is_pmh = .false.
   end if
   call lagr2l2(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
-  print '(a)', 'Done!'
+  call info('Done!')
 elseif (is_arg('-rt')) then
-  print '(/a)', 'Converting Lagrange mesh into Raviart-Thomas (face) mesh...'
+  call info('Converting Lagrange mesh into Raviart-Thomas (face) mesh...')
   if (is_pmh) then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     is_pmh = .false.
   end if
   call lagr2rt(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
-  print '(a)', 'Done!'
+  call info('Done!')
 elseif (is_arg('-nd')) then
-  print '(/a)', 'Converting Lagrange mesh into Whitney (edge) mesh...'
+  call info('Converting Lagrange mesh into Whitney (edge) mesh...')
   if (is_pmh) then
     call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     is_pmh = .false.
   end if
   call lagr2nd(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
-  print '(a)', 'Done!'
+  call info('Done!')
 end if
 
 !bandwidth optimization
@@ -411,73 +420,73 @@ if(present(outpmh)) then
 elseif (force_to_save) then
   select case (trim(adjustlt(outext)))
   case('mfm')
-    print '(/a)', 'Saving MFM mesh file...'
+    call info('Saving MFM mesh file...')
     if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     call save_mfm(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('mum')
-    print '(/a)', 'Saving MUM mesh file...'
+    call info('Saving MUM mesh file...')
     if (is_pmh) call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     call save_mum(outfile, get_unit(), nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('vtu')
-    print '(/a)', 'Saving VTU mesh file...'
+    call info('Saving VTU mesh file...')
     if (is_pmh) then
       call save_vtu(outfile, pmh,infieldname, outfieldname, padval)
     else
       call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     endif
-    print '(a)', 'Done!'
+    call info('Done!')
   !case('vtu')
   !  print '(/a)', 'Saving VTU mesh file...'
   !  if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
   !  call save_vtu2(outfile, pmh)
-  !  print '(a)', 'Done!'
+  !  call info('Done!')
   case('pvd')
-    print '(/a)', 'Saving PVD file...'
+    call info('Saving PVD file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_pvd(outfile, pmh,infieldname, outfieldname, padval)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('mphtxt')
-    print '(/a)', 'Saving COMSOL mesh file...'
+    call info('Saving COMSOL mesh file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_mphtxt(outfile, pmh)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('unv')
-    print '(/a)', 'Saving I-DEAS UNV mesh file...'
+    call info('Saving I-DEAS UNV mesh file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_unv(outfile, get_unit(), pmh, infieldname, outfieldname, is_arg('-ca'))
-    print '(a)', 'Done!'
+    call info('Done!')
   case('pf3')
-    print '(/a)', 'Saving FLUX mesh file...'
+    call info('Saving FLUX mesh file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_pf3(outfile, pmh, infieldname, outfieldname, outpath)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('msh')
     if (is_arg('-ff')) then !FreeFem++
-      print '(/a)', 'Saving FreFem++ mesh file...'
+      call info('Saving FreFem++ mesh file...')
       if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
       call save_freefem_msh(outfile, get_unit(), pmh)
     elseif (is_arg('-gm')) then !Gmsh
-      print '(/a)', 'Saving Gmsh mesh file...'
+      call info('Saving Gmsh mesh file...')
       if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
       call save_gmsh(outfile, get_unit(), pmh)
     else !ANSYS
-      print '(/a)', 'Saving ANSYS mesh file...'
+      call info('Saving ANSYS mesh file...')
       if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
       call save_msh(outfile, pmh)
     end if
-    print '(a)', 'Done!'
+    call info('Done!')
   case('mesh')
-    print '(/a)', 'Saving FreFem++ mesh file...'
+    call info('Saving FreFem++ mesh file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_freefem_mesh(outfile, get_unit(), pmh)
-    print '(a)', 'Done!'
+    call info('Done!')
   case('pmh')
-    print '(/a)', 'Saving PMH mesh file...'
+    call info('Saving PMH mesh file...')
     if (.not. is_pmh) call mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
     call save_pmh(pmh, outfile)
-    print '(a)', 'Done!'
+    call info('Done!')
   end select !case default, already checked before reading infile
   !save fields
   if(is_pmh .and. there_is_field .and. is_arg('-of').and. (.not. present(outpmh))) then

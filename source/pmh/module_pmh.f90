@@ -153,7 +153,7 @@ contains
 !-----------------------------------------------------------------------
 ! save_pmh: save pmh
 !-----------------------------------------------------------------------
-subroutine save_pmh(filename, pmh, with_values)
+subroutine save_pmh(pmh, filename, with_values)
 !! Prints or saves a PMH structure.  
 !! 
 !! When argument `with_values' is true or not present, the PMH structure is completely saved in `filename`; 
