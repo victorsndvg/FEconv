@@ -9,7 +9,7 @@ program feconv
 use basicmod, only: string, error, is_arg, args_count, get_arg
 use module_feconv, only: convert
 implicit none
-character(10) :: last_update = '28/05/2014'
+character(10) :: last_update = '31/01/2018'
 
 
 !read and store arguments
@@ -141,6 +141,9 @@ elseif (is_arg('-h')) then
   print '(a)', '        this option can dramatically reduce the reordering computation time. The value ''sandwich'' assumes'
   print '(a)', '        that vertices and mid-points appear sandwiched and counterclockwise; this option must be used when'
   print '(a)', '        the Lagrange P2 mesh was created with SALOME'
+  print '(a)', ' '
+  print '(a)', '    -rc <comp>'
+  print '(a)', '        Remove the component <comp> of the coordinates. <comp> must be smaller than the number of components.'
   print '(a)', ' '
   print '(a)', '    -rt'
   print '(a)', '        Output file will contain Raviart-Thomas finite elements of the lowest degree'

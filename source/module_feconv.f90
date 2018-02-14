@@ -150,6 +150,7 @@ if (present(outpmh)) then
   ! inext does not exist but -if must be read
   if (is_arg('-if')) then
     call get_fieldfile('-if', infieldfile, infext)
+    if (is_arg('-in')) call get_fieldname('-in', infieldname)
   else
     there_is_field = .false.
   end if
@@ -157,6 +158,7 @@ elseif (is_arg('-l')) then
   ! outext does not exist but -if must be read
   if (is_arg('-if')) then
     call get_fieldfile('-if', infieldfile, infext)
+    if (is_arg('-in')) call get_fieldname('-in', infieldname)
   else
     there_is_field = .false.
   endif
@@ -164,6 +166,7 @@ elseif (present(inpmh)) then
   ! outext does not exist but -of must be read
   if (is_arg('-of')) then
     call get_fieldfile('-of', outfieldfile, outfext)
+    if (is_arg('-on')) call get_fieldname('-on', outfieldname)
   else
     there_is_field = .false.
   endif
