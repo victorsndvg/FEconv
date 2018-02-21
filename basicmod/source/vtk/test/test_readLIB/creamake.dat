@@ -1,0 +1,13 @@
+
+.
+..
+../..
+../../gfortran
+
+object
+
+
+gfortran
+-ffree-line-length-0 -ffixed-line-length-0
+
+

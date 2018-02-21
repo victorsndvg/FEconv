@@ -10,6 +10,8 @@
 # User-modifiable options
 #################################################################
  
+BMODLIB = basicmod/lib/libbasicmod.a
+ 
 # SOURCE AND COMMONS FOLDERS (separated by spaces)
 dir_fuentes = source source/cuthill_mckee source/ansys source/patran \
 source/unv source/mfm source/mum source/vtu source/mphtxt source/pmh \
@@ -22,7 +24,7 @@ dir_objetos = object
 condir_principal = 
  
 # EXECUTABLE NAME 
-ejecutable = libfeconv-18.01-ifort-linux.a
+ejecutable = libfeconv.a
  
 # NEEDED TO convert ejecutable THE DEFAULT RULE: 
 $(ejecutable): $(condir_principal) 
@@ -98,16 +100,16 @@ module_muf.o module_freefem.o module_pmh.o module_fem_extract.o module_gmsh.o \
 module_dex.o module_ip.o
  
 # INCLUDES
-includes = 
+includes = $(BMODLIB)
  
 # COMPILER
-FC =   ifort
+FC = ifort
  
 # COMPILER OPTIONS
-FFLAGS = -module $(dir_objetos) -Ibasicmod/include/ifort.linux
+FFLAGS = -module $(dir_objetos) -Ibasicmod/include
  
 # LINKER OPTIONS
-LDFLAGS = -static -Lbasicmod/lib -lbasicmod-18.01-ifort-linux
+LDFLAGS = -static -Lbasicmod/lib -lbasicmod
  
 #################################################################
 # Non-modifiable part
@@ -159,10 +161,21 @@ $(fuentes_obj): $(includes) $(modulos_obj)
 	$(FC) -c -o $@ $(FFLAGS) $< 
 	mv $@ $(dir_objetos) 
  
-$(ejecutable): $(modulos_obj)
+$(ejecutable): $(includes) $(modulos_obj)
 	$(AR) rcs $(ejecutable) $(condir_modulos_obj)
 	-mv $(ejecutable) lib/
-	-mv object/*.mod include/ifort.linux/
+	-mv object/*.mod include/
+
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB):
+	${MAKE} -f Makefile.static.ifort.linux -C basicmod
+
+cleanlib: clean
+	${RM} lib/$(ejecutable)
+	${RM} include/*
+	${MAKE} -f Makefile.static.ifort.linux -C basicmod cleanlib
  
 .PHONY: clean
 clean:

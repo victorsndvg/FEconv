@@ -1,0 +1,15 @@
+
+.
+../..
+../../..
+../../../gfortran
+../../../alloc
+
+
+
+
+gfortran
+-fcheck=all -fbacktrace
+
+
+

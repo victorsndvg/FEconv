@@ -4,6 +4,10 @@
 <!-- Suggested fflags: -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -ggdb -->
 <content>
 
+<prolog>
+BMODLIB = basicmod/lib/libbasicmod.so
+</prolog>
+
 <sources>
 source
 source/cuthill_mckee
@@ -22,26 +26,40 @@ source/gmsh
 </sources>
 
 <exec>
-libfeconv-18.01-gfortran-linux.so
+libfeconv.so
 </exec>
+
+<include>
+$(BMODLIB)
+</include>
 
 <compiler>
 gfortran
 </compiler>
 
 <fflags>
--fPIC -Ibasicmod/include/gfortran.linux
+-fPIC -Ibasicmod/include
 </fflags>
 
 <ldflags>
--Lbasicmod/lib -lbasicmod-18.01-gfortran-linux
+-Lbasicmod/lib -lbasicmod
 </ldflags>
 
 <rules>
-$(ejecutable): $(modulos_obj)
+$(ejecutable): $(includes) $(modulos_obj)
 	$(FC) -shared -Wl,-soname,$(ejecutable) -o $(ejecutable) $(condir_modulos_obj) $(LDFLAGS)
 	-mv $(ejecutable) lib/
-	-mv object/*.mod include/gfortran.linux/
-</rules>
+	-mv object/*.mod include/
 
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB): 
+	${MAKE} -f Makefile.dynamic.gfortran.linux -C basicmod
+
+cleanlib: clean
+	${RM} lib/$(ejecutable)
+	${RM} include/*
+	${MAKE} -f Makefile.dynamic.gfortran.linux -C basicmod cleanlib
+</rules>
 </content>

@@ -307,7 +307,7 @@ elseif (is_arg('-h')) then
   print '(a)', '    <https://github.com/victorsndvg/FEconv>'
   print '(a)', ' '
   print '(a)', 'COPYRIGHT'
-  print '(a)', '    Copyright (C) 2010 Universidade de Santiago de Compostela.  License GPLv3+: GNU GPL version 3 or later'
+  print '(a)', '    Copyright (C) 2010-2018 Universidade de Santiago de Compostela.  License GPLv3+: GNU GPL version 3 or later'
   print '(a)', '    <http://gnu.org/licenses/gpl.html>. This is free software: you are free to change and redistribute it.'
   print '(a)', '    There is NO WARRANTY, to the extent permitted by law.'
   print '(a)', ' '

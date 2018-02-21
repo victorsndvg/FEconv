@@ -1,5 +1,5 @@
 test: test.f90
-	gfortran -o test test.f90 -I../include/gfortran.osx/ -I../basicmod/include/gfortran.osx/ -L../lib/ -L../basicmod/lib/ -lfeconv-18.01-gfortran-osx -lbasicmod-18.01-gfortran-osx
+	gfortran -o test test.f90 -L../lib/ -I../include/ -L../basicmod/lib/ -I../basicmod/include/ -lfeconv -lbasicmod
 
 	@echo ==============================================================
 	@echo Remember to include the path to folder lib/ in the variable DYLD_LIBRARY_PATH with:

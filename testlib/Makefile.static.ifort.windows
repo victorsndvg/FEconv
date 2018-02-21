@@ -1,6 +1,6 @@
 # Do not put a final backslah in option /I
 test: test.f90
-	ifort test.f90 /libs:static /exe:test.exe /I..\include\ifort.windows /I..\basicmod\include\ifort.windows /link ..\lib\libfeconv-18.01-ifort-windows.lib ..\basicmod\lib\libbasicmod-18.01-ifort-windows.lib
+	ifort test.f90 /libs:static /exe:test.exe /I..\include /I..\basicmod\include /link ..\lib\libfeconv.lib ..\basicmod\lib\libbasicmod.lib
 
 .PHONY: clean
 clean:

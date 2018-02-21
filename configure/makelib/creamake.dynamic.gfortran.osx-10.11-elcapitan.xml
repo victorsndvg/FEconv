@@ -3,6 +3,10 @@
 <!-- Suggested fflags: -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -ggdb -->
 <content>
 
+<prolog>
+BMODLIB = basicmod/lib/libbasicmod.dylib
+</prolog>
+
 <sources>
 source
 source/cuthill_mckee
@@ -21,26 +25,40 @@ source/gmsh
 </sources>
 
 <exec>
-libfeconv-18.01-gfortran-osx.dylib
+libfeconv.dylib
 </exec>
+
+<include>
+$(BMODLIB)
+</include>
 
 <compiler>
 gfortran
 </compiler>
 
 <fflags>
--fPIC -Ibasicmod/include/gfortran.osx
+-fPIC -Ibasicmod/include
 </fflags>
 
 <ldflags>
--Lbasicmod/lib -lbasicmod-18.01-gfortran-osx
+-Lbasicmod/lib -lbasicmod
 </ldflags>
 
 <rules>
-$(ejecutable): $(modulos_obj)
+$(ejecutable): $(includes) $(modulos_obj)
 	$(FC) -dynamiclib  -install_name $(ejecutable) -o $(ejecutable) $(condir_modulos_obj) $(LDFLAGS)
 	@mv $(ejecutable) lib/
-	@mv object/*.mod include/gfortran.osx/
-</rules>
+	@mv object/*.mod include/
 
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB): 
+	${MAKE} -f Makefile.dynamic.gfortran.osx-10.11-elcapitan -C basicmod
+
+cleanlib: clean
+	${RM} lib/$(ejecutable)
+	${RM} include/*
+	${MAKE} -f Makefile.dynamic.gfortran.osx-10.11-elcapitan -C basicmod cleanlib
+</rules>
 </content>

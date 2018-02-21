@@ -1,36 +1,60 @@
 # 1. Description
 
-FEconv can convert finite element (FE) mesh written in several commercial file formats. It can also transform the FE type and/or perform some bandwidth optimizations. Some conversion capabilities are also present for mesh fields. Please type `feconv -h` and see EXAMPLES section to know more details, or visit <a href="http://victorsndvg.github.io/FEconv/">http://victorsndvg.github.io/FEconv</a> for more information.
+FEconv can convert finite element (FE) mesh written in several commercial file formats. It can also transform the FE type and/or perform some bandwidth optimizations. Some conversion capabilities are also present for mesh fields. Please type `feconv -h` and see EXAMPLES section to know more details, or visit the [FEconv help webpage](http://victorsndvg.github.io/FEconv) for more information.
 
 # 2. Installation
 
 ## As a standalone program
 
 The prerequisites are: 
- - the program _make_ (for Windows it can be found as _mingw32-make_ in the MinGW distribution) and 
- - a Fortran 2003 compiler; at the present time, only the GNU Fortran compiler, _gfortran_, and the Intel Fortran compiler, _ifort_, are supported in FEconv.
+- The program _make_ (for Windows it can be found as _mingw32-make_ in the MinGW distribution).
+- A Fortran 2003 compiler. At the present time, only the GNU Fortran compiler, _gfortran_, and the Intel Fortran compiler, _ifort_, are supported.
  
-After install the prerequisites, go to https://github.com/victorsndvg/FEconv, download the ZIP file and unzip it in the installation folder; open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the installation folder and type:
+After install the prerequisites:
+- Go to the [FEconv webpage](https://github.com/victorsndvg/FEconv).
+- Download the compressed file and uncompress it in the installation folder.
+- Open a terminal in Linux or Mac OS X, or a Command Window in Windows, go to the installation folder and type:
 ```shell
   make -f Makefile.<compiler>.<os>
 ```
-where _\<compiler\>_  can be _gfortran_ or _ifort_ and _\<os\>_ can be _linux_, _windows_ or _osx_. For Mac OS X, some Makefiles are provided, indicating for which version they were tested. Be aware that in Windows, MinGW distribution uses _mingw32-make_ instead of _make_.
+where 
+ - _&lt;compiler&gt;_  can be _gfortran_ or _ifort_.
+ - _&lt;os&gt;_ can be _linux_, _windows_ or _osx_. For Mac OS X, some Makefiles are provided, indicating which version they were tested for. Be aware that in Windows, MinGW distribution can use _mingw32-make_ instead of _make_.
+
+To delete the FEconv executable, its .mod and object files, execute:
+```shell
+  make -f Makefile.<compiler>.<os> clean
+```
+
+To delete the basicmod library, its .mod and object files, execute:
+```shell
+  make -f Makefile.<compiler>.<os> cleanlib
+```
 
 ## As a library
 
-Prebuilt libraries and header files are located in folders _lib/_  and _include/_. 
-
-If you want to build the libraries by your own, you must install the prerequisites previously mentioned. Then open a terminal in Linux or Mac Mac OS X, or a Command Window in Windows, go to the installation folder and type:
+- The command to execute in the terminal or Command Window is slightly different from the previous one:
 ```shell
-  make -f Makefile.makelib.<compiler>.<os>
+  make -f Makefile.makelib.<distribution>.<compiler>.<os>
 ```
-where _\<compiler\>_ can be _gfortran_ or _ifort_ and _\<os\>_ can be _linux_, _windows_ or _osx_. For Mac OS X, some Makefiles are provided, indicating for which version they were tested. Be aware that in Windows, MinGW distribution uses _mingw32-make_ instead of _make_.
+where _&lt;distribution&gt;_ can be _static_ or _dynamic_.
 
+The library and the .mod files are automatically moved to folders _lib/_  and _include/_, respectively.
+
+When compiling for several compilers, clean the object files:
+```shell
+  make -f Makefile.makelib.<distribution>.<compiler>.<os> clean
+```
+
+To delete the FEconv (and basicmod) libraries, the .mod and the object files, execute:
+```shell
+  make -f Makefile.makelib.<distribution>.<compiler>.<os> cleanlib
+```
 # 3. Usage
 
 ## As a standalone program
 
-Please execute `feconv -h` to see the command line options and some examples of use, or visit the [FEconv help webpage](http://victorsndvg.github.io/FEconv/). 
+Please execute `feconv -h` to see the command line options and some examples of use, or visit the [FEconv help webpage](http://victorsndvg.github.io/FEconv). 
 
 ## As a library
 

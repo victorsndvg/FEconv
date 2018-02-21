@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='iso-8859-15'?>
+<data>
+	<menu name="Boundary conditions">
+		<submenu name="Neumann Condition">
+			<leaf name="Constant value" totalnum="1" type="float">
+    <elements>
+     -99
+    </elements>
+			</leaf>
+ 		<leaf name="Interval" totalnum="3" type="float">
+ 			<elements>
+ 			 0.0  0.0002  0.0004
+    </elements>
+ 		</leaf>
+ 		<leaf name="Label" totalnum="1" type="charlist">
+ 			<elements>
+ 			 Upper side
+    </elements>
+ 		</leaf>
+ 		<leaf name="Surfaces" totalnum="2" type="charlist">
+ 			<elements>
+ 			 Upper side
+     Down side
+    </elements>
+ 		</leaf>
+		</submenu>
+	</menu>
+</data>

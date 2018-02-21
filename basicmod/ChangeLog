@@ -1,0 +1,46 @@
+================================================================================
+CHANGELOG / RELEASE NOTES
+================================================================================
+
+16.10.0                                                               2016-10-16
+--------------------------------------------------------------------------------
+- Update: Documentation in doc/.
+- Add: README and ChangeLog.
+- Add: Test program in test/.
+- Add: Makefiles for ifort.linux.
+
+17.02.0                                                               2017-02-26
+--------------------------------------------------------------------------------
+- Add: Makefiles for windows.
+- Add: Test program in test/ with a possible conflict with external module_report_old.
+
+17.10.0                                                               2017-10-10
+--------------------------------------------------------------------------------
+- Add: module_xml_parser, complex function and larger (10*maxpath) strings.
+- Update: Makefiles use of $(RM) and - to avoid errors with missing files.
+
+17.12.0                                                               2017-12-22
+--------------------------------------------------------------------------------
+- Update: Module names now end in '_bmod' to avoid conflicts with user modules.
+
+17.12.1                                                               2017-12-31
+--------------------------------------------------------------------------------
+- Add: modification_time() in module_compiler_dependant (from project VolFEM).
+- Add: dimension 10*maxpath in module_xml_parser (from project VolFEM).
+- Add: operator .IsNewerThan. in module_files (from project VolFEM).
+- Update: changes in word_count and word (from project VolFEM).
+
+18.01.0                                                               2018-01-09
+--------------------------------------------------------------------------------
+- Update: FORD links of type [[module]] updated to the new ending '_bmod'.
+- Update: FORD comments ended with two blank spaces when paragraph ends.
+
+18.02.0                                                               2018-02-16
+--------------------------------------------------------------------------------
+- Change: libraries are named without version, os or compiler.
+- Change: include (.MOD) files are not distributed.
+
+18.02.0                                                               2018-02-21
+--------------------------------------------------------------------------------
+- Add: rule 'cleanlib' in Makefiles also clean results in lib/ and include/.
+

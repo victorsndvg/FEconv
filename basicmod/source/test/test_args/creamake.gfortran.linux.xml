@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Configuration data file for creamake with gfortran in Linux-->
+<!-- suggested fflags: -std=f2003 -Wall -g -fcheck=all -fbacktrace -fall-intrinsics -->
+<content>
+
+<sources>
+.
+../..
+../../gfortran
+../../args
+</sources>
+ 
+<compiler>
+gfortran
+</compiler>
+
+<fflags>
+-Wall -ggdb -fcheck=all -fbacktrace -fall-intrinsics 
+</fflags>
+
+</content>

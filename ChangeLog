@@ -6,3 +6,17 @@ CHANGELOG / RELEASE NOTES
 --------------------------------------------------------------------------------
 - Add: Makefiles for OS X.
 - Add: Example of use as a library, in folder testlib/.
+
+18.02                                                                 2018-02-16
+--------------------------------------------------------------------------------
+- Update: License year and owner.
+- Update: Optional argument for deallocation in mfm2pmh.
+- Change: libraries are named without version, os or compiler.
+- Change: include (.MOD) files are not distributed.
+
+18.02                                                                 2018-02-21
+--------------------------------------------------------------------------------
+- Change: Use E descriptor to save UNV files.
+- Change: Optional deallocation of input mesh in mfm2pmh().
+- Add: rule 'cleanlib' in Makefiles also clean results in lib/ and include/.
+

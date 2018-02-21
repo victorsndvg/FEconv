@@ -535,13 +535,19 @@ end subroutine
 !
 ! mfm is deallocated while PMH variables are being allocated
 !-----------------------------------------------------------------------
-subroutine mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh)
+subroutine mfm2pmh(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd, pmh, deallocation)
 type(pmh_mesh), intent(inout) :: pmh
 integer, intent(inout) :: nel, nnod, nver, dim, lnn, lnv, lne, lnf
 integer, allocatable   :: nn(:,:), mm(:,:), nrv(:,:), nra(:,:), nrc(:,:), nsd(:)
 real(real64), allocatable :: z(:,:)
+logical, optional, intent(in) :: deallocation
 integer :: res, tp, nelg, iel, ic, j, k
 character(maxpath) :: cad
+logical :: deall
+
+!whether or not to deallocate the MFM variables (.true. by default)
+deall = .true.
+if (present(deallocation)) deall = deallocation
 
 !allocate piece, pmh%pc
 if (allocated(pmh%pc)) then
@@ -560,7 +566,12 @@ end if
 pmh%pc(1)%nnod = nnod
 pmh%pc(1)%nver = nver
 pmh%pc(1)%dim  = dim
-call move_alloc(from=z, to=pmh%pc(1)%z)
+if (deall) then
+  call move_alloc(from=z, to=pmh%pc(1)%z)
+else
+  call alloc(pmh%pc(1)%z, size(z,1), size(z,2))
+  pmh%pc(1)%z = z
+end if
 
 !nelg: calculate the number of element groups to create
 tp = check_fe(nver==nnod, lnn, lnv, lne, lnf)
@@ -596,9 +607,15 @@ end if
 associate (elg => pmh%pc(1)%el(nelg)) !elg: current element group
   elg%nel = nel
   elg%type = tp
-  call move_alloc(from=nn,  to=pmh%pc(1)%el(nelg)%nn)
-  call move_alloc(from=mm,  to=pmh%pc(1)%el(nelg)%mm)
-  call move_alloc(from=nsd, to=pmh%pc(1)%el(nelg)%ref)
+  if (deall) then
+    call move_alloc(from=nn,  to=pmh%pc(1)%el(nelg)%nn)
+    call move_alloc(from=mm,  to=pmh%pc(1)%el(nelg)%mm)
+    call move_alloc(from=nsd, to=pmh%pc(1)%el(nelg)%ref)
+  else
+    call alloc(pmh%pc(1)%el(nelg)%nn, size(nn,1), size(nn,2))
+    call alloc(pmh%pc(1)%el(nelg)%mm, size(mm,1), size(mm,2))
+    call alloc(pmh%pc(1)%el(nelg)%ref, size(nsd,1))
+  end if
 end associate
 iel = nelg - 1
 
@@ -628,7 +645,7 @@ if (FEDB(tp)%tdim > 2) then
     end associate
     iel = iel - 1
   end if
-  call dealloc(nrc)
+  if (deall) call dealloc(nrc)
 end if
 
 !group for edges
@@ -657,7 +674,7 @@ if (FEDB(tp)%tdim > 1) then
     end associate
     iel = iel - 1
   end if
-  call dealloc(nra)
+  if (deall) call dealloc(nra)
 end if
 
 !group for vertices
@@ -681,7 +698,7 @@ if (FEDB(tp)%tdim > 0) then
       end do
     end associate
   end if
-  call dealloc(nrv)
+  if (deall) call dealloc(nrv)
 end if
 
 end subroutine

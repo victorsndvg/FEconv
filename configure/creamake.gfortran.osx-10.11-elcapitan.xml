@@ -9,6 +9,10 @@ export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path-to-lib>
 -->
 <content>
 
+<prolog>
+BMODLIB = basicmod/lib/libbasicmod.dylib
+</prolog>
+
 <sources>
 source
 source/cuthill_mckee
@@ -27,16 +31,30 @@ source/gmsh
 source/main
 </sources>
  
+<include>
+$(BMODLIB)
+</include>
+
 <compiler>
 gfortran
 </compiler>
 
 <fflags>
--Ibasicmod/include/gfortran.osx
+-Ibasicmod/include
 </fflags>
 
 <ldflags>
--Lbasicmod/lib -lbasicmod-18.01-gfortran-osx
+-Lbasicmod/lib -lbasicmod
 </ldflags>
 
+<rules>
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB): 
+	${MAKE} -f Makefile.dynamic.gfortran.osx-10.11-elcapitan -C basicmod
+
+cleanlib: clean
+	${MAKE} -f Makefile.dynamic.gfortran.osx-10.11-elcapitan -C basicmod cleanlib
+</rules>
 </content>

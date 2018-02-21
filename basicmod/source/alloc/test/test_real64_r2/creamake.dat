@@ -1,0 +1,13 @@
+
+.
+../../
+../../../
+../../../gfortran
+
+
+
+
+gfortran
+-g -fcheck=all -fbacktrace
+
+

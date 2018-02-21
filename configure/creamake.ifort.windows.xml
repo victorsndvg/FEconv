@@ -7,6 +7,10 @@
 windows
 </os>
 
+<prolog>
+BMODLIB = basicmod\lib\libbasicmod.lib 
+</prolog>
+
 <sources>
 source
 source/cuthill_mckee
@@ -25,16 +29,30 @@ source/gmsh
 source/main
 </sources>
  
+<include>
+$(BMODLIB)
+</include>
+
 <compiler>
 ifort
 </compiler>
 
 <fflags>
-/nologo /stand:f15 /warn:all /check:all,noarg_temp_created /traceback /Ibasicmod\include\ifort.windows
+/nologo /stand:f15 /warn:all /check:all,noarg_temp_created /traceback /Ibasicmod\include
 </fflags>
 
 <ldflags>
-/static /link basicmod\lib\libbasicmod-18.01-ifort-windows.lib 
+/static /link basicmod\lib\libbasicmod.lib 
 </ldflags>
 
+<rules>
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB): 
+	${MAKE} -f Makefile.static.ifort.windows -C basicmod
+
+cleanlib: clean
+	${MAKE} -f Makefile.static.ifort.windows -C basicmod cleanlib
+</rules>
 </content>

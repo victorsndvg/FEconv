@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<VTKFile type="Collection" version="0.1" byte_order="LittleEndian">
+  <Collection>
+    <DataSet timestep="0.00000000" group="" part="0" file="temperature_1.vtu"/>
+    <DataSet timestep="1.00000000" group="" part="0" file="temperature_2.vtu"/>
+    <DataSet timestep="1.50000000" group="" part="0" file="temperature_3.vtu"/>
+    <DataSet timestep="10.0000000" group="" part="0" file="temperature_4.vtu"/>
+    <DataSet timestep="11.5000000" group="" part="0" file="temperature_5.vtu"/>
+  </Collection>
+</VTKFile>

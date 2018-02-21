@@ -101,12 +101,12 @@ do ipp = 1, size(piece2save,1)
   if (any_P2) then !save node coordinates when there is some Lagrange P2 elements
     do j = 1, pmh%pc(ip)%nnod
       write(iu,'(4I10)') prev_coord + j, 0, 0, 11
-      write(iu,'(1P3D25.16)') reshape(znod(:,j), [3], [0._real64,0._real64,0._real64])
+      write(iu,'(1P3E25.16)') reshape(znod(:,j), [3], [0._real64,0._real64,0._real64])
     end do
   else !save vertex coordinates when there is not any Lagrange P2 element
     do j = 1, pmh%pc(ip)%nver
       write(iu,'(4I10)') prev_coord + j, 0, 0, 11
-      write(iu,'(1P3D25.16)') reshape(pmh%pc(ip)%z(:,j), [3], [0._real64,0._real64,0._real64])
+      write(iu,'(1P3E25.16)') reshape(pmh%pc(ip)%z(:,j), [3], [0._real64,0._real64,0._real64])
     end do
   end if
   !update the number of previous nodes/vertices

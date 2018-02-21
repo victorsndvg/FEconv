@@ -8,6 +8,10 @@
 windows
 </os>
 
+<prolog>
+BMODLIB = basicmod/lib/libbasicmod.a
+</prolog>
+
 <sources>
 source
 source/cuthill_mckee
@@ -26,28 +30,41 @@ source/gmsh
 </sources>
 
 <exec>
-libfeconv-18.01-gfortran-windows.a
+libfeconv.a
 </exec>
+
+<include>
+$(BMODLIB)
+</include>
 
 <compiler>
 gfortran
 </compiler>
 
 <fflags>
--Ibasicmod/include/gfortran.windows
+-Ibasicmod/include
 </fflags>
 
 <ldflags>
--Lbasicmod/lib -lbasicmod-18.01-gfortran-windows
+-Lbasicmod/lib -lbasicmod
 </ldflags>
 
 <rules>
-$(ejecutable): $(modulos_obj)
+$(ejecutable): $(includes) $(modulos_obj)
 	$(AR) rcs $(ejecutable) $(condir_modulos_obj)
 	-copy $(ejecutable) lib
 	-del $(ejecutable)
-	-copy object\*.mod include\gfortran.windows
+	-copy object\*.mod include
 	-del object\*.mod
-</rules>
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
 
+$(BMODLIB): 
+	${MAKE} -f Makefile.static.gfortran.windows -C basicmod
+
+cleanlib: clean
+	-del lib\$(ejecutable)
+	-del include\*.*
+	${MAKE} -f Makefile.static.gfortran.windows -C basicmod cleanlib
+</rules>
 </content>

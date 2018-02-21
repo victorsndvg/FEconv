@@ -7,6 +7,10 @@
 windows
 </os>
 
+<prolog>
+BMODLIB = basicmod/lib/libbasicmod.a
+</prolog>
+
 <sources>
 source
 source/cuthill_mckee
@@ -25,16 +29,30 @@ source/gmsh
 source/main
 </sources>
 
+<include>
+$(BMODLIB)
+</include>
+
 <compiler>
 gfortran
 </compiler>
 
 <fflags>
--std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include/gfortran.windows
+-std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include
 </fflags>
 
 <ldflags>
--static -Lbasicmod/lib -lbasicmod-18.01-gfortran-windows
+-static -Lbasicmod/lib -lbasicmod
 </ldflags>
 
+<rules>
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB): 
+	${MAKE} -f Makefile.static.gfortran.windows -C basicmod
+
+cleanlib: clean
+	${MAKE} -f Makefile.static.gfortran.windows -C basicmod cleanlib
+</rules>
 </content>

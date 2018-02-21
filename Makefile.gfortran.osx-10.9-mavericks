@@ -1,0 +1,180 @@
+#################################################################
+# Makefile created using the tool 'Creamake'
+# 
+# Creamake is distributed under the GNU GPL license
+# Author: Francisco Pena, fran.pena(at)usc.es
+# Download page: http://sourceforge.net/projects/creamake/
+#################################################################
+ 
+#################################################################
+# User-modifiable options
+#################################################################
+ 
+BMODLIB = basicmod/lib/libbasicmod.dylib
+ 
+# SOURCE AND COMMONS FOLDERS (separated by spaces)
+dir_fuentes = source source/cuthill_mckee source/ansys source/patran \
+source/unv source/mfm source/mum source/vtu source/mphtxt source/pmh \
+source/flux source/freefem source/fem_extract source/gmsh source/main
+ 
+# OBJECT AND .MOD FOLDER
+dir_objetos = object
+ 
+# MAIN SOURCE FILE (include relative path from folder where Makefile is)
+condir_principal = source/main/main.f90
+ 
+# EXECUTABLE NAME 
+ejecutable = feconv
+ 
+# NEEDED TO convert ejecutable THE DEFAULT RULE: 
+$(ejecutable): $(condir_principal) 
+ 
+# MODULES
+modulos = module_field_database.f90 module_ALLOC_int_alloc_r2.f90 \
+module_ALLOC_log_r2.f90 module_ALLOC_real_r2.f90 module_assign_references.f90 \
+module_desplazamientos.f90 module_fuerzas.f90 module_cells.f90 \
+module_dataset.f90 module_FE_DB.f90 module_groups.f90 module_patran.f90 \
+module_mesh_unv.f90 module_mfm.f90 module_mum.f90 module_fe_database_pmh.f90 \
+module_pmh.f90 module_utils_mphtxt.f90 module_write_mphtxt.f90 \
+module_read_mphtxt.f90 module_manage_mphtxt.f90 module_mphtxt.f90 \
+module_vtu.f90 module_pvd.f90 module_muf.f90 module_mff.f90 \
+module_dataset_2467.f90 module_dataset_2414.f90 module_dataset_2412.f90 \
+module_dataset_2411.f90 module_manage_unv.f90 module_unv.f90 \
+module_utils_msh.f90 module_read_msh.f90 module_ip.f90 \
+module_cuthill_mckee.f90 module_transform.f90 module_write_msh.f90 \
+module_manage_msh.f90 module_msh.f90 module_dex.f90 module_utils_pf3.f90 \
+module_read_pf3.f90 module_write_pf3.f90 module_manage_pf3.f90 module_pf3.f90 \
+module_freefem.f90 module_fem_extract_complex.f90 module_fem_extract_real.f90 \
+module_fem_extract.f90 module_gmsh.f90 module_feconv.f90
+ 
+# MODULE DEPENDENCIES
+# if pru1 depends on pru2... pru1.o: pru2.o
+module_desplazamientos.o: module_ALLOC_int_alloc_r2.o module_ALLOC_real_r2.o \
+module_ALLOC_log_r2.o
+module_fuerzas.o: module_ALLOC_int_alloc_r2.o module_ALLOC_real_r2.o
+module_patran.o: module_desplazamientos.o module_fuerzas.o module_groups.o \
+module_assign_references.o
+module_pmh.o: module_fe_database_pmh.o
+module_utils_mphtxt.o: module_pmh.o
+module_write_mphtxt.o: module_pmh.o module_utils_mphtxt.o
+module_read_mphtxt.o: module_pmh.o module_utils_mphtxt.o
+module_manage_mphtxt.o: module_read_mphtxt.o module_write_mphtxt.o \
+module_utils_mphtxt.o
+module_mphtxt.o: module_manage_mphtxt.o module_pmh.o module_fe_database_pmh.o
+module_vtu.o: module_pmh.o module_fe_database_pmh.o
+module_pvd.o: module_vtu.o module_pmh.o
+module_muf.o: module_pmh.o
+module_mff.o: module_pmh.o
+module_dataset_2467.o: module_dataset.o module_mesh_unv.o module_cells.o \
+module_groups.o module_pmh.o module_fe_database_pmh.o
+module_dataset_2414.o: module_dataset.o module_pmh.o module_fe_database_pmh.o
+module_dataset_2412.o: module_dataset.o module_mesh_unv.o module_FE_DB.o \
+module_cells.o module_pmh.o module_fe_database_pmh.o
+module_dataset_2411.o: module_dataset.o module_pmh.o
+module_manage_unv.o: module_pmh.o module_dataset_2411.o module_dataset_2412.o \
+module_dataset_2467.o module_dataset_2414.o
+module_unv.o: module_pmh.o module_fe_database_pmh.o module_manage_unv.o \
+module_mesh_unv.o
+module_utils_msh.o: module_pmh.o module_fe_database_pmh.o
+module_read_msh.o: module_pmh.o module_utils_msh.o
+module_ip.o: module_utils_msh.o module_pmh.o
+module_cuthill_mckee.o: module_vtu.o
+module_transform.o: module_vtu.o module_cuthill_mckee.o module_pmh.o
+module_write_msh.o: module_transform.o module_pmh.o module_utils_msh.o
+module_manage_msh.o: module_transform.o module_pmh.o module_read_msh.o \
+module_write_msh.o module_utils_msh.o
+module_msh.o: module_pmh.o module_fe_database_pmh.o module_manage_msh.o
+module_dex.o: module_pmh.o
+module_utils_pf3.o: module_pmh.o
+module_read_pf3.o: module_pmh.o module_utils_pf3.o
+module_write_pf3.o: module_pmh.o module_utils_pf3.o
+module_manage_pf3.o: module_read_pf3.o module_write_pf3.o
+module_pf3.o: module_manage_pf3.o module_pmh.o module_fe_database_pmh.o
+module_freefem.o: module_fe_database_pmh.o module_pmh.o
+module_fem_extract.o: module_fem_extract_real.o module_fem_extract_complex.o
+module_gmsh.o: module_fe_database_pmh.o module_pmh.o
+module_feconv.o: module_transform.o module_cuthill_mckee.o module_msh.o \
+module_unv.o module_patran.o module_mfm.o module_mum.o module_vtu.o \
+module_pvd.o module_mphtxt.o module_pf3.o module_field_database.o module_mff.o \
+module_muf.o module_freefem.o module_pmh.o module_fem_extract.o module_gmsh.o \
+module_dex.o module_ip.o
+ 
+# INCLUDES
+includes = $(BMODLIB)
+ 
+# COMPILER
+FC = gfortran
+ 
+# COMPILER OPTIONS
+FFLAGS = -J$(dir_objetos) -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include
+ 
+# LINKER OPTIONS
+LDFLAGS = -Lbasicmod/lib -lbasicmod -L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib
+ 
+#################################################################
+# Non-modifiable part
+#################################################################
+ 
+# SOURCE FOLDERS
+VPATH =   $(subst ,:,$(strip $(dir_fuentes)))
+vpath %.o $(dir_objetos)
+ 
+# SOURCES
+fuentes_ = $(filter %.f %.F %.for %.FOR %.f90 %.F90 %.f95 %.F95 %.f03 %.F03,$(shell ls $(dir_fuentes)))
+fuentes  = $(filter-out $(notdir $(condir_principal)) $(modulos),$(fuentes_))
+ 
+# OBJECTS
+modulos_obj = $(addsuffix .o,$(basename $(modulos)))
+fuentes_obj = $(addsuffix .o,$(basename $(fuentes)))
+ 
+# OBJECTS WITH PATH
+condir_modulos_obj = $(addprefix $(dir_objetos)/,$(modulos_obj))
+condir_fuentes_obj = $(addprefix $(dir_objetos)/,$(fuentes_obj))
+ 
+# COMPILATION OPTIONS
+FFLAGS += $(patsubst %,-I%,$(dir_fuentes))
+FFLAGS += -I$(dir_objetos)
+ 
+# MAIN RULE
+all: $(ejecutable)
+ 
+$(ejecutable): $(includes) $(modulos_obj) $(fuentes_obj)
+	$(FC) -o $(ejecutable) $(FFLAGS) $(condir_principal) $(condir_modulos_obj) $(condir_fuentes_obj) $(LDFLAGS)
+ 
+# SOURCES RULE
+$(fuentes_obj): $(includes) $(modulos_obj)
+ 
+# RULE PATTERNS
+%.o:%.f
+	$(FC) -c -o $@ $(FFLAGS) $<
+	mv $@ $(dir_objetos) 
+%.o:%.F
+	$(FC) -c -o $@ $(FFLAGS) $< 
+	mv $@ $(dir_objetos) 
+%.o:%.for
+	$(FC) -c -o $@ $(FFLAGS) $< 
+	mv $@ $(dir_objetos) 
+%.o:%.FOR
+	$(FC) -c -o $@ $(FFLAGS) $< 
+	mv $@ $(dir_objetos) 
+%.o:%.f90
+	$(FC) -c -o $@ $(FFLAGS) $< 
+	mv $@ $(dir_objetos) 
+%.o:%.F90
+	$(FC) -c -o $@ $(FFLAGS) $< 
+	mv $@ $(dir_objetos) 
+ 
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB):
+	${MAKE} -f Makefile.dynamic.gfortran.osx-10.11-elcapitan -C basicmod
+
+cleanlib: clean
+	${MAKE} -f Makefile.dynamic.gfortran.osx-10.11-elcapitan -C basicmod cleanlib
+ 
+.PHONY: clean
+clean:
+	$(RM) $(dir_objetos)/*.o      
+	$(RM) $(dir_objetos)/*.mod    
+	$(RM) $(ejecutable)

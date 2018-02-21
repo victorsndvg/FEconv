@@ -1,5 +1,5 @@
 test: test.f90
-	gfortran -static -o test test.f90 -I../include/gfortran.linux/ -I../basicmod/include/gfortran.linux/ -L../lib/ -L../basicmod/lib/ -lfeconv-18.01-gfortran-linux -lbasicmod-18.01-gfortran-linux
+	gfortran -static -o test test.f90 -L../lib/ -I../include/ -L../basicmod/lib/ -I../basicmod/include/ -lfeconv -lbasicmod
 
 .PHONY: clean
 clean:

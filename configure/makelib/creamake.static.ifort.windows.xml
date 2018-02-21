@@ -8,6 +8,10 @@
 windows
 </os>
 
+<prolog>
+BMODLIB = basicmod\lib\libbasicmod.lib 
+</prolog>
+
 <sources>
 source
 source/cuthill_mckee
@@ -26,28 +30,42 @@ source/gmsh
 </sources>
 
 <exec>
-libfeconv-18.01-ifort-windows.lib
+libfeconv.lib
 </exec>
+
+<include>
+$(BMODLIB)
+</include>
 
 <compiler>
 ifort
 </compiler>
 
 <fflags>
-/nologo /Ibasicmod\include\ifort.windows
+/nologo /Ibasicmod\include
 </fflags>
 
 <ldflags>
-/static /link basicmod\lib\libbasicmod-18.01-ifort-windows.lib 
+/static /link basicmod\lib\libbasicmod.lib 
 </ldflags>
 
 <rules>
-$(ejecutable): $(modulos_obj)
+$(ejecutable): $(includes) $(modulos_obj)
 	lib /out:$(ejecutable) $(condir_modulos_obj)
 	-copy $(ejecutable) lib
 	-del $(ejecutable)
-	-copy object\*.mod include\ifort.windows
+	-copy object\*.mod include
 	-del object\*.mod
-</rules>
 
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB): 
+	${MAKE} -f Makefile.static.ifort.windows -C basicmod
+
+cleanlib: clean
+	-del lib\$(ejecutable)
+	-del include\*.*
+	${MAKE} -f Makefile.static.ifort.windows -C basicmod cleanlib
+</rules>
 </content>

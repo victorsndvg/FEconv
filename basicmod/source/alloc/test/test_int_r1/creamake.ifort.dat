@@ -1,0 +1,14 @@
+
+.
+../../
+../../../
+../../../intel
+
+
+
+
+ifort
+-stand f03 -warn all -g -check all -traceback
+
+
+

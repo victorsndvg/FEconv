@@ -3,6 +3,10 @@
 <!-- Suggested fflags: -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -ggdb -->
 <content>
 
+<prolog>
+BMODLIB = basicmod/lib/libbasicmod.dylib
+</prolog>
+
 <sources>
 source
 source/cuthill_mckee
@@ -20,17 +24,31 @@ source/fem_extract
 source/gmsh
 source/main
 </sources>
- 
+
+<include>
+$(BMODLIB)
+</include>
+
 <compiler>
 gfortran
 </compiler>
 
 <fflags>
--std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include/gfortran.osx
+-std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include
 </fflags>
 
 <ldflags>
--Lbasicmod/lib -lbasicmod-18.01-gfortran-osx -L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib
+-Lbasicmod/lib -lbasicmod -L /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/lib
 </ldflags>
 
+<rules>
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB): 
+	${MAKE} -f Makefile.dynamic.gfortran.osx-10.11-elcapitan -C basicmod
+
+cleanlib: clean
+	${MAKE} -f Makefile.dynamic.gfortran.osx-10.11-elcapitan -C basicmod cleanlib
+</rules>
 </content>

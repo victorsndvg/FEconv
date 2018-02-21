@@ -1,0 +1,38 @@
+#standalone program
+creamake configure/creamake.gfortran.linux.xml
+mv       Makefile  Makefile.gfortran.linux
+
+creamake configure/creamake.gfortran.osx-10.9-mavericks.xml
+mv       Makefile  Makefile.gfortran.osx-10.9-mavericks
+
+creamake configure/creamake.gfortran.osx-10.11-elcapitan.xml
+mv       Makefile  Makefile.gfortran.osx-10.11-elcapitan
+
+creamake configure/creamake.gfortran.windows.xml
+mv       Makefile  Makefile.gfortran.windows
+
+creamake configure/creamake.ifort.linux.xml
+mv       Makefile  Makefile.ifort.linux
+
+creamake configure/creamake.ifort.windows.xml
+mv       Makefile  Makefile.ifort.windows
+
+#library
+creamake configure/makelib/creamake.dynamic.gfortran.linux.xml
+mv        Makefile Makefile.makelib.dynamic.gfortran.linux
+
+creamake configure/makelib/creamake.dynamic.gfortran.osx-10.11-elcapitan.xml
+mv        Makefile Makefile.makelib.dynamic.gfortran.osx-10.11-elcapitan
+
+creamake configure/makelib/creamake.static.gfortran.linux.xml
+mv        Makefile Makefile.makelib.static.gfortran.linux
+
+creamake configure/makelib/creamake.static.gfortran.windows.xml
+mv        Makefile Makefile.makelib.static.gfortran.windows
+
+creamake configure/makelib/creamake.static.ifort.linux.xml
+mv        Makefile Makefile.makelib.static.ifort.linux
+
+creamake configure/makelib/creamake.static.ifort.windows.xml
+mv        Makefile Makefile.makelib.static.ifort.windows
+

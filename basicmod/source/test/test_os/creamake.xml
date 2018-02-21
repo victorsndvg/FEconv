@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Configuration data file for creamake with gfortran in Linux-->
+<!-- suggested fflags: -g -fcheck=all -fbacktrace -->
+<content>
+
+<sources>
+.
+../..
+../../gfortran
+../../alloc
+../../vtk
+../../xml
+../../xread
+../../sourcelib
+</sources>
+ 
+<compiler>
+gfortran
+</compiler>
+
+<fflags>
+-g -fcheck=all -fbacktrace -std=f2008ts
+<fflags>
+ 
+</content>

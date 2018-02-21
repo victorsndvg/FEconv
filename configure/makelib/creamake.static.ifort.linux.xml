@@ -4,6 +4,10 @@
 <!-- Suggested fflags: -nologo -stand f15 -warn all -check all,noarg_temp_created -traceback -debug -->
 <content>
 
+<prolog>
+BMODLIB = basicmod/lib/libbasicmod.a
+</prolog>
+
 <sources>
 source
 source/cuthill_mckee
@@ -22,26 +26,40 @@ source/gmsh
 </sources>
 
 <exec>
-libfeconv-18.01-ifort-linux.a
+libfeconv.a
 </exec>
+
+<include>
+$(BMODLIB)
+</include>
 
 <compiler>
 ifort
 </compiler>
 
 <fflags>
--Ibasicmod/include/ifort.linux
+-Ibasicmod/include
 </fflags>
 
 <ldflags>
--static -Lbasicmod/lib -lbasicmod-18.01-ifort-linux
+-static -Lbasicmod/lib -lbasicmod
 </ldflags>
 
 <rules>
-$(ejecutable): $(modulos_obj)
+$(ejecutable): $(includes) $(modulos_obj)
 	$(AR) rcs $(ejecutable) $(condir_modulos_obj)
 	-mv $(ejecutable) lib/
-	-mv object/*.mod include/ifort.linux/
-</rules>
+	-mv object/*.mod include/
 
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB): 
+	${MAKE} -f Makefile.static.ifort.linux -C basicmod
+
+cleanlib: clean
+	${RM} lib/$(ejecutable)
+	${RM} include/*
+	${MAKE} -f Makefile.static.ifort.linux -C basicmod cleanlib
+</rules>
 </content>
