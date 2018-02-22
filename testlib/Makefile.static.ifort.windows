@@ -4,5 +4,5 @@ test: test.f90
 
 .PHONY: clean
 clean:
-	del test.exe
-	del *.mod
+	-del test.exe
+	-del *.mod

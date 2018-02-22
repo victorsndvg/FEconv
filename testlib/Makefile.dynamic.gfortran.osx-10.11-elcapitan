@@ -2,12 +2,12 @@ test: test.f90
 	gfortran -o test test.f90 -L../lib/ -I../include/ -L../basicmod/lib/ -I../basicmod/include/ -lfeconv -lbasicmod
 
 	@echo ==============================================================
-	@echo Remember to include the path to folder lib/ in the variable DYLD_LIBRARY_PATH with:
+	@echo Remember to include the path to the libraries in the variable DYLD_LIBRARY_PATH with:
 	@echo export DYLD_LIBRARY_PATH=\$$"DYLD_LIBRARY_PATH":\<path-to-lib\>
 	@echo ==============================================================
 
 .PHONY: clean
 clean:
-	rm test
-	rm *.mod    
+	${RM} test
+	${RM} *.mod    
 

@@ -3,5 +3,5 @@ test: test.f90
 
 .PHONY: clean
 clean:
-	rm test
-	rm *.mod
+	${RM} test
+	${RM} *.mod
