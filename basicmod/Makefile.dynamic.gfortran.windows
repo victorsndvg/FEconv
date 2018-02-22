@@ -175,7 +175,7 @@ $(ejecutable): $(modulos_obj)
 .PHONY: cleanlib
 cleanlib: clean
 	-del lib\$(ejecutable)
-	-del include\*.*
+	-del include\*.mod
  
 .PHONY: clean
 clean:
