@@ -128,8 +128,12 @@ endif
 ! set force_to_save
 force_to_save = .true.
 if (present(force)) force_to_save = force
-if (.not. file_exists(outfile)) force_to_save = .true.
-if (infile .IsNewerThan. outfile) force_to_save = .true.
+if (.not. present(outpmh) .and. .not. is_arg('-l')) then 
+  if (.not. file_exists(outfile)) force_to_save = .true.
+end if
+if (.not. present(inpmh) .and. .not. present(outpmh) .and. .not. is_arg('-l')) then 
+  if (infile .IsNewerThan. outfile) force_to_save = .true.
+end if
 call info('Forcing to save output file: '//string(force_to_save))
 
 !check isoparametric option, for UNV only

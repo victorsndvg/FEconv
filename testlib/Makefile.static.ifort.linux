@@ -1,5 +1,5 @@
 test: test.f90
-	ifort -static -o test test.f90 -L../lib/ -module ../include/ -L../basicmod/lib/ -module ../basicmod/include/ -lfeconv -lbasicmod
+	ifort -static -o test test.f90 -L../lib/ -I../include/ -L../basicmod/lib/ -I../basicmod/include/ -lfeconv -lbasicmod
 
 .PHONY: clean
 clean:
