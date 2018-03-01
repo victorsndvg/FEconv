@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Configuration data file for creamake with ifort in Linux -->
+<!-- See http://www.nacad.ufrj.br/online/intel/Documentation/en_US/compiler_f/main_for/bldaps_for/common/bldaps_create_stlib.htm -->
+<!-- Suggested fflags: -nologo -stand f15 -warn all -check all,noarg_temp_created -traceback -debug -->
+<content>
+
+<prolog>
+BMODLIB = basicmod/lib/libbasicmod.a
+</prolog>
+
+<sources>
+source
+source/cuthill_mckee
+source/ansys
+source/patran
+source/unv
+source/mfm
+source/mum
+source/vtu
+source/mphtxt
+source/pmh
+source/flux
+source/freefem
+source/fem_extract
+source/gmsh
+</sources>
+
+<exec>
+libfeconv.a
+</exec>
+
+<include>
+$(BMODLIB)
+</include>
+
+<compiler>
+ifort
+</compiler>
+
+<fflags>
+-Ibasicmod/include
+</fflags>
+
+<ldflags>
+-static -Lbasicmod/lib -lbasicmod
+</ldflags>
+
+<rules>
+$(ejecutable): $(includes) $(modulos_obj)
+	$(AR) rcs $(ejecutable) $(condir_modulos_obj)
+	-mv $(ejecutable) lib/
+	-mv object/*.mod include/
+
+.PHONY: lib cleanlib
+lib: $(BMODLIB)
+
+$(BMODLIB): 
+	${MAKE} -f Makefile.static.ifort.linux -C basicmod
+
+cleanlib: clean
+	${RM} lib/$(ejecutable)
+	${RM} include/*
+	${MAKE} -f Makefile.static.ifort.linux -C basicmod cleanlib
+</rules>
+</content>
