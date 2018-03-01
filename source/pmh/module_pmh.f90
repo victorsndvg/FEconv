@@ -612,9 +612,9 @@ associate (elg => pmh%pc(1)%el(nelg)) !elg: current element group
     call move_alloc(from=mm,  to=pmh%pc(1)%el(nelg)%mm)
     call move_alloc(from=nsd, to=pmh%pc(1)%el(nelg)%ref)
   else
-    call alloc(pmh%pc(1)%el(nelg)%nn, size(nn,1), size(nn,2))
-    call alloc(pmh%pc(1)%el(nelg)%mm, size(mm,1), size(mm,2))
-    call alloc(pmh%pc(1)%el(nelg)%ref, size(nsd,1))
+    call alloc(pmh%pc(1)%el(nelg)%nn, size(nn,1), size(nn,2)); pmh%pc(1)%el(nelg)%nn  = nn
+    call alloc(pmh%pc(1)%el(nelg)%mm, size(mm,1), size(mm,2)); pmh%pc(1)%el(nelg)%mm  = mm
+    call alloc(pmh%pc(1)%el(nelg)%ref, size(nsd,1));           pmh%pc(1)%el(nelg)%ref = nsd
   end if
 end associate
 iel = nelg - 1
@@ -1281,7 +1281,6 @@ subroutine cell2node_real_pmh(pmh)
   integer :: ncomp, lnn, nel, i, j, k
 
   np = 1 ! Only in the first parammeter
-  print*, ''
   call info('Converting every elementwise field as a nodewise ...')
   ! walk over all pieces
   do ip=1,size(pmh%pc,1)

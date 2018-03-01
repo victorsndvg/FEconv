@@ -1,5 +1,6 @@
+# Since -module does not properly treat the USE of basicmod in FEconv library, we use -I instead.
 test: test.f90
-	ifort -static -o test test.f90 -L../lib/ -I../include/ -L../basicmod/lib/ -I../basicmod/include/ -lfeconv -lbasicmod
+	ifort -static -o test test.f90 -L../lib/ -module ../include/ -L../basicmod/lib/ -I../basicmod/include/ -lfeconv -lbasicmod
 
 .PHONY: clean
 clean:
