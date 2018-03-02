@@ -157,7 +157,7 @@ $(fuentes_obj): $(includes) $(modulos_obj)
 	mv $@ $(dir_objetos) 
  
 $(ejecutable): $(modulos_obj)
-	$(FC) -shared -fPic -o $(ejecutable) $(condir_modulos_obj) $(LDFLAGS)
+	$(FC) -shared -fPIC -o $(ejecutable) $(condir_modulos_obj) $(LDFLAGS)
 	-mv $(ejecutable) lib/
 	-mv object/*.mod include/
 
