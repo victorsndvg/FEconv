@@ -65,7 +65,7 @@ $(BMODLIB):
 
 cleanlib: clean
 	-del lib\$(ejecutable)
-	-del include\*.*
+	-del include\*.mod
 	${MAKE} -f Makefile.static.ifort.windows -C basicmod cleanlib
 </rules>
 </content>
