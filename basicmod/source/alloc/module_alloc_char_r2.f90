@@ -54,7 +54,7 @@ interface extend
   !!
   !! @note Consider the case of `v` being not allocated. For each `i=1,2`:  
   !! - If `fit(i)` is present and `.false.`, `v` will be allocated with extension `2^n·DEFAULT_ALLOC` in the dimension `i`, where 
-  !! `n` is the smallest exponent such that `2^n·DEFAULT_ALLOC > d(i)` (`DEFAULT_ALLOC` is a private parameter with value `1000`).  
+  !! `n` is the smallest exponent such that `2^n·DEFAULT_ALLOC > d(i)` (`DEFAULT_ALLOC` is a private parameter with value `1000`).
   !! - Otherwise, `v` is allocated with extension `d(i)` in the dimension `i`.  
   !!
   !! @note Consider the case of `v` being already allocated. For each `i=1,2`, if some `d(i)` is larger than `size(v, i)`, then  

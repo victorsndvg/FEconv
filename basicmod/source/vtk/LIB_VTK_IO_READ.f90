@@ -78,7 +78,7 @@ case('BINARY')
   case('RectilinearGrid','StructuredGrid')
     stop 'Not implemented'
   case('UnstructuredGrid')
-    open(unit=Unit_VTK,file=trim(fname),status='old',form='UNFORMATTED',access='STREAM',action='READ',&
+    open(unit=Unit_VTK,file=trim(fname),status='old',form='UNFORMATTED',access='STREAM',action='READWRITE',&
     convert='BIG_ENDIAN',iostat=E_IO, position='REWIND')
     ! count the pieces
     npieces = 0
@@ -89,7 +89,12 @@ case('BINARY')
       if (index(buffer, '<PIECE') > 0) npieces = npieces + 1
     enddo
     ! calculate the offset to reach the appended data
-    rewind(unit=Unit_VTK, iostat=E_IO)
+    !rewind(unit=Unit_VTK, iostat=E_IO)
+    WRITE(unit=Unit_VTK, iostat=E_IO, pos=1)
+    if (E_IO /= 0) then
+      write(*,*) '(LIB_VTK_IO_READ::VTK_INI_XML_READ) unable to rewind, iostat:', E_IO
+      stop 1
+    end if
     read(unit=Unit_VTK,iostat=E_IO) c1
     do
       read(unit=Unit_VTK,iostat=E_IO) c2
@@ -119,7 +124,12 @@ select case(f_out)
 case(f_out_ascii)
   stop 'Not implemented'
 case(f_out_binary)
-  rewind(unit=Unit_VTK, iostat=E_IO)
+  !rewind(unit=Unit_VTK, iostat=E_IO)
+  WRITE(unit=Unit_VTK, iostat=E_IO, pos=1)
+  if (E_IO /= 0) then
+    write(*,*) '(LIB_VTK_IO_READ::VTK_INI_XML_READ) unable to rewind, iostat:', E_IO
+    stop 1
+  end if
   E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np) ! find the 'np' piece
   call get_int('NumberOfPoints', NN)
   allocate(X(NN), Y(NN), Z(NN), stat=E_IO)
@@ -149,7 +159,12 @@ select case(f_out)
 case(f_out_ascii)
   stop 'Not implemented'
 case(f_out_binary)
-  rewind(unit=Unit_VTK, iostat=E_IO)
+  !rewind(unit=Unit_VTK, iostat=E_IO)
+  WRITE(unit=Unit_VTK, iostat=E_IO, pos=1)
+  if (E_IO /= 0) then
+    write(*,*) '(LIB_VTK_IO_READ::VTK_INI_XML_READ) unable to rewind, iostat:', E_IO
+    stop 1
+  end if
   E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
   inquire(unit=Unit_VTK, pos=pos, iostat=E_IO) !annotate the current position in the file
   call get_int('NumberOfCells', NC)
@@ -196,7 +211,12 @@ select case(f_out)
 case(f_out_ascii)
   stop 'Not implemented'
 case(f_out_binary)
-  rewind(unit=Unit_VTK, iostat=E_IO)
+  !rewind(unit=Unit_VTK, iostat=E_IO)
+  WRITE(unit=Unit_VTK, iostat=E_IO, pos=1)
+  if (E_IO /= 0) then
+    write(*,*) '(LIB_VTK_IO_READ::VTK_INI_XML_READ) unable to rewind, iostat:', E_IO
+    stop 1
+  end if
   E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
   select case(trim(Upper_case(var_location)))
   case('NODE')
@@ -242,7 +262,12 @@ select case(f_out)
 case(f_out_ascii)
   stop 'Not implemented'
 case(f_out_binary)
-  rewind(unit=Unit_VTK, iostat=E_IO)
+  !rewind(unit=Unit_VTK, iostat=E_IO)
+  WRITE(unit=Unit_VTK, iostat=E_IO, pos=1)
+  if (E_IO /= 0) then
+    write(*,*) '(LIB_VTK_IO_READ::VTK_INI_XML_READ) unable to rewind, iostat:', E_IO
+    stop 1
+  end if
   E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
   select case(trim(Upper_case(var_location)))
   case('NODE')
@@ -289,7 +314,12 @@ select case(f_out)
 case(f_out_ascii)
   stop 'Not implemented'
 case(f_out_binary)
-  rewind(unit=Unit_VTK, iostat=E_IO)
+  !rewind(unit=Unit_VTK, iostat=E_IO)
+  WRITE(unit=Unit_VTK, iostat=E_IO, pos=1)
+  if (E_IO /= 0) then
+    write(*,*) '(LIB_VTK_IO_READ::VTK_INI_XML_READ) unable to rewind, iostat:', E_IO
+    stop 1
+  end if
   E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
   select case(trim(Upper_case(var_location)))
   case('NODE')
@@ -336,13 +366,23 @@ function VTK_VAR_XML_LIST(varname,npiece,var_location) result(E_IO)
       select case(trim(Upper_case(var_location)))
         case('NODE')
           ! Pointdata
-          rewind(unit=Unit_VTK, iostat=E_IO)
+          !rewind(unit=Unit_VTK, iostat=E_IO)
+          WRITE(unit=Unit_VTK, iostat=E_IO, pos=1)
+          if (E_IO /= 0) then
+            write(*,*) '(LIB_VTK_IO_READ::VTK_INI_XML_READ) unable to rewind, iostat:', E_IO
+            stop 1
+          end if
           E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
           E_IO = search_all(inside='PointData', to_find='DataArray', with_attribute='Name',&
                       &  varname=varname)
         case('CELL')
           ! Celldata
-          rewind(unit=Unit_VTK, iostat=E_IO)
+          !rewind(unit=Unit_VTK, iostat=E_IO)
+          WRITE(unit=Unit_VTK, iostat=E_IO, pos=1)
+          if (E_IO /= 0) then
+            write(*,*) '(LIB_VTK_IO_READ::VTK_INI_XML_READ) unable to rewind, iostat:', E_IO
+            stop 1
+          end if
           E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
           E_IO = search_all(inside='CellData', to_find='DataArray', with_attribute='Name',&
                       &  varname=varname)
@@ -350,13 +390,23 @@ function VTK_VAR_XML_LIST(varname,npiece,var_location) result(E_IO)
       endselect
     else
       ! Pointdata
-      rewind(unit=Unit_VTK, iostat=E_IO)
+      !rewind(unit=Unit_VTK, iostat=E_IO)
+      WRITE(unit=Unit_VTK, iostat=E_IO, pos=1)
+      if (E_IO /= 0) then
+        write(*,*) '(LIB_VTK_IO_READ::VTK_INI_XML_READ) unable to rewind, iostat:', E_IO
+        stop 1
+      end if
       E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
       E_IO = search_all(inside='PointData', to_find='DataArray', with_attribute='Name',&
                       & varname=varname)
 
       ! Celldata
-      rewind(unit=Unit_VTK, iostat=E_IO)
+      !rewind(unit=Unit_VTK, iostat=E_IO)
+      WRITE(unit=Unit_VTK, iostat=E_IO, pos=1)
+      if (E_IO /= 0) then
+        write(*,*) '(LIB_VTK_IO_READ::VTK_INI_XML_READ) unable to rewind, iostat:', E_IO
+        stop 1
+      end if
       E_IO = move(inside='UnstructuredGrid', to_find='Piece', repeat=np)
       E_IO = search_all(inside='CellData', to_find='DataArray', with_attribute='Name',&
                       & varname=varname)
