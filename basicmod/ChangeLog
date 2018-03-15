@@ -44,3 +44,7 @@ CHANGELOG / RELEASE NOTES
 --------------------------------------------------------------------------------
 - Add: rule 'cleanlib' in Makefiles also clean results in lib/ and include/.
 
+18.03.0                                                               2018-03-06
+--------------------------------------------------------------------------------
+- Update: correct some comment lines bigger than 132 characters.
+- Update: correct rewind for stream files.

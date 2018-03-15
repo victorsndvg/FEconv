@@ -6,3 +6,4 @@ test: test.f90
 clean:
 	-del test.exe
 	-del *.mod
+	-del *.obj
