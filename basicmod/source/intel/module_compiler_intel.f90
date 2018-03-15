@@ -142,7 +142,8 @@ if (handle == FILE$ERROR) then
   case(ERR$NOMEM)
     if (present(errmsg)) errmsg = '(module_compiler_intel/modification time) Out of memory'
   case(ERR$NOENT)
-    if (present(errmsg)) errmsg = '(module_compiler_intel/modification time) The file or path specified was not found: '//trim(filename)
+    if (present(errmsg)) errmsg = '(module_compiler_intel/modification time) The file or path specified was not found: '//&
+    &trim(filename)
   case default
     if (present(errmsg)) errmsg = '(module_compiler_intel/modification time) Unable to find file or path name: '//trim(filename)
   end select

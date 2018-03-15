@@ -106,7 +106,7 @@ includes = $(BMODLIB)
 FC = gfortran
  
 # COMPILER OPTIONS
-FFLAGS = -J$(dir_objetos) -std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include
+FFLAGS = -J$(dir_objetos) -Ibasicmod/include
  
 # LINKER OPTIONS
 LDFLAGS = -static -Lbasicmod/lib -lbasicmod

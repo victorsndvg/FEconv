@@ -34,7 +34,7 @@ gfortran
 </compiler>
 
 <fflags>
--std=f2008 -fall-intrinsics -Wall -fcheck=all -fbacktrace -Ibasicmod/include
+-Ibasicmod/include
 </fflags>
 
 <ldflags>
