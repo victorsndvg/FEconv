@@ -7,8 +7,11 @@ module module_math_bmod
 !
 ! PUBLIC PROCEDURES:
 ! - det: find the determinant of a square matrix
+! - inv2: calculates the inverse of a matrix 2x2 real64.  
+! - inv3: calculates the inverse of a matrix 3x3 real64.  
 !-----------------------------------------------------------------------
 use module_compiler_dependant_bmod, only: real64
+use module_report_bmod, only: error
 implicit none
 
 !Private procedures
@@ -55,6 +58,63 @@ end do
 res = sgn * product((/(m(k,k), k=1,n)/)) !calculation of det
 end function
 
+!-----------------------------------------------------------------------
+! inv2
+!-----------------------------------------------------------------------
+subroutine inv2(A, res)
+!! Calculates the inverse of a matrix 2x2 real64.  
+!! __Example:__  
+!! `program test`  
+!! `use basicmod, only: real64, inv2`  
+!! `implicit none`  
+!! `real(real64) :: A(2,2)`  
+!! `real(real64) :: A(2,2), Ai(2,2)`  
+!! `A = reshape(real([1,2,3,4],real64), [2,2])`  
+!! `call inv2(A, Ai)`  
+!! `print*, 'inv: ', Ai`  
+!! `end program`  
+!! @note The formula was obtained from the [Wolfram MathWorld website](http://mathworld.wolfram.com/MatrixInverse.html).  
+real(real64),     intent(in)  ::   A(2,2) !! Matrix.
+real(real64),     intent(out) :: res(2,2) !! Inverse matrix.
+real(real64) :: det
+  
+det = A(1,1)*A(2,2)-A(1,2)*A(2,1)
+if (abs(det) <= epsilon(1._real64)) call error('(module_math::inv2) unable to inverse matrix, determinant is  close to 0.')
+res(1,:) = [ A(2,2), -A(1,2)]/det
+res(2,:) = [-A(2,1),  A(1,1)]/det
+end subroutine
+
+!-----------------------------------------------------------------------
+! inv3
+!-----------------------------------------------------------------------
+subroutine inv3(A, res)
+!! Calculates the inverse of a matrix 3x3 real64.  
+!! __Example:__  
+!! `program test`  
+!! `use basicmod, only: real64, inv3`  
+!! `implicit none`  
+!! `real(real64) :: B(3,3), Bi(3,3)`  
+!! `B = reshape(real([1,2,3,4,5,6,7,8,0],real64), [3,3])`  
+!! `call inv3(B, Bi)`  
+!! `print*, 'inv: ', Bi`  
+!! `end program`  
+!! @note The formula for the inverse was obtained from the
+!! [Wolfram MathWorld website](http://mathworld.wolfram.com/MatrixInverse.html).  
+!! The formula for the determinant was obtained from the
+!! [Wolfram MathWorld website](https://es.mathworks.com/help/aeroblks/determinantof3x3matrix.html).  
+real(real64),     intent(in)  ::   A(3,3) !! Matrix.
+real(real64),     intent(out) :: res(3,3) !! Inverse matrix.
+real(real64) :: det
+
+det = A(1,1)*(A(2,2)*A(3,3)-A(2,3)*A(3,2)) &
+     -A(1,2)*(A(2,1)*A(3,3)-A(2,3)*A(3,1)) &
+     +A(1,3)*(A(2,1)*A(3,2)-A(2,2)*A(3,1))
+if (abs(det) <= epsilon(1._real64)) call error('(module_math::inv3) unable to inverse matrix, determinant is  close to 0.')
+res(1,:) = [A(2,2)*A(3,3)-A(3,2)*A(2,3), A(1,3)*A(3,2)-A(3,3)*A(1,2), A(1,2)*A(2,3)-A(2,2)*A(1,3)]/det
+res(2,:) = [A(2,3)*A(3,1)-A(3,3)*A(2,1), A(1,1)*A(3,3)-A(3,1)*A(1,3), A(1,3)*A(2,1)-A(2,3)*A(1,1)]/det
+res(3,:) = [A(2,1)*A(3,2)-A(3,1)*A(2,2), A(1,2)*A(3,1)-A(3,2)*A(1,1), A(1,1)*A(2,2)-A(2,1)*A(1,2)]/det
+end subroutine
+  
 !-----------------------------------------------------------------------
 ! PRIVATE PROCEDURES
 !-----------------------------------------------------------------------

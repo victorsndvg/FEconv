@@ -1,7 +1,7 @@
 program feconv
 !-----------------------------------------------------------------------
 ! Utility to convert between several mesh and FE field formats
-!
+! 
 ! Licensing: This code is distributed under the GNU GPL license.
 ! Author: Francisco Pena, fran(dot)pena(at)usc(dot)es
 ! Last update: see variable 'last_update'
@@ -9,7 +9,7 @@ program feconv
 use basicmod, only: string, error, is_arg, args_count, get_arg
 use module_feconv, only: convert
 implicit none
-character(10) :: last_update = '31/01/2018'
+character(10) :: last_update = '04/03/2018'
 
 
 !read and store arguments
