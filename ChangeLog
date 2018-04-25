@@ -24,3 +24,8 @@ CHANGELOG / RELEASE NOTES
 --------------------------------------------------------------------------------
 - Fix: Avoid file_exists(outfile) when outfile is not defined.
 
+18.04                                                                 2018-04-24
+--------------------------------------------------------------------------------
+- Add: reduce bandwidth using Cuthill-McKee algorithm for Raviart-Thomas (face) 
+  and Whitney (edge) tetrahedral meshes.
+-Fix: solve arror reading cell fields in VTU files.   

@@ -9,16 +9,15 @@ program feconv
 use basicmod, only: string, error, is_arg, args_count, get_arg
 use module_feconv, only: convert
 implicit none
-character(10) :: last_update = '04/03/2018'
+character(10) :: last_update = '24/04/2018'
 
 
 !read and store arguments
 if (command_argument_count() == 0) call error('(feconv) command line arguments not found; to show help information: feconv -h')
 if (is_arg('-v')) then
   !show version
-  print '(a)', 'Utility to convert between several finite element mesh and field formats'
-  print '(a)', 'Licensing: This code is distributed under the GNU GPL license'
-  print '(a)', 'Author: Ingenieria Matematica, http://www.usc.es/ingmat/?lang=en'
+  print '(a)', 'FEconv: utility to convert between several finite element mesh and field formats'
+  print '(a/)', 'Copyright (C) 2010-2018 Universidade de Santiago de Compostela.  License GPLv3+'
   print '(a/)', 'Last update: '//last_update
   stop
 elseif (is_arg('-h')) then

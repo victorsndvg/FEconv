@@ -933,7 +933,6 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
 
   if(.not. file_exists) call error('Input file '//trim(filename)//' not found!')
 
-  !print*, 'Reading VTK header ...'
   if (vtk_ini_xml_read('Binary',filename,'UnstructuredGrid', ip)/=0) stop 'Error'
   call info('Number of pieces: '//trim(string(ip)))
 
@@ -1108,35 +1107,41 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
         ncdf = size(cdfnames,1) ! Number of celldata fields
         do j=1, size(cdfnames,1)
           ! Discard references
-          if(lcase(cdfnames(j)) == 'element_ref' .or. lcase(cdfnames(j)) == 'face_ref' .or. &
-             lcase(cdfnames(j)) == 'edge_ref') then; ncdf = ncdf -1;cycle;endif
-          if(index(lcase(cdfnames(j)),'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
-             index(lcase(cdfnames(j)), 'nra_') /= 0) then; ncdf = ncdf -1;cycle;endif
+          if(trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
+             trim(lcase(cdfnames(j))) == 'edge_ref') then
+            ncdf = ncdf - 1
+            cycle
+          endif
+          if (index(lcase(cdfnames(j)), 'nsd_') /= 0 .or. index(lcase(cdfnames(j)), 'nrc_') /= 0 .or. &
+              index(lcase(cdfnames(j)), 'nra_') /= 0) then
+            ncdf = ncdf - 1
+            cycle
+          endif
           ! if -in option is present, discard unselected fields
           if(allocated(fieldnames)) then
             ffound = .false.
-            do k=1, size(fieldnames,1)
+            do k = 1, size(fieldnames,1)
               if(trim(adjustl(cdfnames(j)))== trim(adjustl(fieldnames(k)))) ffound = .true.
             enddo
-            if(.not. ffound) ncdf = ncdf-1
+            if (.not. ffound) ncdf = ncdf - 1
           endif
         enddo
-        if(allocated(cdfval)) deallocate(cdfval)
+        if (allocated(cdfval)) deallocate(cdfval)
         allocate(cdfval(ncdf))
         ncdf = 0
 
         if(allocated(fieldnames)) then
-          do k=1, size(fieldnames,1)
-            do j=1, size(cdfnames,1)
-              if(trim(adjustl(cdfnames(j)))== trim(adjustl(fieldnames(k))))  then
+          do k = 1, size(fieldnames,1)
+            do j = 1, size(cdfnames,1)
+              if(trim(adjustl(cdfnames(j))) == trim(adjustl(fieldnames(k))))  then
                 ! Discard references
-                if(trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
-                   trim(lcase(cdfnames(j))) == 'edge_ref') cycle
-                if(index(lcase(cdfnames(j)),'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
-                   index(lcase(cdfnames(j)), 'nra_') /= 0) cycle
-                if(vtk_var_xml_read('Cell',ncref,ncomp,trim(cdfnames(j)),temp,i) == 0 ) then
+                if (trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
+                    trim(lcase(cdfnames(j))) == 'edge_ref') cycle
+                if (index(lcase(cdfnames(j)), 'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
+                    index(lcase(cdfnames(j)), 'nra_') /= 0) cycle
+                if (vtk_var_xml_read('Cell', ncref, ncomp, trim(cdfnames(j)), temp, i) == 0) then
                   call info('    Reading cell field: '//trim(cdfnames(j)))
-                  if(ncref == nc) then
+                  if (ncref == nc) then
                     ncdf = ncdf + 1
                     allocate(cdfval(ncdf)%val(ncomp,nc))
                     cdfval(ncdf)%val(:,:) = reshape(temp, (/ncomp,nc/))
@@ -1149,15 +1154,15 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
             enddo
           enddo
         else
-          do j=1, size(cdfnames,1)
+          do j = 1, size(cdfnames,1)
             ! Discard references
-            if(trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
-               trim(lcase(cdfnames(j))) == 'edge_ref') cycle
-            if(index(lcase(cdfnames(j)),'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
-               index(lcase(cdfnames(j)), 'nra_') /= 0) cycle
-            if(vtk_var_xml_read('Cell',ncref,ncomp,trim(cdfnames(j)),temp,i) == 0 ) then
+            if (trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
+                trim(lcase(cdfnames(j))) == 'edge_ref') cycle
+            if (index(lcase(cdfnames(j)),'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
+                index(lcase(cdfnames(j)), 'nra_') /= 0) cycle
+            if (vtk_var_xml_read('Cell', ncref, ncomp, trim(cdfnames(j)), temp, i) == 0) then
               call info('    Reading cell field: '//trim(cdfnames(j)))
-              if(ncref == nc) then
+              if (ncref == nc) then
                 ncdf = ncdf + 1
                 allocate(cdfval(ncdf)%val(ncomp,nc))
                 cdfval(ncdf)%val(:,:) = reshape(temp, (/ncomp,nc/))
@@ -1212,8 +1217,10 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
         if(allocated(fieldnames)) then
           do k=1, size(fieldnames,1)
             do l=1,size(cdfnames,1)
-              if(lcase(cdfnames(l)) == 'element_ref' .or. lcase(cdfnames(l)) == 'face_ref' .or. &
-                 lcase(cdfnames(l)) == 'edge_ref') cycle
+              if (trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
+                  trim(lcase(cdfnames(j))) == 'edge_ref') cycle
+              if (index(lcase(cdfnames(j)), 'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
+                  index(lcase(cdfnames(j)), 'nra_') /= 0) cycle
               if(trim(adjustl(cdfnames(l))) == trim(adjustl(fieldnames(k)))) then
                 ! if -in option is present, discard unselected fields
                 ncdf = ncdf + 1
@@ -1223,9 +1230,11 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
             enddo
           enddo
         else
-          do l=1, size(cdfnames,1)
-            if(lcase(cdfnames(l)) == 'element_ref' .or. lcase(cdfnames(l)) == 'face_ref' .or. &
-               lcase(cdfnames(l)) == 'edge_ref') cycle
+          do l = 1, size(cdfnames,1)
+            if (trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
+                trim(lcase(cdfnames(j))) == 'edge_ref') cycle
+            if (index(lcase(cdfnames(j)), 'nsd_') /= 0 .or. index(lcase(cdfnames(j)),'nrc_') /= 0 .or. &
+                index(lcase(cdfnames(j)), 'nra_') /= 0) cycle
             ncdf = ncdf + 1
             pmh%pc(i)%el(j)%fi(ncdf)%name = trim(cdfnames(l))
             call set(pmh%pc(i)%el(j)%fi(ncdf)%param, p, np, fit=.true.)

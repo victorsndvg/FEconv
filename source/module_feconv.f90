@@ -4,7 +4,6 @@ module module_feconv
 !
 ! Licensing: This code is distributed under the GNU GPL license.
 ! Author: Francisco Pena, fran(dot)pena(at)usc(dot)es
-! Last update: 10/05/2013
 !
 ! PUBLIC PROCEDURES:
 ! convert: converts between several mesh and FE field formats
