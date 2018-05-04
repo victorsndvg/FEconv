@@ -28,4 +28,4 @@ CHANGELOG / RELEASE NOTES
 --------------------------------------------------------------------------------
 - Add: reduce bandwidth using Cuthill-McKee algorithm for Raviart-Thomas (face) 
   and Whitney (edge) tetrahedral meshes.
--Fix: solve arror reading cell fields in VTU files.   
+- Fix: solve error reading cell fields in VTU files.   

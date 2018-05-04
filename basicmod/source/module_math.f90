@@ -6,9 +6,10 @@ module module_math_bmod
 !! Module for mathematical operations.
 !
 ! PUBLIC PROCEDURES:
+! - cross_product: calculates the cross product of 3-component vectors
 ! - det: find the determinant of a square matrix
-! - inv2: calculates the inverse of a matrix 2x2 real64.  
-! - inv3: calculates the inverse of a matrix 3x3 real64.  
+! - inv2: calculates the inverse of a matrix 2x2 real64
+! - inv3: calculates the inverse of a matrix 3x3 real64
 !-----------------------------------------------------------------------
 use module_compiler_dependant_bmod, only: real64
 use module_report_bmod, only: error
@@ -18,6 +19,27 @@ implicit none
 private :: swap
 
 contains
+
+!-----------------------------------------------------------------------
+! cross_product
+!-----------------------------------------------------------------------
+function cross_product(u,v) result(res)
+!! Calculates the cross product of 3-component vectors.  
+!! __Example:__  
+!! `program test`  
+!! `use basicmod, only: real64, cross_product`  
+!! `implicit none`  
+!! `real(real64) :: u(3), v(3)`  
+!! `u = real([1,0,0], real64)`  
+!! `v = real([0,1,0], real64)`  
+!! `print*, cross_product(u,v)`  
+!! `end program`  
+real(real64), dimension(3), intent(in) :: u   !! First vector.
+real(real64), dimension(3), intent(in) :: v   !! Second vector.
+real(real64), dimension(3)             :: res !! Cross product.
+
+res = [u(2)*v(3)-u(3)*v(2), u(3)*v(1)-u(1)*v(3), u(1)*v(2)-u(2)*v(1)] 
+end function
 
 !-----------------------------------------------------------------------
 ! det
@@ -33,7 +55,7 @@ function det(muser) result(res)
 !! `print*, det(A)`  
 !! `end program`  
 !!
-!! @note The equivalent upper triangular matrix is calculated; the determinant is just the product of the diagonal.
+!! @note The equivalent upper triangular matrix is calculated; the determinant is just the product of the diagonal.  
 real(real64), dimension(:,:), intent(in) :: muser !! Square matrix.
 real(real64)                             :: res   !! Determinant.
 real(real64), dimension(size(muser,1),size(muser,2)) :: m
@@ -74,8 +96,10 @@ subroutine inv2(A, res)
 !! `print*, 'inv: ', Ai`  
 !! `end program`  
 !! @note The formula was obtained from the [Wolfram MathWorld website](http://mathworld.wolfram.com/MatrixInverse.html).  
-real(real64),     intent(in)  ::   A(2,2) !! Matrix.
-real(real64),     intent(out) :: res(2,2) !! Inverse matrix.
+!!
+!! @warning The output matrix must be preallocated.  
+real(real64), intent(in)    ::   A(2,2) !! Matrix.
+real(real64), intent(inout) :: res(2,2) !! Inverse matrix.
 real(real64) :: det
   
 det = A(1,1)*A(2,2)-A(1,2)*A(2,1)
@@ -102,8 +126,10 @@ subroutine inv3(A, res)
 !! [Wolfram MathWorld website](http://mathworld.wolfram.com/MatrixInverse.html).  
 !! The formula for the determinant was obtained from the
 !! [Wolfram MathWorld website](https://es.mathworks.com/help/aeroblks/determinantof3x3matrix.html).  
-real(real64),     intent(in)  ::   A(3,3) !! Matrix.
-real(real64),     intent(out) :: res(3,3) !! Inverse matrix.
+!!
+!! @warning The output matrix must be preallocated.  
+real(real64), intent(in)    ::   A(3,3) !! Matrix.
+real(real64), intent(inout) :: res(3,3) !! Inverse matrix.
 real(real64) :: det
 
 det = A(1,1)*(A(2,2)*A(3,3)-A(2,3)*A(3,2)) &

@@ -48,3 +48,12 @@ CHANGELOG / RELEASE NOTES
 --------------------------------------------------------------------------------
 - Update: correct some comment lines bigger than 132 characters.
 - Update: correct rewind for stream files.
+
+18.03.0                                                               2018-03-16
+--------------------------------------------------------------------------------
+- Add: inverse of matrices 2x2, 3x3.
+
+18.05.0                                                               2018-05-04
+--------------------------------------------------------------------------------
+- Add: allocation for complex rank 1 arrays.
+

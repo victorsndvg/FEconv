@@ -118,12 +118,12 @@ case('tetra2')
   call cuthill_mckee_reduce(nel, nnod, dim, lnn, nn, znod)
   call bandwidth(nel, lnn, nn, 'New maximum bandwidth:     ')
 case('tetra-edge')
-  print '(/a)', 'Optimizing bandwidth for a tetrahedral edge Whitney (Nedelec) P1 mesh...'
+  print '(/a)', 'Optimizing bandwidth for a tetrahedral lowest-order edge Whitney (Nedelec) mesh...'
   call bandwidth(nel, lnn, nn, 'Current maximum bandwidth: ')
   call cuthill_mckee_reduce(nel, nnod, dim, lnn, nn, znod)
   call bandwidth(nel, lnn, nn, 'New maximum bandwidth:     ')
 case('tetra-face')
-  print '(/a)', 'Optimizing bandwidth for a tetrahedral face Whitney (Raviart-Thomas) P1 mesh...'
+  print '(/a)', 'Optimizing bandwidth for a tetrahedral lowest-order Raviart-Thomas mesh...'
   call bandwidth(nel, lnn, nn, 'Current maximum bandwidth: ')
   call cuthill_mckee_reduce(nel, nnod, dim, lnn, nn, znod)
   call bandwidth(nel, lnn, nn, 'New maximum bandwidth:     ')
