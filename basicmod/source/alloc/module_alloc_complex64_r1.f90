@@ -51,7 +51,7 @@ private :: DEFAULT_ALLOC
 private :: dealloc_prv, alloc_prv, extend_prv, reduce_prv
 private :: set_scalar_prv, set_vector_prv
 private :: add_scalar_prv, add_vector_prv
-private :: insert_prv, bsearch_prv, insert_sorted_prv, sort_prv, ssort_prv
+private :: insert_prv
 private :: find_first_prv, find_sca_prv, find_vec_prv, sfind_sca_prv, sfind_vec_prv
 private :: search_multiple
 
@@ -430,7 +430,7 @@ integer                     :: res  !! Position of the first occurrence; return 
 integer :: i
 
 res = 0
-if (csize(dbl1=v, d=1) <= 0) return
+if (csize(cmplx1=v, d=1) <= 0) return
 do i = 1, size(v,1)
   if (abs(val-v(i)) <= epsilon(1._real64)) then
     res = i
@@ -459,7 +459,7 @@ integer, allocatable, intent(out) :: res(:) !! Array of positions; returns a zer
 integer :: i, n, p
 
 ! allocate res
-if (csize(dbl1=v, d=1) <= 0) return
+if (csize(cmplx1=v, d=1) <= 0) return
 n = size(pack(v, abs(v-val) <= epsilon(1._real64)), 1)
 call alloc(res, n)
 if (n <= 0) return
@@ -494,7 +494,7 @@ integer, allocatable, intent(out) :: res(:) !! Array of positions; a zero-sized 
 integer :: i, j, n, p
 
 ! allocate res
-if (csize(dbl1=v, d=1) <= 0) return
+if (csize(cmplx1=v, d=1) <= 0) return
 n = 0
 do j = 1, size(val,1)
   n = n + size(pack(v,abs(v-val(j)) <= epsilon(1._real64)),1)
