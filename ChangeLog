@@ -29,3 +29,7 @@ CHANGELOG / RELEASE NOTES
 - Add: reduce bandwidth using Cuthill-McKee algorithm for Raviart-Thomas (face) 
   and Whitney (edge) tetrahedral meshes.
 - Fix: solve error reading cell fields in VTU files.   
+
+18.06                                                                 2018-06-07
+--------------------------------------------------------------------------------
+- Fix: error in det(), use abs to calculate pivot.

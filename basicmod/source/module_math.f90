@@ -64,7 +64,7 @@ integer, dimension(2) :: p
 
 res = 0; sgn = 1; m = muser; n = size(m, 1)
 do k = 1, n-1
-  p = maxloc(m(k:n, k:n), mask = abs(m(k:n, k:n))>epsilon(m))
+  p = maxloc(abs(m(k:n, k:n)), mask = abs(m(k:n, k:n))>epsilon(m))
   if (all(p == 0)) return !no valid pivot
   p = p + k - 1 !position respect to the total matrix
   if (p(1) /= k) then !permute rows

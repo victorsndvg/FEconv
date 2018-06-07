@@ -350,65 +350,55 @@ end subroutine
 ! filename:   name of a VTU file
 ! pmh:    PMH structure storing the piecewise mesh
 !-----------------------------------------------------------------------
-subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
+subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param, cell2point)
+character(len=*),              intent(in)  :: filename
+type(pmh_mesh),                intent(inout)  :: pmh ! pmh_mesh
+character(len=*), allocatable, intent(in)  :: infield(:)
+character(len=*), allocatable, intent(in)  :: outfield(:)
+real(real64),                  intent(in)  :: padval
+integer,          optional,    intent(in)  :: nparam
+real(real64),     optional,    intent(out) :: param
+logical,          optional,    intent(in)  :: cell2point
+character(len=maxpath) :: fieldname, str
+integer :: i, j, k, l, m, nnod, nel, tp, lnn, lnv, tnvpc, maxtopdim, np
+logical :: all_P1
+real(real64), allocatable :: znod(:,:), pdfvalmat2(:,:)
+integer, allocatable :: connect(:), offset(:), celltypes(:),piece2save(:), v_ref(:), e_ref(:), f_ref(:), el_ref(:), uref(:), &
+                        aux_ref(:), temp(:,:)
+type cdfield
+  character(len=maxpath)    :: name
+  integer                   :: ncomp
+  real(real64), allocatable :: val(:,:)
+end type
+type(cdfield), allocatable    :: cdfval(:)
 
-  type cdfield
-    character(len=maxpath)    :: name
-    integer                   :: ncomp
-    real(real64), allocatable :: val(:,:)
-  end type
-
-  character(len=*),              intent(in) :: filename
-  type(pmh_mesh),             intent(inout) :: pmh ! pmh_mesh
-  character(len=*),allocatable,  intent(in) :: infield(:)
-  character(len=*),allocatable,  intent(in) :: outfield(:)
-  real(real64),                  intent(in) :: padval
-  integer, optional,             intent(in) :: nparam
-  real(real64), optional,        intent(out) :: param
-
-  character(len=maxpath)        :: fieldname, str
-  real(real64), allocatable     :: znod(:,:), pdfvalmat2(:,:)
-  integer, allocatable          :: connect(:), offset(:), celltypes(:),piece2save(:)
-  integer, allocatable          :: v_ref(:), e_ref(:), f_ref(:), el_ref(:)
-  integer, allocatable          :: uref(:), aux_ref(:), temp(:,:)
-  type(cdfield), allocatable    :: cdfval(:)
-
-  integer :: i, j, k, l, m
-  integer :: nnod, nel, tp, lnn, lnv, tnvpc, maxtopdim, np
-  logical :: all_P1
-
-
-
-
-  if(allocated(outfield)) then
-    if(allocated(infield)) then
-      if(size(outfield,1) /= size(infield,1)) call error('Number of input/output field names must agree.')
-    elseif(size(outfield,1) /= get_piece_num_fields(pmh%pc(i))) then
-      call error('Number of field names must agree with the number of fields.')
-    endif
+if(allocated(outfield)) then
+  if(allocated(infield)) then
+    if(size(outfield,1) /= size(infield,1)) call error('Number of input/output field names must agree.')
+  elseif(size(outfield,1) /= get_piece_num_fields(pmh%pc(i))) then
+    call error('Number of field names must agree with the number of fields.')
   endif
+endif
 
-  !check piece(s) to be saved
-  if (is_arg('-p')) then !save a single piece, indicated after -p
-    str = get_post_arg('-p')
-    call alloc(piece2save, 1)
-    piece2save(1) = int(str)
-  else !save all pieces
-    call alloc(piece2save, size(pmh%pc,1))
-    piece2save = [(i, i=1, size(pmh%pc,1))]
-  end if
-
-  np = 1
-  if(present(nparam)) np = nparam
-
-  call VTU_open(trim(filename))
-  ! Loop in pieces
-  call info('Number of pieces: '//trim(string(size(pmh%pc,1))))
-  do i=1,size(piece2save,1)
-    call info('  Piece: '//trim(string(piece2save(i))))
-    nel = 0 ! Number of VTK elements
-    tnvpc = 0 ! Total number of vertex per cell
-    maxtopdim = 0
+!check piece(s) to be saved
+if (is_arg('-p')) then !save a single piece, indicated after -p
+  str = get_post_arg('-p')
+  call alloc(piece2save, 1)
+  piece2save(1) = int(str)
+else !save all pieces
+  call alloc(piece2save, size(pmh%pc,1))
+  piece2save = [(i, i=1, size(pmh%pc,1))]
+end if
+np = 1
+if(present(nparam)) np = nparam
+call VTU_open(trim(filename))
+! Loop in pieces
+call info('Number of pieces: '//trim(string(size(pmh%pc,1))))
+do i=1,size(piece2save,1)
+  call info('  Piece: '//trim(string(piece2save(i))))
+  nel = 0   ! Number of VTK elements
+  tnvpc = 0 ! Total number of vertex per cell
+  maxtopdim = 0
   associate(pc => pmh%pc(piece2save(i)))
     call build_node_coordinates(pc, i, all_P1, znod)
     if(allocated(v_ref)) deallocate(v_ref)
@@ -423,68 +413,53 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
       maxtopdim = max(maxtopdim,FEDB(pc%el(j)%type)%tdim)
     enddo
     ! Loop in element groups
-    do j=1,size(pc%el,1)
+    do j = 1, size(pc%el,1)
       tp = pc%el(j)%type
       call info('    Element type: '//trim(FEDB(tp)%desc))
-
       if(.not. FEDB(tp)%nver_eq_nnod) then
-          lnn = FEDB(tp)%lnn
-          ! Build vtk conectivity array
-          if(tp == check_fe(.false., 20, 8, 12, 6)) then ! Hexahedron P2 needs node reordering
+        lnn = FEDB(tp)%lnn
+        ! Build vtk conectivity array
+        if (tp == check_fe(.false., 20, 8, 12, 6)) then ! Hexahedron P2 needs node reordering
           ! VTU HexaP2 nodes: [1,2,3,4,5,6,7,8,9,10,11,12,17,18,19,20,13,14,15,16]
-            call set(connect, &
-              & pack(reshape(pc%el(j)%nn([1,2,3,4,5,6,7,8,9,10,11,12,17,18,19,20,13,14,15,16],:)-1,&
-              & (/1,pc%el(j)%nel*lnn/)),.true.), &
-              & (/(k,k=tnvpc+1,tnvpc+pc%el(j)%nel*lnn)/), fit=.false.)
-          else
-            ! Build vtk conectivity array
-            call set(connect, pack(reshape(pc%el(j)%nn-1, (/1,pc%el(j)%nel*lnn/)),.true.), &
-              &(/(k,k=tnvpc+1,tnvpc+pc%el(j)%nel*lnn)/), fit=.false.)
-          endif
-          ! Build vtk offset array
-          call set(offset, (/(tnvpc+k*lnn, k=1,pc%el(j)%nel)/) , &
-            &(/(k,k=nel+1,nel+pc%el(j)%nel)/), fit=.false.)
-          tnvpc = tnvpc + pc%el(j)%nel*lnn
-      else
-          lnv = FEDB(tp)%lnv
+          call set(connect, &
+          & pack(reshape(pc%el(j)%nn([1,2,3,4,5,6,7,8,9,10,11,12,17,18,19,20,13,14,15,16],:)-1,&
+          & [1,pc%el(j)%nel*lnn]),.true.), &
+          & [(k,k=tnvpc+1,tnvpc+pc%el(j)%nel*lnn)], fit=.false.)
+        else
           ! Build vtk conectivity array
-          if(allocated(temp)) deallocate(temp)
-!          allocate(temp, source=reshape(pc%el(j)%mm-1, (/1,pc%el(j)%nel*lnv/)))
-          allocate(temp(1,pc%el(j)%nel*lnv))
-          temp(:,:) = reshape(pc%el(j)%mm-1, (/1,pc%el(j)%nel*lnv/))
-          call set(connect, temp(1,:), &
-            &(/(k,k=tnvpc+1,tnvpc+pc%el(j)%nel*lnv)/), fit=.false.)
-          deallocate(temp)
-          ! Build vtk offset array
-          call set(offset, (/(tnvpc+k*lnv, k=1,pc%el(j)%nel)/) , &
-            &(/(k,k=nel+1,nel+pc%el(j)%nel)/), fit=.false.)
-          tnvpc = tnvpc + pc%el(j)%nel*lnv
+          call set(connect, pack(reshape(pc%el(j)%nn-1, [1,pc%el(j)%nel*lnn]),.true.), &
+          &[(k,k=tnvpc+1,tnvpc+pc%el(j)%nel*lnn)], fit=.false.)
+        endif
+        ! Build vtk offset array
+        call set(offset, [(tnvpc+k*lnn, k=1,pc%el(j)%nel)], [(k, k = nel+1,nel+pc%el(j)%nel)], fit=.false.)
+        tnvpc = tnvpc + pc%el(j)%nel*lnn
+      else
+        lnv = FEDB(tp)%lnv
+        ! Build vtk conectivity array
+        if(allocated(temp)) deallocate(temp)
+        !allocate(temp, source=reshape(pc%el(j)%mm-1, [1,pc%el(j)%nel*lnv]))
+        allocate(temp(1,pc%el(j)%nel*lnv))
+        temp(:,:) = reshape(pc%el(j)%mm-1, [1, pc%el(j)%nel*lnv])
+        call set(connect, temp(1,:), [(k, k = tnvpc+1,tnvpc+pc%el(j)%nel*lnv)], fit=.false.)
+        deallocate(temp)
+        ! Build vtk offset array
+        call set(offset, [(tnvpc+k*lnv, k = 1,pc%el(j)%nel)], [(k,k=nel+1,nel+pc%el(j)%nel)], fit=.false.)
+        tnvpc = tnvpc + pc%el(j)%nel*lnv
       endif
       ! Build vtk cell types array
-      call set(celltypes, (/(pmh2vtkcelltype(tp), k=nel,nel+pc%el(j)%nel)/) , &
-        &(/(k,k=nel+1,nel+1+pc%el(j)%nel)/), fit=.false.)
-      if(FEDB(tp)%tdim == maxtopdim) then
-        ! 'Building subdomain references array ... '
-        call set(el_ref, (/(pc%el(j)%ref(k), k=1,pc%el(j)%nel)/) , &
-          &(/(k,k=nel+1,nel+1+pc%el(j)%nel)/), fit=.false.)
-      elseif(FEDB(tp)%tdim == 2) then
-        ! 'Building face references array ... '
-        call set(f_ref, (/(pc%el(j)%ref(k), k=1,pc%el(j)%nel)/) , &
-          &(/(k,k=nel+1,nel+1+pc%el(j)%nel)/), fit=.false.)
-      elseif(FEDB(tp)%tdim == 1) then
-        ! 'Building edge references array ... '
-        call set(e_ref, (/(pc%el(j)%ref(k), k=1,pc%el(j)%nel)/) , &
-          &(/(k,k=nel+1,nel+1+pc%el(j)%nel)/), fit=.false.)
-      elseif(FEDB(tp)%tdim == 0) then
-        ! 'Building vertex references array ... '
+      call set(celltypes, [(pmh2vtkcelltype(tp), k=nel,nel+pc%el(j)%nel)] , [(k, k = nel+1,nel+1+pc%el(j)%nel)], fit=.false.)
+      if(FEDB(tp)%tdim == maxtopdim) then !subdomain references
+        call set(el_ref, [(pc%el(j)%ref(k), k=1,pc%el(j)%nel)] , [(k, k = nel+1,nel+1+pc%el(j)%nel)], fit=.false.)
+      elseif(FEDB(tp)%tdim == 2) then     !face references
+        call set(f_ref, [(pc%el(j)%ref(k), k=1,pc%el(j)%nel)] , [(k, k = nel+1,nel+1+pc%el(j)%nel)], fit=.false.)
+      elseif(FEDB(tp)%tdim == 1) then     !edge references
+        call set(e_ref, [(pc%el(j)%ref(k), k=1,pc%el(j)%nel)] , [(k, k = nel+1,nel+1+pc%el(j)%nel)], fit=.false.)
+      elseif(FEDB(tp)%tdim == 0) then     !vertex references
         do k=1,pc%el(j)%nel
           v_ref(pc%el(j)%mm(:,k)) = pc%el(j)%ref(k)
         enddo
-        ! Vertex as celldata
-!        call set(v_ref, (/(pc%el(j)%ref(k), k=1,pc%el(j)%nel)/) , &
-!          &(/(k,k=nel+1,nel+1+pc%el(j)%nel)/), fit=.false.)
+        !call set(v_ref, [(pc%el(j)%ref(k), k=1,pc%el(j)%nel)], [(k,k=nel+1,nel+1+pc%el(j)%nel)], fit=.false.) !vertex as celldata
       endif
-
       if(.not. allocated(cdfval) .and. allocated(pc%el(j)%fi)) allocate(cdfval(size(pc%el(j)%fi,1)))
       if(allocated(pc%el(j)%fi)) then
         do l=1, size(pc%el(j)%fi,1)
@@ -502,22 +477,21 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
           if(present(param)) param = pc%el(j)%fi(l)%param(np)
         enddo
       endif
-
       nel = nel + pc%el(j)%nel
     enddo
-
-    if(allocated(connect)) call reduce(connect, tnvpc)
-    if(allocated(offset)) call reduce(offset, nel)
+  
+    if(allocated(connect))   call reduce(connect,   tnvpc)
+    if(allocated(offset))    call reduce(offset,    nel)
     if(allocated(celltypes)) call reduce(celltypes, nel)
     if(pc%dim < 3) then
       if(.not. all_P1) then
         nnod = size(znod,2)
-        if (vtk_geo_xml(nnod, nel, pack(znod(1,:),.true.), pack(znod(2,:),.true.), (/(0._real64,l=1,nnod)/)) /= 0) &
+        if (vtk_geo_xml(nnod, nel, pack(znod(1,:),.true.), pack(znod(2,:),.true.), [(0._real64,l=1,nnod)]) /= 0) &
         &  stop 'writeVTU: vtk_geo_xml error 1'
       else
         nnod = pc%nver
         if (vtk_geo_xml(pc%nver, nel, &
-        &  pack(pc%z(1,:),.true.), pack(pc%z(2,:),.true.), (/(0._real64,l=1,pc%nver)/)) /= 0) &
+        &  pack(pc%z(1,:),.true.), pack(pc%z(2,:),.true.), [(0._real64,l=1,pc%nver)]) /= 0) &
         &  stop 'writeVTU: vtk_geo_xml error 1'
       endif
     else
@@ -532,23 +506,20 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
         &  stop 'writeVTU: vtk_geo_xml error 1'
       endif
     endif
-
+  
     if(vtk_con_xml(nel,connect,offset,int(celltypes,I1P)) /= 0) stop 'writeVTU: vtk_con_xml error 1'
-
     call VTU_begin_pointdata()
     ! Array used to save references in this way: nsd_*
-
     if(allocated(aux_ref)) deallocate(aux_ref)
     allocate(aux_ref(nnod))
-
     if(allocated(v_ref) .and. size(pack(v_ref,v_ref/=0))>0) then
       call info('    Writing vertex references')
-      if(size(v_ref,1)<nnod) call add(v_ref,(/(0,k=size(v_ref,1),nnod)/),(/(k,k=size(v_ref,1),nnod)/),fit=.true.)
+      if(size(v_ref,1)<nnod) call add(v_ref,[(0,k=size(v_ref,1),nnod)],[(k,k=size(v_ref,1),nnod)],fit=.true.)
       call reduce(v_ref, nnod)
       if(vtk_var_xml(nnod, 'vertex_ref', v_ref) /= 0) stop
       if(allocated(uref)) deallocate(uref)
       call sunique(pack(v_ref,v_ref /= 0), uref)
-!      uref = unique(pack(v_ref,v_ref /= 0))
+       uref = unique(pack(v_ref,v_ref /= 0))
       do k=1, size(uref,1)
         aux_ref = 0
         where(v_ref==uref(k))
@@ -557,7 +528,7 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
         if(vtk_var_xml(nnod, 'nrv_'//trim(string(uref(k))), aux_ref) /= 0) stop
       enddo
     endif
-
+  
     if(allocated(pc%fi)) then
       do j=1, size(pc%fi,1)
         if(allocated(outfield)) then
@@ -575,38 +546,32 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
         endif
         call info('    Writing node field: '//trim(fieldname))
         if(size(pc%fi(j)%val,1) == 1) then
-          if (vtk_var_xml(nnod, trim(fieldname), pc%fi(j)%val(1,1:nnod,np)) /= 0) &
-            call error('Writing '//trim(fieldname))
+          if (vtk_var_xml(nnod, trim(fieldname), pc%fi(j)%val(1,1:nnod,np)) /= 0) call error('Writing '//trim(fieldname))
         elseif(size(pc%fi(j)%val,1) == 2) then
           if (vtk_var_xml(nnod, trim(fieldname), &
-            pc%fi(j)%val(1,1:nnod,np), pc%fi(j)%val(2,1:nnod,np), (/(real(0,R8P),i=1,nnod)/)) /= 0) &
-            call error('Writing '//trim(fieldname))
+          pc%fi(j)%val(1,1:nnod,np), pc%fi(j)%val(2,1:nnod,np), [(real(0,R8P),i=1,nnod)]) /= 0) &
+          call error('Writing '//trim(fieldname))
         elseif(size(pc%fi(j)%val,1) == 3) then
           if (vtk_var_xml(nnod, trim(fieldname), &
-            real(pc%fi(j)%val(1,1:nnod,np),R8P), real(pc%fi(j)%val(2,1:nnod,np),R8P), &
-            real(pc%fi(j)%val(3,1:nnod,np),R8P)) /= 0) call error('Writing '//fieldname)
+          real(pc%fi(j)%val(1,1:nnod,np),R8P), real(pc%fi(j)%val(2,1:nnod,np),R8P), &
+          real(pc%fi(j)%val(3,1:nnod,np),R8P)) /= 0) call error('Writing '//fieldname)
         else
-  !        call info('      Vector field with '// &
-  !          & trim(string(size(pc%fi(j)%val,1)))//' components not supported. Skipped!')
-          if( vtk_var_xml(nnod,size(pc%fi(j)%val,1),trim(fieldname),&
-            & reshape(transpose(pc%fi(j)%val(:,1:nnod,np)),(/nnod, size(pc%fi(j)%val,1)/)) ) /= 0) &
-            & call error('Writing '//fieldname)
+          if( vtk_var_xml(nnod,size(pc%fi(j)%val,1),trim(fieldname), &
+          reshape(transpose(pc%fi(j)%val(:,1:nnod,np)),[nnod, size(pc%fi(j)%val,1)]) ) /= 0) &
+          call error('Writing '//fieldname)
         endif
         if(present(param)) param = pc%fi(j)%param(np)
       enddo
     endif
-
     call VTU_end_pointdata()
-
     call VTU_begin_celldata()
     ! Array used to save references in this way: nsd_*
-
     if(allocated(aux_ref)) deallocate(aux_ref)
     allocate(aux_ref(nel))
-
+  
     if(allocated(el_ref) .and. size(pack(el_ref,el_ref/=0))>0) then
       call info('    Writing subdomain references')
-      if(size(el_ref,1)<nel) call add(el_ref,(/(0,k=size(el_ref,1),nel)/),(/(k,k=size(el_ref,1),nel)/),fit=.true.)
+      if(size(el_ref,1)<nel) call add(el_ref,[(0,k=size(el_ref,1),nel)],[(k,k=size(el_ref,1),nel)],fit=.true.)
       call reduce(el_ref, nel)
       if(vtk_var_xml(nel, 'element_ref', el_ref) /= 0) stop
       ! Build nsd references
@@ -620,32 +585,31 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
         if(vtk_var_xml(nel, 'nsd_'//trim(string(uref(k))), aux_ref) /= 0) stop
       enddo
     endif
-    if(allocated(f_ref)) then
+    if (allocated(f_ref)) then
       call info('    Writing face references')
-      if(size(f_ref,1)<nel) call add(f_ref,(/(0,k=size(f_ref,1),nel)/),(/(k,k=size(f_ref,1),nel)/),fit=.true.)
+      if (size(f_ref,1) < nel) call add(f_ref, [(0, k = size(f_ref,1), nel)], [(k, k = size(f_ref,1),nel)], fit=.true.)
       call reduce(f_ref, nel)
       if(vtk_var_xml(nel, 'face_ref', f_ref) /= 0) stop
       ! Build nrc references
-      if(allocated(uref)) deallocate(uref)
+      if (allocated(uref)) deallocate(uref)
       call sunique(pack(f_ref,f_ref /= 0), uref)
-!      uref = unique(pack(f_ref,f_ref /= 0))
-      do k=1, size(uref,1)
+      do k = 1, size(uref, 1)
         aux_ref = 0
-        where(f_ref==uref(k))
+        where(f_ref == uref(k))
           aux_ref = f_ref
         end where
-        if(vtk_var_xml(nel, 'nrc_'//trim(string(uref(k))), aux_ref) /= 0) stop
+        if (vtk_var_xml(nel, 'nrc_'//trim(string(uref(k))), aux_ref) /= 0) stop
       enddo
     endif
-    if(allocated(e_ref)) then
+    if (allocated(e_ref)) then
       call info('    Writing edge references')
-      if(size(e_ref,1)<nel) call add(e_ref,(/(0,k=size(e_ref,1),nel)/),(/(k,k=size(e_ref,1),nel)/),fit=.true.)
+      if(size(e_ref,1)<nel) call add(e_ref,[(0,k=size(e_ref,1),nel)],[(k,k=size(e_ref,1),nel)],fit=.true.)
       call reduce(e_ref, nel)
       if(vtk_var_xml(nel, 'edge_ref', e_ref) /= 0) stop
       ! Build nra references
       if(allocated(uref)) deallocate(uref)
       call sunique(pack(e_ref,e_ref /= 0),uref)
-!      uref = unique(pack(e_ref,e_ref /= 0))
+       uref = unique(pack(e_ref,e_ref /= 0))
       do k=1, size(uref,1)
         aux_ref = 0
         where(e_ref==uref(k))
@@ -654,7 +618,7 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
         if(vtk_var_xml(nel, 'nra_'//trim(string(uref(k))), aux_ref) /= 0) stop
       enddo
     endif
-
+  
     if(allocated(cdfval)) then
       do j=1, size(cdfval,1)
         if(allocated(outfield)) then
@@ -676,38 +640,31 @@ subroutine save_vtu_pmh(filename, pmh, infield, outfield, padval, nparam, param)
           call add(cdfval(j)%val, pdfvalmat2, [(k,k=1,size(cdfval(j)%val,1))], [(k,k=size(cdfval(j)%val,2),nel)])
         end if
         call reduce(cdfval(j)%val, cdfval(j)%ncomp, nel)
-
-        if(size(cdfval(j)%val,1) == 1) then
-          if (vtk_var_xml(nel, trim(fieldname), reshape(cdfval(j)%val(1,1:nel), (/nel/))) /= 0) &
-            call error('Writing '//trim(fieldname))
+       if(size(cdfval(j)%val,1) == 1) then
+          if (vtk_var_xml(nel, trim(fieldname), reshape(cdfval(j)%val(1,1:nel), [nel])) /= 0) &
+          call error('Writing '//trim(fieldname))
         elseif(size(cdfval(j)%val,1) == 2) then
           if (vtk_var_xml(nel, trim(fieldname), &
-            reshape(cdfval(j)%val(1,1:nel),(/nel/)), reshape(cdfval(j)%val(2,1:nel),(/nel/)), &
-            & (/(real(0,R8P),i=1,nel)/)) /= 0) &
-            call error('Writing '//trim(fieldname))
+          reshape(cdfval(j)%val(1,1:nel),[nel]), reshape(cdfval(j)%val(2,1:nel),[nel]), [(real(0,R8P),i=1,nel)]) /= 0) &
+          call error('Writing '//trim(fieldname))
         elseif(size(cdfval(j)%val,1) == 3) then
           if (vtk_var_xml(nel, trim(fieldname), &
-            reshape(cdfval(j)%val(1,1:nel),(/nel/)), reshape(cdfval(j)%val(2,1:nel),(/nel/)), &
-            reshape(cdfval(j)%val(3,1:nel),(/nel/))) /= 0) call error('Writing '//trim(fieldname))
+          reshape(cdfval(j)%val(1,1:nel),[nel]), reshape(cdfval(j)%val(2,1:nel),[nel]), &
+          reshape(cdfval(j)%val(3,1:nel),[nel])) /= 0) call error('Writing '//trim(fieldname))
         else
           if( vtk_var_xml(nel, size(cdfval(j)%val,1), trim(fieldname),&
-            & reshape(transpose(cdfval(j)%val(:,:)),(/nel, size(cdfval(j)%val,1)/)) ) /= 0) &
-              & call error('Writing '//fieldname)
-!          call error('Vector field with '//trim(string(size(cdfval(j)%val,1)))//' components not supported!')
+          reshape(transpose(cdfval(j)%val(:,:)),[nel, size(cdfval(j)%val,1)]) ) /= 0) &
+          call error('Writing '//fieldname)
+          !call error('Vector field with '//trim(string(size(cdfval(j)%val,1)))//' components not supported!')
         endif
       enddo
     endif
-
     call VTU_end_celldata()
     if(vtk_geo_xml() /= 0) stop 'writeVTU: vtk_geo_xml_closep error 1'
   end associate
-  enddo
-
+enddo
 call VTU_close(geo=.false.)
-
 end subroutine
-
-
 
 !-----------------------------------------------------------------------
 ! save_w_field: save mesh with field
@@ -995,7 +952,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
       if((ncref/=nc .or. ncomp/= 1) .and. allocated(aux_ref)) then
         deallocate(aux_ref)
       elseif(allocated(aux_ref)) then
-         call add(c_refs,aux_ref,(/(j,j=1,nc)/),fit=.true.)
+         call add(c_refs,aux_ref,[(j,j=1,nc)],fit=.true.)
          deallocate(aux_ref)
       endif
     endif
@@ -1004,7 +961,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
       if((ncref/=nc .or. ncomp/=1) .and. allocated(aux_ref)) then
         deallocate(aux_ref)
       elseif(allocated(aux_ref)) then
-        call add(c_refs,aux_ref,(/(j,j=1,nc)/),fit=.true.)
+        call add(c_refs,aux_ref,[(j,j=1,nc)],fit=.true.)
         deallocate(aux_ref)
       endif
     endif
@@ -1013,7 +970,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
       if((ncref/=nc .or. ncomp /= 1) .and. allocated(aux_ref)) then
         deallocate(aux_ref)
       elseif(allocated(aux_ref)) then
-        call add(c_refs,aux_ref,(/(j,j=1,nc)/),fit=.true.)
+        call add(c_refs,aux_ref,[(j,j=1,nc)],fit=.true.)
         deallocate(aux_ref)
       endif
     endif
@@ -1144,7 +1101,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
                   if (ncref == nc) then
                     ncdf = ncdf + 1
                     allocate(cdfval(ncdf)%val(ncomp,nc))
-                    cdfval(ncdf)%val(:,:) = reshape(temp, (/ncomp,nc/))
+                    cdfval(ncdf)%val(:,:) = reshape(temp, [ncomp,nc])
                   else
                     call error('Wrong number of element values')
                   endif
@@ -1165,7 +1122,7 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
               if (ncref == nc) then
                 ncdf = ncdf + 1
                 allocate(cdfval(ncdf)%val(ncomp,nc))
-                cdfval(ncdf)%val(:,:) = reshape(temp, (/ncomp,nc/))
+                cdfval(ncdf)%val(:,:) = reshape(temp, [ncomp,nc])
               else
                 call error('Wrong number of element values')
               endif
