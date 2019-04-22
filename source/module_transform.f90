@@ -69,8 +69,8 @@ case('triangle')
   nnod = nver + nparts
   if (minval(nn) == 0) call error('(module_transform/lagr2p2) Some global numeration is null.')
   !re-write FE constants
-  print'(a,i9)','New local number of nodes: ', lnn
-  print'(a,i9)','New global number of nodes:', nnod
+  call info('(feconv::module_transform::lagr2l2) New local number of nodes:  '//trim(string(lnn)))
+  call info('(feconv::module_transform::lagr2l2) New global number of nodes: '//trim(string(nnod)))
   call dealloc(tmp)
   call dealloc(part)
 
@@ -101,8 +101,10 @@ case('tetra')
   nnod = nver + nparts
   if (minval(nn) == 0) call error('(module_transform/lagr2p2) Some global numeration is null.')
   !re-write FE constants
-  print'(a,i9)','New local number of nodes: ', lnn
-  print'(a,i9)','New global number of nodes:', nnod
+  call info('(feconv::module_transform::lagr2l2) New local number of nodes:  '//trim(string(lnn)))
+  call info('(feconv::module_transform::lagr2l2) New global number of nodes: '//trim(string(nnod)))
+  !print'(a,i9)','New local number of nodes: ', lnn
+  !print'(a,i9)','New global number of nodes:', nnod
   call dealloc(tmp)
   call dealloc(part)
 
@@ -157,8 +159,10 @@ case('triangle', 'triangle2')
   nnod = nparts
   if (minval(nn) == 0) call error('(module_transform/lagr2rt) Some global numeration is null.')
   !re-write FE constants
-  print'(a,i9)','New local number of nodes: ', lnn
-  print'(a,i9)','New global number of nodes:', nnod
+  call info('(feconv::module_transform::lagr2rt) New local number of nodes:  '//trim(string(lnn)))
+  call info('(feconv::module_transform::lagr2rt) New global number of nodes: '//trim(string(nnod)))
+  !print'(a,i9)','New local number of nodes: ', lnn
+  !print'(a,i9)','New global number of nodes:', nnod
   call dealloc(tmp)
   call dealloc(part)
 
@@ -186,8 +190,10 @@ case('tetra', 'tetra2')
   nnod = nparts
   if (minval(nn) == 0) call error('(module_transform/lagr2rt) Some global numeration is null.')
   !re-write FE constants
-  print'(a,i9)','New local number of nodes: ', lnn
-  print'(a,i9)','New global number of nodes:', nnod
+  call info('(feconv::module_transform::lagr2rt) New local number of nodes:  '//trim(string(lnn)))
+  call info('(feconv::module_transform::lagr2rt) New global number of nodes: '//trim(string(nnod)))
+  !print'(a,i9)','New local number of nodes: ', lnn
+  !print'(a,i9)','New global number of nodes:', nnod
   call dealloc(tmp)
   call dealloc(part)
 case('tria-edge', 'tetra-face')
@@ -244,8 +250,10 @@ case('tetra', 'tetra2')
   nnod = nparts
   if (minval(nn) == 0) call error('(module_transform/lagr2nd) Some global numeration is null.')
   !re-write FE constants
-  print'(a,i9)','New local number of nodes: ', lnn
-  print'(a,i9)','New global number of nodes:', nnod
+  call info('(feconv::module_transform::lagr2nd) New local number of nodes:  '//trim(string(lnn)))
+  call info('(feconv::module_transform::lagr2nd) New global number of nodes: '//trim(string(nnod)))
+  !print'(a,i9)','New local number of nodes: ', lnn
+  !print'(a,i9)','New global number of nodes:', nnod
   call dealloc(tmp)
   call dealloc(part)
   call bandwidth(nel, lnn, nn, 'New Maximum bandwidth:     ')

@@ -62,7 +62,7 @@ module module_cuthill_mckee_fcnv
 !
 !    John Burkardt
 !
-use basicmod, only: real64, maxpath, error
+use basicmod, only: real64, maxpath, error, info
 use module_vtu_fcnv, only: type_cell, edge_tetra
 implicit none
 
@@ -108,22 +108,24 @@ character(maxpath) :: cad
 
 select case(type_cell(nnod, nver, dim, lnn, lnv, lne, lnf))
 case('tetra')
-  print '(/a)', 'Optimizing bandwidth for a tetrahedral Lagrange P1 mesh...'
+  call info('(feconv::module_cuthill_mckee::cuthill_mckee) Optimizing bandwidth for a tetrahedral Lagrange P1 mesh...')
   call bandwidth(nel, lnv, mm, 'Current maximum bandwidth: ')
   call cuthill_mckee_reduce(nel, nver, dim, lnv, mm, z)
   call bandwidth(nel, lnv, mm, 'New maximum bandwidth:     ')
 case('tetra2')
-  print '(/a)', 'Optimizing bandwidth for a tetrahedral Lagrange P2 mesh...'
+  call info('(feconv::module_cuthill_mckee::cuthill_mckee) Optimizing bandwidth for a tetrahedral Lagrange P2 mesh...')
   call bandwidth(nel, lnn, nn, 'Current maximum bandwidth: ')
   call cuthill_mckee_reduce(nel, nnod, dim, lnn, nn, znod)
   call bandwidth(nel, lnn, nn, 'New maximum bandwidth:     ')
 case('tetra-edge')
-  print '(/a)', 'Optimizing bandwidth for a tetrahedral lowest-order edge Whitney (Nedelec) mesh...'
+  call info('(feconv::module_cuthill_mckee::cuthill_mckee) Optimizing bandwidth for a tetrahedral lowest-order edge Whitney &
+  &(Nedelec) mesh...')
   call bandwidth(nel, lnn, nn, 'Current maximum bandwidth: ')
   call cuthill_mckee_reduce(nel, nnod, dim, lnn, nn, znod)
   call bandwidth(nel, lnn, nn, 'New maximum bandwidth:     ')
 case('tetra-face')
-  print '(/a)', 'Optimizing bandwidth for a tetrahedral lowest-order Raviart-Thomas mesh...'
+  call info('(feconv::module_cuthill_mckee::cuthill_mckee) Optimizing bandwidth for a tetrahedral lowest-order Raviart-Thomas &
+  &mesh...')
   call bandwidth(nel, lnn, nn, 'Current maximum bandwidth: ')
   call cuthill_mckee_reduce(nel, nnod, dim, lnn, nn, znod)
   call bandwidth(nel, lnn, nn, 'New maximum bandwidth:     ')

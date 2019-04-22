@@ -10,7 +10,7 @@ module module_mfm_fcnv
 !   load_mfm: loads a mesh from a MFM format file
 !   save_mfm: saves a mesh in a MFM format file
 !-----------------------------------------------------------------------
-use basicmod, only: real64, maxpath, error, string, int, feed, empty
+use basicmod, only: real64, maxpath, error, string, int, feed, empty, info
 implicit none
 
 contains
@@ -111,15 +111,15 @@ close(iu)
 ! nn was read only if (nnod /= nver)
 !if (nnod == nver) nn(1:lnv,1:nel) = mm
 
-print'(a,i9)','File loaded!'
-print'(a,i9)','Global number of elements: ', nel
-print'(a,i9)','Global number of nodes:    ', nnod
-print'(a,i9)','Global number of vertices: ', nver
-print'(a,i9)','Space dimension :          ', dim
-print'(a,i9)','Local number of nodes :    ', lnn
-print'(a,i9)','Local number of vertices : ', lnv
-print'(a,i9)','Local number of edges :    ', lne
-print'(a,i9)','Local number of faces :    ', lnf
+call info('(feconv::load_mfm) File '//trim(filename)//' loaded!')
+call info('(feconv::load_mfm) Global number of elements: '//trim(string(nel)))
+call info('(feconv::load_mfm) Global number of nodes:    '//trim(string(nnod)))
+call info('(feconv::load_mfm) Global number of vertices: '//trim(string(nver)))
+call info('(feconv::load_mfm) Space dimension :          '//trim(string(dim)))
+call info('(feconv::load_mfm) Local number of nodes :    '//trim(string(lnn)))
+call info('(feconv::load_mfm) Local number of vertices : '//trim(string(lnv)))
+call info('(feconv::load_mfm) Local number of edges :    '//trim(string(lne)))
+call info('(feconv::load_mfm) Local number of faces :    '//trim(string(lnf)))
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -170,14 +170,16 @@ call empty(iu)
 do k = 1, nel; call feed(iu, string(nsd(k)));  end do
 call empty(iu)
 close(iu)
-print'(a,i9)','Global number of elements: ', nel
-print'(a,i9)','Global number of nodes:    ', nnod
-print'(a,i9)','Global number of vertices: ', nver
-print'(a,i9)','Space dimension :          ', dim
-print'(a,i9)','Local number of nodes :    ', lnn
-print'(a,i9)','Local number of vertices : ', lnv
-print'(a,i9)','Local number of edges :    ', lne
-print'(a,i9)','Local number of faces :    ', lnf
+
+call info('(feconv::load_mfm) File '//trim(filename)//' saved!')
+call info('(feconv::load_mfm) Global number of elements: '//trim(string(nel)))
+call info('(feconv::load_mfm) Global number of nodes:    '//trim(string(nnod)))
+call info('(feconv::load_mfm) Global number of vertices: '//trim(string(nver)))
+call info('(feconv::load_mfm) Space dimension :          '//trim(string(dim)))
+call info('(feconv::load_mfm) Local number of nodes :    '//trim(string(lnn)))
+call info('(feconv::load_mfm) Local number of vertices : '//trim(string(lnv)))
+call info('(feconv::load_mfm) Local number of edges :    '//trim(string(lne)))
+call info('(feconv::load_mfm) Local number of faces :    '//trim(string(lnf)))
 end subroutine
 
 end module

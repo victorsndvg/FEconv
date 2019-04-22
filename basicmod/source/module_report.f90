@@ -13,6 +13,7 @@ module module_report_bmod
 ! 
 ! PUBLIC PROCEDURES:
 !   report_option: sets the report options
+!   report_get_level: gets the report option
 !   report: reports a message for a given level
 !   debug: reports a debug message
 !   info: reports an info
@@ -99,6 +100,40 @@ case default
   &warning, error.')
 end select
 end subroutine
+
+!-----------------------------------------------------------------------
+! report_get_level: gets the report option
+!-----------------------------------------------------------------------
+function report_get_level(opt) result(res)
+!! Sets the report options.  
+!! __Example:__  
+!! `program test`  
+!! `use basicmod, only: report_get_level`  
+!! `implicit none`  
+!! `print*, report_get_level('info')`  
+!! `end program`  
+!!
+!! @note Posible input values are `debug`, `info`, `warning` and `error`, whereas output values are:  
+!! * `none`, no output.  
+!! * `file`, output is only redirected to a file.  
+!! * `std`, output is only redirected to the standard output (`stderr` for errors, `stdout` otherwise).  
+!! * `all`, output is redirected to a file and to the standard output.  
+character(*), intent(in) :: opt !! Option; it can be `debug`, `info`, `warning` or `error`.
+character(4)             :: res !! Value for the given option; it can be `none`, `file`, `std` or `all`.  
+
+select case(lcase(opt))
+case('debug')
+  res = output(DEBUG_)
+case('info')
+  res = output(INFO_)
+case('warning')
+  res = output(WARN_)
+case('error')
+  res = output(ERROR_)
+case default
+  call error('(report/report_get_level) "'//trim(opt)//'" is not one of the valid options: debug, info, warning, error.')
+end select
+end function
 
 !-----------------------------------------------------------------------
 ! report: reports a message for a given level

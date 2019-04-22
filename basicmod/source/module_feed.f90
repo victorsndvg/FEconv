@@ -17,7 +17,7 @@ module module_feed_bmod
 !! `character(10) :: s(100)`  
 !! `s = [(string(2*i), i=1,100)]`  
 !! `call set_string_length(132) !sets the maximum length of the file lines to 132`  
-!! `call set_ending('\') !sets the continuation characterto '\'`  
+!! `call set_ending('\') !sets the continuation character to '\'`  
 !! `open (10, file='data.dat')`  
 !! `do k = 1, 100`  
 !! &nbsp;&nbsp;&nbsp;&nbsp;`call feed(10, s(k)) !adds information to the internal record and dumps it when it is filled`  

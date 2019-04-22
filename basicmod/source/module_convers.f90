@@ -253,6 +253,7 @@ res = ' '
 do i = 1, size(x,1)
   res = trim(res)//' '//trim(adjustlt(string(x(i))))
 end do
+res = adjustlt(res)
 end function
 
 !--------------------------------------------------------------------
@@ -276,6 +277,7 @@ res = ' '
 do i = 1, size(x,1)
   res = trim(res)//' '//trim(adjustlt(string(x(i))))
 end do
+res = adjustlt(res)
 end function
 
 !-----------------------------------------------------------------------

@@ -80,7 +80,7 @@ integer,      allocatable :: submm(:,:), subnrv(:,:), subnra(:,:), subnrc(:,:), 
 real(real64), allocatable :: subz(:,:)
 real(real64)              :: padval
 
-call report_option('info', 'std')
+!call report_option('info', 'std')
 if(present(argstr)) then
   call set_args(argstr)
 else
@@ -110,7 +110,7 @@ endif
 !check mesh names and extensions
 if (.not. present(inpmh)) then
   if (len_trim(infile)  == 0)    call error('(module_feconv::convert) unable to find input file: '//trim(infile))
-  if (.not. file_exists(infile)) call error('(module_feconv::convert) input file does mot exist: '//trim(infile))
+  if (.not. file_exists(infile)) call error('(module_feconv::convert) input file does not exist: '//trim(infile))
   if (len_trim(inext)   == 0)    call error('(module_feconv::convert) unable to find input file extension: '//trim(inext))
 end if
 if(.not. (present(outpmh) .or. is_arg('-l'))) then
@@ -438,7 +438,7 @@ elseif (force_to_save) then
   case('vtu')
     call info('Saving VTU mesh file...')
     if (is_pmh) then
-      call save_vtu(outfile, pmh,infieldname, outfieldname, padval)
+      call save_vtu(outfile, pmh, infieldname, outfieldname, padval)
     else
       call save_vtu(outfile, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
     endif

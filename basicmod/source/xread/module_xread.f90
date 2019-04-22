@@ -42,7 +42,7 @@ integer, private :: nlines !! Counter for already-read lines.
 !Private procedures
 private :: xread_int, xread_real64, xread_char
 private :: xread_int_alloc, xread_real64_alloc, xread_char_alloc
-private :: search_once, search_mark, search_path, search_close_mark
+private :: search_once, search_mark, search_close_mark
 private :: last_mark
 
 !Interfaces
@@ -379,62 +379,18 @@ end do
 end function
 
 !-----------------------------------------------------------------------
-! PRIVATE PROCEDURES
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-! search_once
-!-----------------------------------------------------------------------
-function search_once(id, mark) result(res)
-  !! Searches for a mark only once.  
-  !!
-  !! @note  0 if the mark is found; iostat_end if end-of-file is found; non-zero otherwise
-integer,      intent(in) :: id
-character(*), intent(in) :: mark
-character(maxpath) :: str
-integer :: res
-
-read (id, '(a)', iostat=res) str
-nlines = nlines + 1
-if (res == iostat_end) return !end-of-file found
-if (res /= 0) call error('(search_mark_once/read) error while reading mark "'//trim(mark)//'", #'//&
-trim(string(res))) !error found
-if (index(adjustlt(lcase(str)), trim(adjustlt(lcase(mark)))//' ') /= 1 .and. &
-    index(adjustlt(lcase(str)), trim(adjustlt(lcase(mark)))//'>') /= 1 ) res = 1 !mark not found
-end function
-
-!-----------------------------------------------------------------------
-! search_mark
-!-----------------------------------------------------------------------
-function search_mark(id, mark) result(res)
-  !! Searches for `<mark` in the unit id.  
-  !!
-  !! @note 0 if the mark is found; iostat_end if end-of-file is found; non-zero otherwise
-integer,      intent(in) :: id
-character(*), intent(in) :: mark
-
-integer                  :: res
-
-do
-  res = search_once(id, '<'//trim(adjustlt(lcase(mark))))
-  if (res == iostat_end .or. res == 0) return !end-of-file or mark found
-end do
-end function
-
-!-----------------------------------------------------------------------
 ! search_path
 !-----------------------------------------------------------------------
 function search_path(id, mark, rew) result(res)
-  !! Searchs a mark or a path; if mark(1:1) is alphanumeric, 
-  !! a mark is searched with procedure search_mark; otherwise, 'mark' is 
-  !! considered a path of marks separated by mark(1:1).  
-  !!
-  !! @note `0` if the mark is found; `iostat_end` if end-of-file is found; `non-zero` otherwise.
+!! Searchs a mark or a path; if mark(1:1) is alphanumeric, 
+!! a mark is searched with procedure search_mark; otherwise, 'mark' is 
+!! considered a path of marks separated by mark(1:1).  
+!!
+!! @note `0` if the mark is found; `iostat_end` if end-of-file is found; `non-zero` otherwise.
 integer,      intent(in)      :: id
 character(*), intent(in)      :: mark
 logical, optional, intent(in) :: rew
-
 integer                       :: res
-
 character(maxpath) :: part, path
 character(1) :: sep
 integer :: p
@@ -462,7 +418,47 @@ else
     part = path
   enddo
 end if
+end function
 
+!-----------------------------------------------------------------------
+! PRIVATE PROCEDURES
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! search_once
+!-----------------------------------------------------------------------
+function search_once(id, mark) result(res)
+!! Searches for a mark only once.  
+!!
+!! @note  0 if the mark is found; iostat_end if end-of-file is found; non-zero otherwise
+integer,      intent(in) :: id
+character(*), intent(in) :: mark
+character(maxpath) :: str
+integer :: res
+
+read (id, '(a)', iostat=res) str
+nlines = nlines + 1
+if (res == iostat_end) return !end-of-file found
+if (res /= 0) call error('(search_mark_once/read) error while reading mark "'//trim(mark)//'", #'//&
+trim(string(res))) !error found
+if (index(adjustlt(lcase(str)), trim(adjustlt(lcase(mark)))//' ') /= 1 .and. &
+    index(adjustlt(lcase(str)), trim(adjustlt(lcase(mark)))//'>') /= 1 ) res = 1 !mark not found
+end function
+
+!-----------------------------------------------------------------------
+! search_mark
+!-----------------------------------------------------------------------
+function search_mark(id, mark) result(res)
+!! Searches for `<mark` in the unit id.  
+!!
+!! @note 0 if the mark is found; iostat_end if end-of-file is found; non-zero otherwise
+integer,      intent(in) :: id
+character(*), intent(in) :: mark
+integer                  :: res
+
+do
+  res = search_once(id, '<'//trim(adjustlt(lcase(mark))))
+  if (res == iostat_end .or. res == 0) return !end-of-file or mark found
+end do
 end function
 
 !-----------------------------------------------------------------------

@@ -9,7 +9,7 @@ program feconv
 use basicmod, only: string, error, is_arg, args_count, get_arg
 use module_feconv, only: convert
 implicit none
-character(10) :: last_update = '24/04/2018'
+character(10) :: last_update = '22/05/2019'
 
 
 !read and store arguments

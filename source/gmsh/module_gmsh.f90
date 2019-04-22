@@ -31,6 +31,7 @@ type(pmh_mesh), intent(inout) :: pmh
 integer :: res, i, j, k, ios, nel, elt, nelt, id4gmsh(93), xxx, ntags, tag(100), tmp(100)
 integer, allocatable :: el_type(:), inv_el_type(:), new4old(:), old4new(:)
 character(maxpath) :: cad
+real :: version
 
 !id4gmsh("gmsh element id") = "pmh element id"
 id4gmsh(15) = check_fe(.true.,      1, 1,  0, 0) ! 1
@@ -63,6 +64,13 @@ end if
 open (unit=iu, file=filename, form='formatted', status='old', position='rewind', iostat=ios)
 if (ios /= 0) call error('load/open, #'//trim(string(ios)))
 associate (m => pmh%pc(1)) !m: current mesh
+  !version
+  res = search_mark(iu, '$MeshFormat')
+  if (res /= 0) call error('(module_gmsh/load_gmsh) Unable to find mark $MeshFormat: #'//trim(string(res)))
+  read (unit=iu, fmt=*, iostat=ios) version
+  if (ios /= 0) call error('read (str), #'//trim(string(ios)))
+  if (version < 2. .or. 3. <= version) call error('(module_gmsh/load_gmsh) Unsupported Gmsh mesh format version '//&
+  &trim(string(int(version)))//'. Please, export a "Version 2 ASCII" Gmsh mesh.')
   !nodes
   res = search_mark(iu, '$Nodes')
   if (res /= 0) call error('(module_gmsh/load_gmsh) Unable to find mark $Nodes: #'//trim(string(res)))

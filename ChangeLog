@@ -7,6 +7,11 @@ CHANGELOG / RELEASE NOTES
 - Add: Makefiles for OS X.
 - Add: Example of use as a library, in folder testlib/.
 
+18.01                                                                 2018-01-12
+--------------------------------------------------------------------------------
+- Add: Makefiles for OS X.
+- Add: Example of use as a library, in folder testlib/.
+
 18.02                                                                 2018-02-16
 --------------------------------------------------------------------------------
 - Update: License year and owner.
@@ -33,3 +38,7 @@ CHANGELOG / RELEASE NOTES
 18.06                                                                 2018-06-07
 --------------------------------------------------------------------------------
 - Fix: error in det(), use abs to calculate pivot.
+
+19.04                                                                 2018-04-22
+--------------------------------------------------------------------------------
+- Fix: check version for Gmsh meshes.

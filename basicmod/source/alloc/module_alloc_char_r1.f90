@@ -14,6 +14,7 @@ module module_alloc_char_r1_bmod
 !   set: set a scalar or a vector in the array
 !   insert: insert a scalar in the array
 !   reduce: reduce the array
+!   find_first: funtion to find the first occurrence of a value in an array
 !-----------------------------------------------------------------------
 use module_os_dependant_bmod, only: maxpath
 use module_report_bmod,       only: error, info
@@ -98,6 +99,11 @@ interface insert
   !!
   !! @warning Note that when `used` is not present, __the array is effectively extended in every call__.  
   module procedure insert_prv
+end interface
+
+interface find_first
+  !! Finds the first occurrence of a scalar value in an array.
+  module procedure find_first_prv
 end interface
 
 contains
@@ -302,4 +308,34 @@ call extend(v, s, fit)
 v(d+1:size(v,1)) = v(d:size(v,1)-1)
 v(d) = val
 end subroutine
+
+!-----------------------------------------------------------------------
+! find_first_prv (find_first)
+!-----------------------------------------------------------------------
+function find_first_prv(v, val) result(res)
+!! Finds the first occurrence of a scalar value in an array.  
+!! __Example:__  
+!! `program test`  
+!! `use basicmod, only: alloc, find_first, maxpath`  
+!! `implicit none`  
+!! `character(maxpath), allocatable :: v(:)`  
+!! `call alloc(v, 6)`  
+!! `v = ['a', 'b', 'c', 'd', 'e', 'e']`  
+!! `print*, find_first(v, 'e')`  
+!! `end program`  
+character(*), intent(in) :: v(:) !! Array.
+character(*), intent(in) :: val  !! Value to search.
+integer                  :: res  !! Position of the first occurrence; return 0 if nothing was found.
+integer :: i
+
+res = 0
+if (csize(char1=v, d=1) <= 0) return
+do i = 1, size(v,1)
+  if (v(i) == val) then
+    res = i
+    return
+  end if
+end do
+end function
+
 end module
