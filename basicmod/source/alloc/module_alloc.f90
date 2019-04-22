@@ -24,6 +24,7 @@ use module_alloc_real64_r3_bmod
 
 !complex64 arrays
 use module_alloc_complex64_r1_bmod
+use module_alloc_complex64_r2_bmod
 
 !character arrays
 use module_alloc_char_r1_bmod

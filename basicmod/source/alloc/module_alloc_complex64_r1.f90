@@ -206,12 +206,12 @@ integer :: res
 character(maxpath) :: cad
 
 if (allocated(v)) then
-  if (size(v,1) == d) then; v =  cmplx(0._real64, 0._real64, real64); return; end if
+  if (size(v,1) == d) then; v =  (0._real64, 0._real64); return; end if
   call dealloc(v)
 end if
 allocate(v(d), stat = res, errmsg = cad)
 if (res /= 0) call error('(module_alloc_complex64_r1/alloc) unable to allocate variable: '//trim(cad))
-v =  cmplx(0._real64, 0._real64, real64)
+v =  (0._real64, 0._real64)
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -244,7 +244,7 @@ if (.not. allocated(v)) then
   !ALLOCATION
   allocate(v(ns), stat = res, errmsg = cad)
   if (res /= 0) call error('(module_alloc_complex64_r1/extend) unable to allocate variable v: '//trim(cad))
-  v =  cmplx(0._real64, 0._real64, real64)
+  v =  (0._real64, 0._real64)
 else !v is already allocated
   s = size(v,1)
   if (d > s) then !reallocation is mandatory
@@ -259,7 +259,7 @@ else !v is already allocated
     allocate(temp(ns), stat = res, errmsg = cad)
     if (res /= 0) call error('(module_alloc_complex64_r1/extend) unable to allocate variable temp: '//trim(cad))
     temp(1:s)    = v
-    temp(s+1:ns) =  cmplx(0._real64, 0._real64, real64)
+    temp(s+1:ns) =  (0._real64, 0._real64)
     call move_alloc(from=temp, to=v)
   end if
 end if
@@ -308,7 +308,7 @@ subroutine set_scalar_prv(v, val, d, fit)
 !! `use basicmod, only: set`  
 !! `implicit none`  
 !! `complex(real64), allocatable :: v(:)`  
-!! `call set(v,  cmplx(0.1_real64, 0.1_real64, real64), 10, fit=.false.)`  
+!! `call set(v,  (0._real64, 1._real64), 10, fit=.false.)`  
 !! `end program`  
 complex(real64), allocatable  :: v(:) !! Array.
 complex(real64),   intent(in) :: val  !! Value.
@@ -329,7 +329,7 @@ subroutine set_vector_prv(v, val, d, fit)
 !! `use basicmod, only: set`  
 !! `implicit none`  
 !! `complex(real64), allocatable :: v(:)`  
-!! `call set(v, [cmplx(0.1_real64, 0.1_real64, real64), cmplx(0.1_real64, 0.1_real64, real64)], [10,13], fit=.false.)`  
+!! `call set(v, [(0._real64, 1._real64),(2._real64, 0._real64),(0._real64, 3._real64)], [10,13], fit=.false.)`  
 !! `end program`  
 complex(real64), allocatable  :: v(:)   !! Array.
 complex(real64), intent(in)   :: val(:) !! Value.
@@ -350,7 +350,7 @@ subroutine add_scalar_prv(v, val, d, fit)
 !! `use basicmod, only: add`  
 !! `implicit none`  
 !! `complex(real64), allocatable :: v(:)`  
-!! `call add(v, cmplx(0.1_real64, 0.1_real64, real64), 10, fit=.false.)`  
+!! `call add(v, (0._real64, 1._real64), 10, fit=.false.)`  
 !! `end program`  
 complex(real64), allocatable  :: v(:) !! Array.
 complex(real64), intent(in)   :: val  !! Value.
@@ -371,7 +371,7 @@ subroutine add_vector_prv(v, val, d, fit)
 !! `use basicmod, only: add`  
 !! `implicit none`  
 !! `complex(real64), allocatable :: v(:)`  
-!! `call add(v, [cmplx(0.1_real64, 0.1_real64, real64), cmplx(0.1_real64, 0.1_real64, real64)], [10,13], fit=.false.)`  
+!! `call add(v, [(0._real64, 1._real64),(2._real64, 0._real64)], [10,13], fit=.false.)`  
 !! `end program`  
 complex(real64), allocatable  :: v(:)   !! Array.
 complex(real64), intent(in)   :: val(:) !! Value.
@@ -392,7 +392,7 @@ subroutine insert_prv(v, val, d, used, fit)
 !! `use basicmod, only: insert`  
 !! `implicit none`  
 !! `complex(real64), allocatable :: v(:)`  
-!! `call insert(v, cmplx(0.1_real64, 0.1_real64, real64), 10, used=7, fit=.false.)`  
+!! `call insert(v, (0._real64, 1._real64), 10, used=7, fit=.false.)`  
 !! `end program`  
 complex(real64), allocatable  :: v(:) !! Array.
 complex(real64), intent(in)   :: val  !! Value.
@@ -421,8 +421,8 @@ function find_first_prv(v, val) result(res)
 !! `implicit none`  
 !! `complex(real64), allocatable :: v(:)`  
 !! `call alloc(v, 2)`  
-!! `v = [cmplx(0.1_real64, 0.1_real64, real64), cmplx(0.2_real64, 0.2_real64, real64)]`  
-!! `print*, find_first(v, cmplx(0.1_real64, 0.1_real64, real64))`  
+!! `v = [(0.1_real64, 0.1_real64), (0.2_real64, 0.2_real64)]`  
+!! `print*, find_first(v, (0.1_real64, 0.1_real64))`  
 !! `end program`  
 complex(real64), intent(in) :: v(:) !! Array.
 complex(real64), intent(in) :: val  !! Value to search.
@@ -450,8 +450,8 @@ subroutine sfind_sca_prv(v, val, res)
 !! `implicit none`  
 !! `complex(real64), allocatable :: v(:), pos(:)`  
 !! `call alloc(v, 2)`  
-!! `v = [cmplx(0.1_real64, 0.1_real64, real64), cmplx(0.2_real64, 0.2_real64, real64)]`  
-!! `call sfind(v, cmplx(0.1_real64, 0.1_real64, real64), pos)`  
+!! `v = [(0.1_real64, 0.1_real64), (0.2_real64, 0.2_real64)]`  
+!! `call sfind(v, (0.1_real64, 0.1_real64), pos)`  
 !! `end program`  
 complex(real64),      intent(in)  :: v(:)   !! Array.
 complex(real64),      intent(in)  :: val    !! Value to search.
@@ -485,8 +485,8 @@ subroutine sfind_vec_prv(v, val, res)
 !! `implicit none`  
 !! `complex(real64), allocatable :: v(:), pos(:)`  
 !! `call alloc(v, 2)`  
-!! `v = [cmplx(0.1_real64, 0.1_real64, real64), cmplx(0.2_real64, 0.2_real64, real64)]`  
-!! `call sfind(v, [cmplx(0.1_real64, 0.1_real64, real64), cmplx(0.2_real64, 0.2_real64, real64)], pos)`  
+!! `v = [(0.1_real64, 0.1_real64), (0.2_real64, 0.2_real64)]`  
+!! `call sfind(v, [(0.1_real64, 0.1_real64), (0.2_real64, 0.2_real64)], pos)`  
 !! `end program`  
 complex(real64),      intent(in)  :: v(:)   !! Array.
 complex(real64),      intent(in)  :: val(:) !! Values to search.
@@ -526,10 +526,10 @@ function find_sca_prv(v, val) result(res)
 !! `implicit none`  
 !! `complex(real64), allocatable :: v(:), pos(:)`  
 !! `call alloc(v, 2)`  
-!! `v = [cmplx(0.1_real64, 0.1_real64, real64), cmplx(0.2_real64, 0.2_real64, real64)]`  
+!! `v = [(0.1_real64, 0.1_real64), (0.2_real64, 0.2_real64)]`  
 !! `allocate(pos, source=find(v, 4))`  
 !! `! the latter is not valid in Gfortan 4.9 and below; write the following code or use sfind instead:`  
-!! `! pos = find(v, cmplx(0.1_real64, 0.1_real64, real64)`  
+!! `! pos = find(v, (0.1_real64, 0.1_real64)`  
 !! `end program`  
 complex(real64), intent(in) :: v(:)   !! Array.
 complex(real64), intent(in) :: val    !! Value to search.
@@ -547,11 +547,11 @@ function find_vec_prv(v, val) result(res)
 !! `program test`  
 !! `use basicmod, only: find`  
 !! `implicit none`  
-!! `integer :: v(2) = [cmplx(0.1_real64, 0.1_real64, real64), cmplx(0.2_real64, 0.2_real64, real64)]`  
+!! `integer :: v(2) = [(0.1_real64, 0.1_real64), (0.2_real64, 0.2_real64)]`  
 !! `integer, allocatable :: pos(:)`  
-!! `allocate(pos, source=find(v, [cmplx(0.1_real64, 0.1_real64, real64), cmplx(0.2_real64, 0.2_real64, real64)]))`  
+!! `allocate(pos, source=find(v, [(0.1_real64, 0.1_real64), (0.2_real64, 0.2_real64)]))`  
 !! `! the latter is not valid in Gfortan 4.9 and below; write the following code or use sfind instead:`  
-!! `! pos = find(v, [cmplx(0.1_real64, 0.1_real64, real64), cmplx(0.2_real64, 0.2_real64, real64)])`  
+!! `! pos = find(v, [(0.1_real64, 0.1_real64), (0.2_real64, 0.2_real64)])`  
 !! `end program`  
 complex(real64), intent(in)  :: v(:)   !! Array.
 complex(real64), intent(in)  :: val(:) !! Values to search.
