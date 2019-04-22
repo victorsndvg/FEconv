@@ -11,7 +11,7 @@ module module_feconv
 !-----------------------------------------------------------------------
 use basicmod, only: real64, maxpath, slash, error, adjustlt, lcase, word_count, get_unit, set, get_arg, is_arg, &
                     get_post_arg, args_count, set_args, file_exists, operator(.IsNewerThan.), report_option
-use module_transform_fcnv, only: lagr2l2, lagr2rt, lagr2nd, to_l1
+use module_transform_fcnv, only: lagr2l2, lagr2rt, lagr2nd, lagr2nd2, to_l1
 use module_cuthill_mckee_fcnv, only: cuthill_mckee
 use module_msh_fcnv, only: load_msh,save_msh
 use module_unv_fcnv, only: load_unv,save_unv
@@ -138,10 +138,10 @@ call info('Forcing to save output file: '//string(force_to_save))
 !check isoparametric option, for UNV only
 !if (trim(adjustlt(inext)) /= 'unv' .and. is_arg('-is')) call error('(module_feconv/fe_conv) only UNV input files can '//&
 !&'manage -is option.')
-!options for mesh transformation (-l1, -l2, -rt, -nd and -cm) are incompatible with fields (-if, -of)
-if ( (is_arg('-l1') .or. is_arg('-l2') .or. is_arg('-rt') .or. is_arg('-nd') .or. is_arg('-cm')) .and. &
+!options for mesh transformation (-l1, -l2, -rt, -nd, -nd2 and -cm) are incompatible with fields (-if, -of)
+if ( (is_arg('-l1') .or. is_arg('-l2') .or. is_arg('-rt') .or. is_arg('-nd') .or. is_arg('-nd2') .or. is_arg('-cm')) .and. &
      (is_arg('-if') .or. is_arg('-of')) ) call error('(module_feconv/fe_conv) options for mesh transformation (-l1, -l2, '//&
-     &'-rt, -nd and -cm) are incompatible with fields (-if, -of).')
+     &'-rt, -nd, -nd2 and -cm) are incompatible with fields (-if, -of).')
 !set PMH mesh tolerance (all load procedures must consider intent(inout) for PMH argument)
 if (is_arg('-t')) then
   pmh%ztol = dble(get_post_arg('-t'))
@@ -385,6 +385,14 @@ elseif (is_arg('-nd')) then
     is_pmh = .false.
   end if
   call lagr2nd(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
+  call info('Done!')
+elseif (is_arg('-nd2')) then
+  call info('Converting Lagrange mesh into Whitney order 2 (edge) mesh...')
+  if (is_pmh) then
+    call pmh2mfm(pmh, nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm, nrc, nra, nrv, z, nsd)
+    is_pmh = .false.
+  end if
+  call lagr2nd2(nel, nnod, nver, dim, lnn, lnv, lne, lnf, nn, mm)
   call info('Done!')
 end if
 

@@ -808,6 +808,8 @@ elseif (DIM==3 .and. LNV==4 .and. LNN==10 .and. LNE== 6 .and. LNF==4) then
   res = 'tetra2'
 elseif (DIM==3 .and. LNV==4 .and. LNN== 6 .and. LNE== 6 .and. LNF==4) then
   res = 'tetra-edge'
+elseif (DIM==3 .and. LNV==4 .and. LNN==20 .and. LNE== 6 .and. LNF==4) then
+  res = 'tetr-edge2'
 elseif (DIM==3 .and. LNV==4 .and. LNN== 4 .and. LNE== 6 .and. LNF==4 .and. nver /= nnod) then
   res = 'tetra-face'
 elseif (DIM==3 .and. LNV==8 .and. LNN== 8 .and. LNE==12 .and. LNF==6) then

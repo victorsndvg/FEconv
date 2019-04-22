@@ -18,7 +18,6 @@ module module_pmh_fcnv
 !   get_piece_max_top_dim: returns the maximum topological dimension
 !   remove_coordinate: reduces the space dimension of the mesh removing the chosen coordinate
 !   change_pmh_references: changes pmh references
-
 !
 ! REMARKS:
 !   A mesh is divided into pieces
@@ -249,7 +248,7 @@ integer, allocatable   :: nn(:,:), mm(:,:), nrv(:,:), nra(:,:), nrc(:,:), nsd(:)
 real(real64), allocatable :: z(:,:)
 
 integer :: i, ipp, ip, ig, pos, k, prev_nel, n, j, type_by_tdim(0:3), tmp_2d(2), tmp_3d(3), &
-prev_max_tdim, res, max_tdim, valid_fe(12)
+prev_max_tdim, res, max_tdim, valid_fe(13)
 integer, allocatable :: piece2save(:), ref(:,:), tmp_vf(:), nel_piece(:), nnod_piece(:), nver_piece(:)
 logical :: ft(2) = [.false.,.true.]
 character(maxpath) :: str, cad
@@ -266,6 +265,7 @@ valid_fe = [check_fe(.true.,   1, 1,  0, 0), & !Node
             check_fe(.false., 10, 4,  6, 4), & !Tetrahedron, Lagrange P2
             check_fe(.false.,  4, 4,  6, 4), & !Tetrahedron, Raviart-Thomas (face)
             check_fe(.false.,  6, 4,  6, 4), & !Tetrahedron, Nedelec (edge)
+            check_fe(.false., 20, 4,  6, 4), & !Tetrahedron, Nedelec (edge) order 2
             check_fe(.true.,   8, 8, 12, 6)]   !Hexahedron, Lagrange P1
 
 !check piece(s) to be saved
