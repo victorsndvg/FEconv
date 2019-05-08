@@ -1,0 +1,192 @@
+#################################################################
+# Makefile created using the tool 'Creamake'
+# 
+# Creamake is distributed under the GNU GPL license
+# Author: Francisco Pena, fran.pena(at)usc.es
+# Download page: http://sourceforge.net/projects/creamake/
+#################################################################
+ 
+#################################################################
+# User-modifiable options
+#################################################################
+ 
+# SOURCE AND COMMONS FOLDERS (separated by spaces)
+dir_fuentes = source source\gfortran source\alloc source\vtk source\xml \
+source\xread source\sourcelib
+ 
+# OBJECT AND .MOD FOLDER
+dir_objetos = object
+ 
+# MAIN SOURCE FILE (include relative path from folder where Makefile is)
+condir_principal = 
+ 
+# EXECUTABLE NAME 
+ejecutable = libbasicmod.so
+ 
+# NEEDED TO convert ejecutable THE DEFAULT RULE: 
+$(ejecutable): $(condir_principal) 
+ 
+# MODULES
+modulos = module_compiler_gfortran.f90 module_os_dependant.f90 \
+module_report.f90 module_set.f90 module_alloc_common.f90 \
+module_alloc_char_r1.f90 module_alloc_char_r2.f90 module_convers.f90 \
+module_files.f90 module_feed.f90 module_args.f90 module_alloc_int_r1.f90 \
+module_alloc_complex64_r1.f90 module_alloc_int_r2.f90 \
+module_alloc_complex64_r2.f90 module_alloc_int_r3.f90 module_alloc_log_r1.f90 \
+module_alloc_real64_r1.f90 module_alloc_real64_r2.f90 \
+module_alloc_real64_r3.f90 module_alloc.f90 module_math.f90 module_system.f90 \
+IR_Precision.f90 Lib_VTK_IO.f90 LIB_VTK_IO_READ.f90 module_readPVD.f90 \
+module_readVTU.f90 module_writePVD.f90 module_writeVTU.f90 \
+module_xml_parser.f90 module_xread.f90 basicmod.f90
+ 
+# MODULE DEPENDENCIES
+# if pru1 depends on pru2... pru1.o: pru2.o
+module_os_dependant.obj: module_compiler_gfortran.obj
+module_report.obj: module_compiler_gfortran.obj module_os_dependant.obj
+module_set.obj: module_os_dependant.obj module_report.obj
+module_alloc_common.obj: module_compiler_gfortran.obj
+module_alloc_char_r1.obj: module_os_dependant.obj module_report.obj \
+module_alloc_common.obj
+module_alloc_char_r2.obj: module_os_dependant.obj module_report.obj \
+module_alloc_char_r1.obj module_alloc_common.obj
+module_convers.obj: module_compiler_gfortran.obj module_os_dependant.obj \
+module_report.obj module_alloc_common.obj
+module_files.obj: module_compiler_gfortran.obj module_os_dependant.obj \
+module_report.obj module_convers.obj
+module_feed.obj: module_convers.obj
+module_args.obj: module_compiler_gfortran.obj module_os_dependant.obj \
+module_report.obj module_convers.obj
+module_alloc_int_r1.obj: module_os_dependant.obj module_report.obj \
+module_alloc_common.obj
+module_alloc_complex64_r1.obj: module_compiler_gfortran.obj \
+module_os_dependant.obj module_report.obj module_alloc_common.obj \
+module_alloc_int_r1.obj
+module_alloc_int_r2.obj: module_os_dependant.obj module_report.obj \
+module_alloc_int_r1.obj module_alloc_common.obj
+module_alloc_complex64_r2.obj: module_os_dependant.obj module_report.obj \
+module_alloc_int_r2.obj module_alloc_common.obj
+module_alloc_int_r3.obj: module_os_dependant.obj module_report.obj \
+module_alloc_int_r2.obj module_alloc_common.obj
+module_alloc_log_r1.obj: module_os_dependant.obj module_report.obj \
+module_alloc_common.obj module_alloc_int_r1.obj
+module_alloc_real64_r1.obj: module_compiler_gfortran.obj \
+module_os_dependant.obj module_report.obj module_alloc_common.obj \
+module_alloc_int_r1.obj
+module_alloc_real64_r2.obj: module_os_dependant.obj module_report.obj \
+module_alloc_int_r2.obj module_alloc_real64_r1.obj module_alloc_common.obj
+module_alloc_real64_r3.obj: module_compiler_gfortran.obj \
+module_os_dependant.obj module_report.obj module_alloc_int_r2.obj \
+module_alloc_common.obj
+module_alloc.obj: module_alloc_int_r1.obj module_alloc_int_r2.obj \
+module_alloc_int_r3.obj module_alloc_real64_r1.obj module_alloc_real64_r2.obj \
+module_alloc_real64_r3.obj module_alloc_complex64_r1.obj \
+module_alloc_complex64_r2.obj module_alloc_char_r1.obj \
+module_alloc_char_r2.obj module_alloc_log_r1.obj
+module_math.obj: module_compiler_gfortran.obj module_report.obj \
+module_alloc.obj
+module_system.obj: module_compiler_gfortran.obj module_os_dependant.obj \
+module_report.obj module_convers.obj module_alloc_char_r1.obj module_files.obj
+Lib_VTK_IO.obj: IR_Precision.obj
+LIB_VTK_IO_READ.obj: Lib_VTK_IO.obj module_alloc.obj
+module_readPVD.obj: module_compiler_gfortran.obj module_report.obj \
+module_convers.obj module_files.obj
+module_readVTU.obj: module_compiler_gfortran.obj module_report.obj \
+module_alloc.obj module_convers.obj Lib_VTK_IO.obj LIB_VTK_IO_READ.obj
+module_writePVD.obj: module_compiler_gfortran.obj module_report.obj \
+module_convers.obj module_files.obj
+module_writeVTU.obj: module_report.obj module_convers.obj Lib_VTK_IO.obj
+module_xml_parser.obj: module_compiler_gfortran.obj module_os_dependant.obj \
+module_alloc.obj module_convers.obj module_report.obj module_files.obj
+module_xread.obj: module_compiler_gfortran.obj module_report.obj \
+module_convers.obj
+basicmod.obj: module_alloc.obj module_args.obj module_compiler_gfortran.obj \
+module_convers.obj module_feed.obj module_files.obj module_math.obj \
+module_os_dependant.obj module_readPVD.obj module_readVTU.obj \
+module_report.obj module_set.obj module_system.obj module_writePVD.obj \
+module_writeVTU.obj module_xml_parser.obj module_xread.obj
+ 
+# INCLUDES
+includes = 
+ 
+# COMPILER
+FC = gfortran
+ 
+# COMPILER OPTIONS
+FFLAGS = -J$(dir_objetos) -fPIC
+ 
+# LINKER OPTIONS
+LDFLAGS = 
+ 
+#################################################################
+# Non-modifiable part
+#################################################################
+ 
+# SOURCE FOLDERS
+VPATH =   $(subst ,:,$(strip $(dir_fuentes)))
+vpath %.obj $(dir_objetos)
+ 
+# SOURCES
+fuentes_ = $(filter %.f %.F %.for %.FOR %.f90 %.F90 %.f95 %.F95 %.f03 %.F03,$(shell dir /b $(dir_fuentes)))
+fuentes  = $(filter-out $(notdir $(condir_principal)) $(modulos),$(fuentes_))
+ 
+# OBJECTS
+modulos_obj = $(addsuffix .obj,$(basename $(modulos)))
+fuentes_obj = $(addsuffix .obj,$(basename $(fuentes)))
+ 
+# OBJECTS WIRH PATH
+condir_modulos_obj = $(addprefix $(dir_objetos)/,$(modulos_obj))
+condir_fuentes_obj = $(addprefix $(dir_objetos)/,$(fuentes_obj))
+ 
+# COMPILATION OPTIONS
+FFLAGS += $(patsubst %,-I%,$(dir_fuentes))
+FFLAGS += -I$(dir_objetos)
+ 
+# MAIN RULE
+all: $(ejecutable)
+ 
+# SOURCES RULE
+$(fuentes_obj): $(includes) $(modulos_obj)
+ 
+# RULE PATTERNS
+%.obj:%.f
+	$(FC) -c -o $@ $(FFLAGS) $<
+	copy $@ $(dir_objetos) 
+	del $@ 
+%.obj:%.F
+	$(FC) -c -o $@ $(FFLAGS) $< 
+	copy $@ $(dir_objetos) 
+	del $@ 
+%.obj:%.for
+	$(FC) -c -o $@ $(FFLAGS) $< 
+	copy $@ $(dir_objetos) 
+	del $@ 
+%.obj:%.FOR
+	$(FC) -c -o $@ $(FFLAGS) $< 
+	copy $@ $(dir_objetos) 
+	del $@ 
+%.obj:%.f90
+	$(FC) -c -o $@ $(FFLAGS) $< 
+	copy $@ $(dir_objetos) 
+	del $@ 
+%.obj:%.F90
+	$(FC) -c -o $@ $(FFLAGS) $< 
+	copy $@ $(dir_objetos) 
+	del $@ 
+ 
+$(ejecutable): $(modulos_obj)
+	$(FC) -shared -Wl,-soname,$(ejecutable) -o $(ejecutable) $(condir_modulos_obj) $(LDFLAGS)
+	-copy $(ejecutable) lib
+	-del $(ejecutable)
+	-copy object\*.mod include
+	-del object\*.mod
+
+.PHONY: cleanlib
+cleanlib: clean
+	-del lib\$(ejecutable)
+	-del include\*.mod
+ 
+.PHONY: clean
+clean:
+	-del $(dir_objetos)\*.obj    
+	-del $(dir_objetos)\*.mod    
+	-del $(ejecutable)
