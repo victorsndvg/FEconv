@@ -11,7 +11,6 @@ use module_feconv, only: convert
 implicit none
 character(10) :: last_update = '22/05/2019'
 
-
 !read and store arguments
 if (command_argument_count() == 0) call error('(feconv) command line arguments not found; to show help information: feconv -h')
 if (is_arg('-v')) then

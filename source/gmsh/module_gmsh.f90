@@ -28,27 +28,49 @@ subroutine load_gmsh(filename, iu, pmh)
 character(*), intent(in) :: filename
 integer,      intent(in) :: iu
 type(pmh_mesh), intent(inout) :: pmh
-integer :: res, i, j, k, ios, nel, elt, nelt, id4gmsh(93), xxx, ntags, tag(100), tmp(100)
+integer :: res, i, j, k, ios, nel, elt, nelt, id4gmsh(19), xxx, ntags, tag(100), tmp(100)
 integer, allocatable :: el_type(:), inv_el_type(:), new4old(:), old4new(:)
 character(maxpath) :: cad
 real :: version
+!From http://gmsh.info//doc/texinfo/gmsh.html#MSH-file-format: elm-type: defines the geometrical type of the n-th element
+character(*), parameter :: gmsh_elm_type(19) = [ &
+'2-node line                                                                                                                  ', &
+'3-node triangle                                                                                                              ', &
+'4-node quadrangle                                                                                                            ', &
+'4-node tetrahedron                                                                                                           ', &
+'8-node hexahedron                                                                                                            ', &
+'6-node prism                                                                                                                 ', &
+'5-node pyramid                                                                                                               ', &
+'3-node second order line (2 nodes associated with the vertices and 1 with the edge)                                          ', &
+'6-node second order triangle (3 nodes associated with the vertices and 3 with the edges)                                     ', &
+'9-node second order quadrangle (4 nodes associated with the vertices, 4 with the edges and 1 with the face)                  ', &
+'10-node second order tetrahedron (4 nodes associated with the vertices and 6 with the edges)                                 ', &
+'27-node second order hexahedron (8 nodes associated with the vertices, 12 with the edges, 6 with the faces and 1 with volume)', &
+'18-node second order prism (6 nodes associated with the vertices, 9 with the edges and 3 with the quadrangular faces)        ', &
+'14-node second order pyramid (5 nodes associated with the vertices, 8 with the edges and 1 with the quadrangular face)       ', &
+'1-node point                                                                                                                 ', &
+'8-node second order quadrangle (4 nodes associated with the vertices and 4 with the edges)                                   ', &
+'20-node second order hexahedron (8 nodes associated with the vertices and 12 with the edges)                                 ', &
+'15-node second order prism (6 nodes associated with the vertices and 9 with the edges)                                       ', &
+'13-node second order pyramid (5 nodes associated with the vertices and 8 with the edges)                                     ']
 
 !id4gmsh("gmsh element id") = "pmh element id"
-id4gmsh(15) = check_fe(.true.,      1, 1,  0, 0) ! 1
-id4gmsh( 1) = check_fe(.true.,      2, 2,  1, 0) ! 2
-id4gmsh( 8) = check_fe(.false.,     3, 2,  1, 0) ! 3
-id4gmsh( 2) = check_fe(.true.,      3, 3,  3, 0) ! 4
-id4gmsh( 9) = check_fe(.false.,     6, 3,  3, 0) ! 5
-!id4gmsh( ) = check_fe(.false.,     3, 3,  3, 0) ! 6 (tri rt)
-id4gmsh( 3) = check_fe(.true.,      4, 4,  4, 0) ! 7
-id4gmsh(16) = check_fe(.false.,     8, 4,  4, 0) ! 8
-id4gmsh( 4) = check_fe(.true.,      4, 4,  6, 4) ! 9
-id4gmsh(11) = check_fe(.false.,    10, 4,  6, 4) !10
-!id4gmsh( ) = check_fe(.false.,     4, 4,  6, 4) !11 (tet rt)
-!id4gmsh( ) = check_fe(.false.,     6, 4,  6, 4) !12 (tet nd)
-id4gmsh( 5) = check_fe(.true.,      8, 8, 12, 6) !13
-id4gmsh(17) = check_fe(.false.,    20, 8, 12, 6) !14
-id4gmsh( 6) = check_fe(.true.,      6, 6,  9, 5) !15
+id4gmsh     = 0
+id4gmsh(15) = check_fe(.true.,      1, 1,  0, 0) ! 1 Vertex                            
+id4gmsh( 1) = check_fe(.true.,      2, 2,  1, 0) ! 2 Edge, Lagrange P1                 
+id4gmsh( 8) = check_fe(.false.,     3, 2,  1, 0) ! 3 Edge, Lagrange P2                 
+id4gmsh( 2) = check_fe(.true.,      3, 3,  3, 0) ! 4 Triangle, Lagrange P1             
+id4gmsh( 9) = check_fe(.false.,     6, 3,  3, 0) ! 5 Triangle, Lagrange P2             
+!id4gmsh( ) = check_fe(.false.,     3, 3,  3, 0) ! 6 Triangle, Raviart-Thomas (edge)   
+id4gmsh( 3) = check_fe(.true.,      4, 4,  4, 0) ! 7 Quadrangle, Lagrange P1           
+id4gmsh(16) = check_fe(.false.,     8, 4,  4, 0) ! 8 Quadrangle, Lagrange P2           
+id4gmsh( 4) = check_fe(.true.,      4, 4,  6, 4) ! 9 Tetrahedron, Lagrange P1          
+id4gmsh(11) = check_fe(.false.,    10, 4,  6, 4) !10 Tetrahedron, Lagrange P2          
+!id4gmsh( ) = check_fe(.false.,     4, 4,  6, 4) !11 Tetrahedron, Raviart-Thomas (face)
+!id4gmsh( ) = check_fe(.false.,     6, 4,  6, 4) !12 Tetrahedron, Nedelec (edge)       
+id4gmsh( 5) = check_fe(.true.,      8, 8, 12, 6) !13 Tetrahedron, Nedelec 2 (edge)     
+id4gmsh(17) = check_fe(.false.,    20, 8, 12, 6) !14 Hexahedron, Lagrange P1           
+id4gmsh( 6) = check_fe(.true.,      6, 6,  9, 5) !15 Hexahedron, Lagrange P2           
 
 !allocation
 if (allocated(pmh%pc)) then
@@ -102,8 +124,10 @@ associate (m => pmh%pc(1)) !m: current mesh
   allocate(m%el(nelt), stat = res, errmsg = cad)
   if (res /= 0) call error('(module_gmsh/load_gmsh) Unable to allocate piece: '//trim(cad))
   do i = 1, nelt
-    m%el(i)%type = id4gmsh(el_type(i))
-    if (FEDB(id4gmsh(elt))%lnn >= size(tmp,1)) call error('(module_gmsh/load_gmsh) temporary array tmp cannot store nodes; '//&
+      m%el(i)%type = id4gmsh(el_type(i))
+    if (id4gmsh(el_type(i)) == 0) call error('(module_gmsh/load_gmsh) unsupported GMSH element type: '//&
+    trim(gmsh_elm_type(el_type(i))))
+    if (FEDB(id4gmsh(i))%lnn >= size(tmp,1)) call error('(module_gmsh/load_gmsh) temporary array tmp cannot store nodes; '//&
     &'please, increase the tmp dimension and compile again.')
   end do
   !invert el_type: inv_el_type

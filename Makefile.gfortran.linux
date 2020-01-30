@@ -175,6 +175,7 @@ cleanlib: clean
  
 .PHONY: clean
 clean:
-	$(RM) $(dir_objetos)/*.o      
-	$(RM) $(dir_objetos)/*.mod    
+	$(RM) $(dir_objetos)/*.o
+	$(RM) $(dir_objetos)/*.mod
 	$(RM) $(ejecutable)
+	$(RM) $(dir_objetos)/*.smod

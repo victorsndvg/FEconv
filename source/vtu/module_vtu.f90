@@ -916,7 +916,6 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
   endif
 
   if(.not. allocated(auxpmh%pc)) allocate(auxpmh%pc(1))
-
   do i=1, ip
     call info('  Piece '//trim(string(i))//':')
     call info('    Reading coordinates ...')
@@ -978,24 +977,26 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
     endif
 
     ! Reads and store pointdata fields
-    if(vtk_var_xml_list(pdfnames,i,'Node') == 0 ) then
-      if(allocated(pdfnames)) then
+    if (vtk_var_xml_list(pdfnames,i,'Node') == 0 ) then
+      if (allocated(pdfnames)) then
         npdf = size(pdfnames,1) ! Number of pointdata fields
         do j=1, size(pdfnames,1)
-          if(trim(lcase(pdfnames(j))) == 'vertex_ref' .or. &
-            & index(lcase(pdfnames(j)),'nrv_') /= 0) npdf = npdf -1
-          ! if -in option is present, discard not selected fields
-          if(allocated(fieldnames)) then
+          if (trim(lcase(pdfnames(j))) == 'vertex_ref' .or. index(lcase(pdfnames(j)),'nrv_') /= 0) then
+            npdf = npdf - 1
+          elseif (allocated(fieldnames)) then !if -in option is present, discard not selected fields
             ffound = .false.
             do k=1, size(fieldnames,1)
-              if(trim(adjustl(pdfnames(j))) == trim(adjustl(fieldnames(k)))) ffound = .true.
-            enddo
-            if(.not. ffound) npdf = npdf -1
-          endif
-        enddo
+              if (trim(adjustl(pdfnames(j))) == trim(adjustl(fieldnames(k)))) then
+                ffound = .true.
+                exit
+              end if  
+            end do
+            if(.not. ffound) npdf = npdf - 1
+          end if
+        end do
       else
         npdf = 0
-      endif
+      end if
 
       ! Memory allocation: Point fields
       if(.not. allocated(pmh%pc(i)%fi)) then
@@ -1066,25 +1067,20 @@ subroutine read_vtu(filename, pmh, fieldnames, nparam, param)
         ncdf = size(cdfnames,1) ! Number of celldata fields
         do j=1, size(cdfnames,1)
           ! Discard references
-          if(trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
-             trim(lcase(cdfnames(j))) == 'edge_ref') then
+          if (trim(lcase(cdfnames(j))) == 'element_ref' .or. trim(lcase(cdfnames(j))) == 'face_ref' .or. &
+              trim(lcase(cdfnames(j))) == 'edge_ref') then
             ncdf = ncdf - 1
-            cycle
-          endif
-          if (index(lcase(cdfnames(j)), 'nsd_') /= 0 .or. index(lcase(cdfnames(j)), 'nrc_') /= 0 .or. &
-              index(lcase(cdfnames(j)), 'nra_') /= 0) then
+          elseif (index(lcase(cdfnames(j)), 'nsd_') /= 0 .or. index(lcase(cdfnames(j)), 'nrc_') /= 0 .or. &
+                  index(lcase(cdfnames(j)), 'nra_') /= 0) then
             ncdf = ncdf - 1
-            cycle
-          endif
-          ! if -in option is present, discard unselected fields
-          if(allocated(fieldnames)) then
+          elseif (allocated(fieldnames)) then !if -in option is present, discard unselected fields
             ffound = .false.
             do k = 1, size(fieldnames,1)
               if(trim(adjustl(cdfnames(j)))== trim(adjustl(fieldnames(k)))) ffound = .true.
-            enddo
+            end do
             if (.not. ffound) ncdf = ncdf - 1
-          endif
-        enddo
+          end if
+        end do
         if (allocated(cdfval)) deallocate(cdfval)
         allocate(cdfval(ncdf))
         ncdf = 0
