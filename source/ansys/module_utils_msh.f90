@@ -377,36 +377,40 @@ subroutine add_faces_to_pmh(faces,izones,pmh)
   numgroups = 0
   if(allocated(pmh%pc(1)%el)) numgroups = size(pmh%pc(1)%el,1)
 
-  do i=1,size(izones%id,1)
-    if(trim(izones%types(i))/='interior') cycle
-    where(faces%zone==izones%id(i))
-      faces%zone = 0
-    end where
-  enddo
+  if (allocated(izones%types)) then
+    do i=1,size(izones%id,1)
+      if(trim(izones%types(i))/='interior') cycle
+      where(faces%zone==izones%id(i))
+        faces%zone = 0
+      end where
+    enddo
+  end if  
 
-  do i=1, size(faces%type,1)
-    if(faces%zone(i) == 0) cycle
-    if (groups(faces%type(i)) == 0) then
-      numgroups = numgroups + 1
-      groups(faces%type(i)) = numgroups
-      if(.not. allocated(pmh%pc(1)%el)) allocate(pmh%pc(1)%el(numgroups))
-      if(size(pmh%pc(1)%el,1)<numgroups) then
-        call extend_elgroup(pmh%pc(1)%el,numgroups)
-        if(pmh%pc(1)%el(numgroups)%type == 0) pmh%pc(1)%el(numgroups)%type = faces%type(i)
-        numface = 0
+  if (allocated(faces%type)) then
+    do i=1, size(faces%type,1)
+      if(faces%zone(i) == 0) cycle
+      if (groups(faces%type(i)) == 0) then
+        numgroups = numgroups + 1
+        groups(faces%type(i)) = numgroups
+        if(.not. allocated(pmh%pc(1)%el)) allocate(pmh%pc(1)%el(numgroups))
+        if(size(pmh%pc(1)%el,1)<numgroups) then
+          call extend_elgroup(pmh%pc(1)%el,numgroups)
+          if(pmh%pc(1)%el(numgroups)%type == 0) pmh%pc(1)%el(numgroups)%type = faces%type(i)
+          numface = 0
+        endif
       endif
-    endif
-
-    ft = faces%type(i)
-    group = groups(ft)
-
-    numface = numface+1
-
-    call set(2, pmh%pc(1)%el(group)%mm,faces%mm(i)%data,numface,fit=tf)
-    call set(pmh%pc(1)%el(group)%ref,faces%zone(i), numface,.false.)
-    pmh%pc(1)%el(group)%nel = pmh%pc(1)%el(group)%nel + 1
-
-  enddo
+  
+      ft = faces%type(i)
+      group = groups(ft)
+  
+      numface = numface+1
+  
+      call set(2, pmh%pc(1)%el(group)%mm,faces%mm(i)%data,numface,fit=tf)
+      call set(pmh%pc(1)%el(group)%ref,faces%zone(i), numface,.false.)
+      pmh%pc(1)%el(group)%nel = pmh%pc(1)%el(group)%nel + 1
+  
+    enddo
+  end if
 
   if(allocated(izones%id)) deallocate(izones%id)
   if(allocated(izones%names)) deallocate(izones%names)

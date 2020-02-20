@@ -169,7 +169,7 @@ character(*),   intent(in)    :: outfile
 integer,        intent(in)    :: iu
 type(pmh_mesh), intent(inout) :: pmh
 
-integer :: i, ipp, ip, ig, k, j, id4pmh(15), valid_fe(12), res, ios, nel, nnod, prev_nel
+integer :: i, ipp, ip, ig, k, j, id4pmh(16), valid_fe(12), res, ios, nel, nnod, prev_nel
 integer, allocatable :: piece2save(:), nel_piece(:), nnod_piece(:)
 real(real64), allocatable :: znod(:,:)
 character(maxpath) :: str, cad
