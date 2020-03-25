@@ -449,7 +449,10 @@ subroutine read_2414(iu, pmh, npc, nfield, els_loc, dataset, infield, ca_opt, pa
       counter  = counter + 1
     end do
 
-    if(pmh%pc(npc)%nnod /= counter) call error('dataset_2414/read, # Wrong number of values')
+    if (pmh%pc(npc)%nnod /= counter) call warning('dataset_2414/read, Maximum node numbering, '//trim(string(pmh%pc(npc)%nnod))//&
+    ', differs from number of field entries, '//trim(string(counter))//'; possible non-consecutive node numbering. Continue '//&
+    'at your own risk!')    
+    !)Number of nodes # Wrong number of values')
 
   elseif(dloc == 2 .or. dloc == 3) then ! Data at elements
     fidx = 0
