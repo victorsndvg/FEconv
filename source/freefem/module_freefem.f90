@@ -86,14 +86,20 @@ associate (m => pmh%pc(1)) !m: current mesh
   do j = 1, m%nver; m%el(3)%mm(1,j) = j; end do
   !read z
   backspace(iu)
-  read (unit=iu, fmt=*, iostat=ios) ((m%z(i,j),  i=1,m%dim), m%el(3)%ref(j), j=1,m%nver)
-  if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read z: #'//trim(string(ios)))
+  if (m%nver > 0) then
+    read (unit=iu, fmt=*, iostat=ios) ((m%z(i,j),  i=1,m%dim), m%el(3)%ref(j), j=1,m%nver)
+    if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read z: #'//trim(string(ios)))
+  end if  
   !read el(1)%mm
-  read (unit=iu, fmt=*, iostat=ios) ((m%el(1)%mm(i,k),  i=1,FEDB(m%el(1)%type)%lnv), m%el(1)%ref(k), k=1,m%el(1)%nel)
-  if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read el(1)%mm: #'//trim(string(ios)))
+  if (m%el(1)%nel > 0) then
+    read (unit=iu, fmt=*, iostat=ios) ((m%el(1)%mm(i,k),  i=1,FEDB(m%el(1)%type)%lnv), m%el(1)%ref(k), k=1,m%el(1)%nel)
+    if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read el(1)%mm: #'//trim(string(ios)))
+  end if
   !read el(2)%mm
-  read (unit=iu, fmt=*, iostat=ios) ((m%el(2)%mm(i,k),  i=1,FEDB(m%el(2)%type)%lnv), m%el(2)%ref(k), k=1,m%el(2)%nel)
-  if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read el(2)%mm: #'//trim(string(ios)))
+  if (m%el(2)%nel > 0) then
+    read (unit=iu, fmt=*, iostat=ios) ((m%el(2)%mm(i,k),  i=1,FEDB(m%el(2)%type)%lnv), m%el(2)%ref(k), k=1,m%el(2)%nel)
+    if (ios /= 0) call error('(module_freefem/load_freefem_msh) unable to read el(2)%mm: #'//trim(string(ios)))
+  end if
 end associate
 call build_vertices(pmh)
 end subroutine

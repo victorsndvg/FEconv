@@ -9,14 +9,14 @@ program feconv
 use basicmod, only: string, error, is_arg, args_count, get_arg
 use module_feconv, only: convert
 implicit none
-character(10) :: last_update = '22/05/2019'
+character(10) :: last_update = '31/07/2020'
 
 !read and store arguments
 if (command_argument_count() == 0) call error('(feconv) command line arguments not found; to show help information: feconv -h')
 if (is_arg('-v')) then
   !show version
   print '(a)', 'FEconv: utility to convert between several finite element mesh and field formats'
-  print '(a/)', 'Copyright (C) 2010-2018 Universidade de Santiago de Compostela.  License GPLv3+'
+  print '(a/)', 'Copyright (C) 2010-2020 Universidade de Santiago de Compostela.  License GPLv3+'
   print '(a/)', 'Last update: '//last_update
   stop
 elseif (is_arg('-h')) then
@@ -305,7 +305,7 @@ elseif (is_arg('-h')) then
   print '(a)', '    <https://github.com/victorsndvg/FEconv>'
   print '(a)', ' '
   print '(a)', 'COPYRIGHT'
-  print '(a)', '    Copyright (C) 2010-2018 Universidade de Santiago de Compostela.  License GPLv3+: GNU GPL version 3 or later'
+  print '(a)', '    Copyright (C) 2010-2020 Universidade de Santiago de Compostela.  License GPLv3+: GNU GPL version 3 or later'
   print '(a)', '    <http://gnu.org/licenses/gpl.html>. This is free software: you are free to change and redistribute it.'
   print '(a)', '    There is NO WARRANTY, to the extent permitted by law.'
   print '(a)', ' '
