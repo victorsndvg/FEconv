@@ -89,7 +89,7 @@
 
       <div id="div1">
         <p>This samples shows how to convert several mesh <a href="formats.xhtml">formats</a> supported by FEconv. </p>
-        <p>This formats are identified by the file extension, due to the overlap among some extensions this samples introduce the <a href="options.xhtml#ff">option -ff</a> and the <a href="options.xhtml#gm">option -gm</a>, for reading FreeFem++ and GMesh mesh files respectively. </p>
+        <p>This formats are identified by the file extension, due to the overlap among some extensions this samples introduce the <a href="options.xhtml#ff">option -ff</a> and the <a href="options.xhtml#gm">option -gm</a>, for reading FreeFem++ and Gmsh mesh files respectively. </p>
 
         <p>The <a href="options.xhtml#reor">option -r</a> and the <a href="options.xhtml#tol">option -t</a> must be used when reading single precission <a href="formats/pf3.xhtml">PF3</a> mesh files. </p>
 
@@ -111,8 +111,8 @@
               <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/mesh</span>.mfm <span class="hl line">output</span>.msh</pre></td></tr>
             <tr id="ex7"><td><h4 align="left"><a href="formats/ffmsh.xhtml">MSH</a> (FreeFem++) mesh to <a href="formats/mphtxt.xhtml">MPHTXT</a> (Comsol) mesh:</h4>
               <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/freefem_mesh</span>.msh <span class="hl line">output</span>.mphtxt</pre></td></tr>
-            <tr id="ex8"><td><h4 align="left"><a href="formats/gmshmsh.xhtml">MSH</a> (GMesh) mesh to <a href="formats/mum.xhtml">MUM</a> (Modulef Unformatted Mesh) mesh:</h4>
-              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-gm</span> <span class="hl line">examples/ansys_mesh</span>.msh <span class="hl line">output</span>.mum</pre></td></tr>
+            <tr id="ex8"><td><h4 align="left"><a href="formats/gmshmsh.xhtml">MSH</a> (Gmsh) mesh to <a href="formats/mum.xhtml">MUM</a> (Modulef Unformatted Mesh) mesh:</h4>
+              <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-gm</span> <span class="hl line">examples/gmsh_mesh</span>.msh <span class="hl line">output</span>.mum</pre></td></tr>
             <tr id="ex9"><td><h4 align="left"><a href="formats/mesh.xhtml">MESH</a> (FreeFeem++) mesh to <a href="formats/mum.xhtml">MUM</a> (Modulef Unformatted File) mesh:</h4>
               <pre><span class="hl kwa">feconv</span> <span class="hl kwb">-ff</span> <span class="hl line">examples/mesh</span>.mesh <span class="hl line">output</span>.mum</pre></td></tr>
           </tbody>
