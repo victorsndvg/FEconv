@@ -675,18 +675,22 @@ subroutine nodes_not_in_cell(cell, subcell, nodes, posinsubcell, posincell, reve
     endif
   enddo
   call reduce(nodes,numnodes)
-  if(present(posinsubcell) .and. allocated(posinsubcell)) then
-    if(present(reverse)) then
-      if(reverse) then
-        call reduce(posinsubcell, numold)
+  if (present(posinsubcell)) then
+    if (allocated(posinsubcell)) then
+      if(present(reverse)) then
+        if(reverse) then
+          call reduce(posinsubcell, numold)
+        else
+          call reduce(posinsubcell,numnodes)
+        endif
       else
         call reduce(posinsubcell,numnodes)
       endif
-    else
-      call reduce(posinsubcell,numnodes)
-    endif
+    end if  
   endif
-  if(present(posincell) .and. allocated(posincell)) call reduce(posincell,numold)
+  if (present(posincell)) then
+    if (allocated(posincell)) call reduce(posincell,numold)
+  end if  
 !  if(present(oldpos) .and. allocated(oldpos)) print*, oldpos
 
 end subroutine
